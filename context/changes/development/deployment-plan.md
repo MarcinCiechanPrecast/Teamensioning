@@ -170,7 +170,17 @@ The `if` condition (without it, PRs would deploy to production) is left to you a
 
 Verification: on a PR → the `deploy` job is _skipped_; after merge → `gh run list` / `gh run view <id> --log` shows a successful `wrangler deploy`; `npx wrangler deployments list` shows the new version.
 
-**Finding (2026-10-16, Unknown unknowns):** PR #5 showed an extra failing check, `Workers Builds: teamensioning` (Cloudflare's Git integration, app `cloudflare-workers-and-pages`). The repo had been connected to the Worker in the Cloudflare dashboard during onboarding, creating a **second, ungated production deploy path** that would race the GitHub Actions `deploy` job and skip `ci`/`smoke`. The user disconnected it in the dashboard, but the next push (`d20c344`) still produced a Workers Builds check that again failed instantly (0 s, nothing deployed). **Decision:** GitHub Actions is the only deploy path, as required by `tech-stack.md` (`ci_provider: github-actions`, `ci_default_flow: auto-deploy-on-merge`). The leftover Workers Builds check is non-required noise and does not block the merge; to remove it entirely, revoke the Cloudflare GitHub App's access to this repo at github.com/settings/installations (cannot be done with the `gh` token). Rule: after any dashboard setup, check for platform-side Git integrations.
+**Finding (2026-10-16, Unknown unknowns):** PR #5 showed an extra failing check, `Workers Builds: teamensioning` (Cloudflare's Git integration, app `cloudflare-workers-and-pages`). The repo had been connected to the Worker in the Cloudflare dashboard during onboarding, creating a **second, ungated production deploy path** that would race the GitHub Actions `deploy` job and skip `ci`/`smoke`. The user disconnected it in the dashboard, but the next push (`d20c344`) still produced a Workers Builds check that again failed instantly (0 s, nothing deployed). _(Superseded — see "Step 7 revised" below: Workers Builds became the single deploy path instead.)_ Rule: after any dashboard setup, check for platform-side Git integrations, and keep exactly one deploy path.
+
+**Step 7 revised (2026-10-16): auto-deploy via Cloudflare Workers Builds, not GitHub Actions.** At the user's request, the GitHub Actions `deploy` job was removed (`ci.yml` back to `ci` + `smoke` only) so Workers Builds is the single deploy path. Trade-off accepted: Workers Builds deploys on merge without waiting for `ci`/`smoke` — mitigate with branch protection on `master` (require PR + passing `ci` and `smoke` before merge). 🧑 Dashboard settings (Workers & Pages → `teamensioning` → Settings → Build → Connect):
+
+- Git repository: `MarcinCiechanPrecast/Teamensioning`; production branch: `master`
+- Build command: `npm run build`; deploy command: `npx wrangler deploy`; root directory: `/`
+- Non-production branch builds: **off** (preview versions would use the production Supabase secrets — risk register)
+- Build variable: `NODE_VERSION` = `22.14.0` (matches `.nvmrc`)
+- Worker name in `wrangler.jsonc` (`teamensioning`) must match the connected Worker, or the build fails.
+- Runtime secrets stay as set in step 3 (Workers Builds does not touch them); `SUPABASE_*` are not needed at build time.
+- The GitHub secrets `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` are now unused; Workers Builds creates its own build token. Remove them (and revoke the scoped token) when convenient.
 
 PR #5 checks on the first commit: `ci` pass, `smoke` pass, `deploy` skipped (the push-to-master condition works on PRs).
 
