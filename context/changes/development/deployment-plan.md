@@ -212,10 +212,11 @@ Rotating the Supabase key, deleting the Worker/project, upgrading to the Paid pl
 ## Result
 
 - **URL:** https://teamensioning.marcin-ciechan.workers.dev
-- **Version:** `4f25a208-7b23-45f4-935c-92c46e12d990` (100% traffic)
-- **Deployed:** 2026-10-16T07:49:03Z, manually by the repo owner (`wrangler deploy`, interactive)
+- **Version (current):** `1520724f-bdfe-44a3-b8e4-4602f5c2c466` (100% traffic) — first automatic deploy by Workers Builds after merging PR #5 (`47ae3ad`), 2026-10-16T10:59:33Z. Verified: `/` 200, `/dashboard` 302 → `/auth/signin`, `/auth/signin` 200, 404 page, Supabase reachable (wrong-password check); `ci`, `smoke`, Workers Builds all green on `47ae3ad`.
+- **Previous version (rollback target):** `4f25a208-7b23-45f4-935c-92c46e12d990` — first manual deploy, 2026-10-16T07:49:03Z (`wrangler deploy`, interactive)
 - **workers.dev subdomain:** `marcin-ciechan` (account-wide)
 - **Provisioned resources:** KV namespace `teamensioning-session` (`076b524e2f714076ae4157d91b3aaf3e`); bindings `SESSION`, `IMAGES`, `ASSETS`
 - **Supabase:** `eortunvxkvspuuousnff` (`eu-west-1`)
 - **Manual sign-up test:** passed 2026-10-16 (user confirmed sign-up → email confirmation → sign-in → `/dashboard`).
-- **Open:** step 9 (commit/PR) and the first CI deploy run after merge; optionally set `site` in `astro.config.mjs` to the URL above to enable the sitemap.
+- **Done:** step 9 (PR #5 merged 2026-10-16T10:58:31Z) and the first automatic deploy.
+- **Open follow-ups:** branch protection on `master` (require `ci` + `smoke`), delete unused `CLOUDFLARE_*` GitHub secrets and revoke that token, turn off non-production Workers Builds once the setting is found; optionally set `site` in `astro.config.mjs` to the URL above to enable the sitemap.
