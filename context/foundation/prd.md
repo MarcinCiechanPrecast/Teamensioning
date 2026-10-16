@@ -1,6 +1,6 @@
 ---
 project: "Teamensioning"
-version: 1
+version: 2
 status: draft
 created: 2026-10-09
 context_type: greenfield
@@ -30,6 +30,7 @@ Insight: the organizer knows this domain first-hand, which makes it possible to 
 ## Success Criteria
 
 ### Primary
+
 - The MVP flow works end to end:
   1. Organizer signs in and creates a new tournament.
   2. Organizer gives it a name (league format is implicit in MVP), sets points for win/draw/loss (prefilled 3/1/0), and adds players by name.
@@ -39,9 +40,11 @@ Insight: the organizer knows this domain first-hand, which makes it possible to 
   6. The leaderboard updates.
 
 ### Secondary
+
 - Players check "who do I play next" themselves instead of asking the organizer in chat.
 
 ### Guardrails
+
 - The leaderboard always matches the entered results (points and order never wrong or stale).
 - Every player meets every other player exactly once in a league (no missing or duplicate pairings).
 
@@ -54,6 +57,7 @@ Insight: the organizer knows this domain first-hand, which makes it possible to 
 - **Then** the leaderboard shows the updated points for both players in that match
 
 #### Acceptance Criteria
+
 - Fixtures contain every pair of players exactly once (4 players → 6 matches)
 - Leaderboard points match the entered results and the tournament's points settings
 - A match without a result gives no points to either player
@@ -62,6 +66,7 @@ Insight: the organizer knows this domain first-hand, which makes it possible to 
 ## Functional Requirements
 
 ### Organizer
+
 - FR-001: Organizer can sign in. Priority: must-have
   > Socrates: Counter-argument considered: "a secret admin link would do — no
   > account system, less auth work in a 3-week MVP." Resolution: rejected; sign-in
@@ -81,7 +86,7 @@ Insight: the organizer knows this domain first-hand, which makes it possible to 
 - FR-005: Organizer can share the tournament link with players. Priority: must-have
   > Socrates: Counter-argument considered: "a leaked link lets anyone enter scores
   > and can't be revoked." Resolution: risk accepted for MVP; an unlisted link is
-  > sufficient for an office league. Link rotation recorded as an open question.
+  > sufficient for an office league. Link rotation recorded as an MVP non-goal.
 - FR-006: Organizer can correct an already-entered match score. Priority: must-have
   > Socrates: Counter-argument considered: "the organizer becomes a bottleneck
   > again for every typo." Resolution: kept; corrections are expected to be rare —
@@ -96,6 +101,7 @@ Insight: the organizer knows this domain first-hand, which makes it possible to 
   > editable only until the first score is entered.
 
 ### System
+
 - FR-007: System generates round-robin fixtures when the tournament is saved, as a list of all pairings (no rounds in MVP). Priority: must-have
   > Socrates: Counter-argument considered: "an odd number of players needs byes."
   > Resolution: revised; MVP has no rounds — fixtures are a list of every pairing,
@@ -106,6 +112,7 @@ Insight: the organizer knows this domain first-hand, which makes it possible to 
   > difference, then goals scored. Head-to-head stays for later.
 
 ### Link holder (player)
+
 - FR-009: Link holder can enter a match score once; if a score was already entered, they see that it is already entered. Priority: must-have
   > Socrates: Counter-argument considered: "two players may submit different scores
   > at the same time." Resolution: revised; the first submission wins, the second
@@ -145,9 +152,10 @@ The system generates fixtures and calculates standings from entered scores.
 
 - **No player accounts or notifications** — players are names only; no emails or match reminders. Keeps link-based entry friction-free.
 - **No head-to-head tiebreaker or score-change history** — MVP tiebreaker is goal difference then goals scored; an organizer correction overwrites the score.
+- **No tournament link rotation** — a leaked link cannot be regenerated; the risk is accepted for an office league (FR-005).
+- **No changes to the player list after creation** — a missing or extra player means recreating the tournament. Keeps the "every pair meets exactly once" guardrail tied to a fixed player list.
+- **No formats other than league in MVP** — cup, group→knockout and Swiss are candidates for a later milestone; the format picker arrives with the cup format (FR-002).
 
 ## Open Questions
 
-1. **Tournament link rotation** — should the organizer be able to regenerate a leaked link? Risk accepted for MVP (FR-005 Socrates). Owner: user.
-2. **Adding or removing players after creation** — offered during shaping but not selected as an FR, and not ruled out as a non-goal. Today a missing player means recreating the tournament. Owner: user.
-3. **Other formats as explicit non-goals** — cup, group→knockout and Swiss are listed as "Next/Later" in the seed idea but were not selected as MVP non-goals. Owner: user.
+None open. Resolved on 2026-10-16: link rotation, player-list changes after creation and other formats are recorded under Non-Goals.
