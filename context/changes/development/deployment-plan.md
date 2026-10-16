@@ -177,7 +177,8 @@ Verification: on a PR → the `deploy` job is _skipped_; after merge → `gh run
 - Git repository: `MarcinCiechanPrecast/Teamensioning`; production branch: `master`
 - Build command: `npm run build`; deploy command: `npx wrangler deploy`; root directory: `/`
 - Non-production branch builds: **off** (preview versions would use the production Supabase secrets — risk register)
-- Build variable: `NODE_VERSION` = `22.14.0` (matches `.nvmrc`)
+- Node version: Workers Builds reads `.nvmrc` automatically — no `NODE_VERSION` build variable needed (remove it if set). `.nvmrc` bumped 22.14.0 → **22.23.3** on 2026-10-16: the first Workers Build warned `EBADENGINE` (`undici@8` needs `>=22.19.0`, `eslint-plugin-astro`/`astro-eslint-parser` need `^22.22.3`).
+- First Workers Build on PR #5 (2026-10-16) failed: non-production builds were on and ran `npx wrangler preview` (**beta**), which cannot auto-provision KV → `binding SESSION of type kv_namespace must have a namespace_id specified [code: 10021]`. Fix: pin `SESSION` to `076b524e2f714076ae4157d91b3aaf3e` in `wrangler.jsonc` (verified: the adapter keeps the ID in `dist/server/wrangler.json`; `wrangler deploy --dry-run` binds it), and turn non-production builds off.
 - Worker name in `wrangler.jsonc` (`teamensioning`) must match the connected Worker, or the build fails.
 - Runtime secrets stay as set in step 3 (Workers Builds does not touch them); `SUPABASE_*` are not needed at build time.
 - The GitHub secrets `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` are now unused; Workers Builds creates its own build token. Remove them (and revoke the scoped token) when convenient.
