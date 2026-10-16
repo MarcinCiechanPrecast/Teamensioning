@@ -170,6 +170,10 @@ The `if` condition (without it, PRs would deploy to production) is left to you a
 
 Verification: on a PR → the `deploy` job is _skipped_; after merge → `gh run list` / `gh run view <id> --log` shows a successful `wrangler deploy`; `npx wrangler deployments list` shows the new version.
 
+**Finding (2026-10-16, Unknown unknowns):** PR #5 showed an extra failing check, `Workers Builds: teamensioning` (Cloudflare's Git integration, app `cloudflare-workers-and-pages`). The repo had been connected to the Worker in the Cloudflare dashboard during onboarding, creating a **second, ungated production deploy path** that would race the GitHub Actions `deploy` job and skip `ci`/`smoke`. The user disconnected it (Workers & Pages → teamensioning → Settings → Build → Disconnect). Rule: GitHub Actions is the only deploy path; after any dashboard setup, check for platform-side Git integrations.
+
+PR #5 checks on the first commit: `ci` pass, `smoke` pass, `deploy` skipped (the push-to-master condition works on PRs).
+
 ### 8. ✅ Lesson from the risk register _(done 2026-10-16 — appended to `context/foundation/lessons.md` as "Use current Cloudflare Workers APIs, not outdated Astro/Pages tutorials")_
 
 `/10x-lesson`: "read env via `astro:env/server` or `cloudflare:workers` (never `Astro.locals.runtime`); deploy with `wrangler deploy` (Workers), never Pages; `wrangler dev` is redundant" → `context/foundation/lessons.md`.
