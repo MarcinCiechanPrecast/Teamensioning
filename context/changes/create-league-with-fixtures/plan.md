@@ -415,28 +415,28 @@ This is the first migration. Locally it runs with `npx supabase db reset`. In CI
 
 #### Automated
 
-- [x] 1.1 Unit tests pass: `npm run test`
-- [x] 1.2 Lint passes: `npm run lint`
-- [x] 1.3 Type check passes: `npx astro check`
+- [x] 1.1 Unit tests pass: `npm run test` — b7a23e9
+- [x] 1.2 Lint passes: `npm run lint` — b7a23e9
+- [x] 1.3 Type check passes: `npx astro check` — b7a23e9
 
 #### Manual
 
-- [x] 1.4 The literal expected 4-player order in `fixtures.test.ts` reads as a sensible schedule (each player once per block of 2)
+- [x] 1.4 The literal expected 4-player order in `fixtures.test.ts` reads as a sensible schedule (each player once per block of 2) — b7a23e9
 
 ### Phase 2: Database schema + RPC
 
 #### Automated
 
-- [ ] 2.1 Migration applies on a clean local DB: `npx supabase db reset`
-- [ ] 2.2 Generated types are up to date: `npx supabase gen types typescript --local | diff - src/db/database.types.ts`
-- [ ] 2.3 Lint passes: `npm run lint`
-- [ ] 2.4 Type check passes: `npx astro check`
-- [ ] 2.5 Existing smoke test still passes against local preview: `npm run smoke`
+- [x] 2.1 Migration applies on a clean local DB: `npx supabase db reset`
+- [x] 2.2 Generated types are up to date: `npx supabase gen types typescript --local | diff - src/db/database.types.ts`
+- [x] 2.3 Lint passes: `npm run lint`
+- [x] 2.4 Type check passes: `npx astro check`
+- [x] 2.5 Existing smoke test still passes against local preview: `npm run smoke`
 
 #### Manual
 
-- [ ] 2.6 Using Studio's SQL editor impersonating an authenticated user, calling `create_league` with 4 names creates 1 tournament, 4 players and 6 matches; a call with a duplicate name ('Tomek', 'tomek') or a wrong fixture count creates nothing
-- [ ] 2.7 Impersonating a second user in Studio's SQL editor, a select cannot see the first user's tournament
+- [x] 2.6 Using Studio's SQL editor impersonating an authenticated user, calling `create_league` with 4 names creates 1 tournament, 4 players and 6 matches; a call with a duplicate name ('Tomek', 'tomek') or a wrong fixture count creates nothing
+- [x] 2.7 Impersonating a second user in Studio's SQL editor, a select cannot see the first user's tournament
 
 ### Phase 3: Create endpoint + fixtures page
 
