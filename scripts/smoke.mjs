@@ -35,9 +35,23 @@ async function request(path, { method = "GET", form } = {}) {
   return { status: response.status, location: response.headers.get("location") ?? "" };
 }
 
+// Entries array, not a plain object: repeated "players" keys must survive into URLSearchParams.
+function leagueForm(players) {
+  return [
+    ["name", "Smoke League"],
+    ["pointsWin", "3"],
+    ["pointsDraw", "1"],
+    ["pointsLoss", "0"],
+    ...players.map((player) => ["players", player]),
+  ];
+}
+
+let leagueLocation = "";
+
 const steps = [
   ["home renders", () => request("/"), { status: 200 }],
   ["dashboard redirects anonymous user", () => request("/dashboard"), { status: 302, location: "/auth/signin" }],
+  ["new league redirects anonymous user", () => request("/leagues/new"), { status: 302, location: "/auth/signin" }],
   [
     "signup creates account",
     () => request("/api/auth/signup", { method: "POST", form: { email, password } }),
@@ -54,6 +68,24 @@ const steps = [
     { status: 302, location: "/" },
   ],
   ["dashboard renders for signed-in user", () => request("/dashboard"), { status: 200 }],
+  [
+    "create league redirects to fixtures",
+    async () => {
+      const result = await request("/api/leagues", {
+        method: "POST",
+        form: leagueForm(["Anna", "Bartek", "Celina", "Darek"]),
+      });
+      leagueLocation = result.location;
+      return result;
+    },
+    { status: 302, location: "/leagues/" },
+  ],
+  ["fixtures page renders for owner", () => request(leagueLocation), { status: 200 }],
+  [
+    "create league rejects duplicate names",
+    () => request("/api/leagues", { method: "POST", form: leagueForm(["Anna", "Bartek", "anna"]) }),
+    { status: 302, location: "/leagues/new?error=" },
+  ],
   ["signout clears session", () => request("/api/auth/signout", { method: "POST" }), { status: 302, location: "/" }],
   ["dashboard redirects after signout", () => request("/dashboard"), { status: 302, location: "/auth/signin" }],
 ];

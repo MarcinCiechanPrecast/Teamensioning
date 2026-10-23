@@ -1,0 +1,83 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { createClient } from "@/lib/supabase";
+import type { FixtureDTO, PlayerDTO, TournamentDTO } from "@/types";
+
+// PostgREST answers a malformed uuid with 22P02; to the organizer that is simply "not found".
+const INVALID_TEXT_REPRESENTATION = "22P02";
+
+async function loadLeague(id: string | undefined): Promise<{ league: TournamentDTO; fixtures: FixtureDTO[] } | null> {
+  const supabase = createClient(Astro.request.headers, Astro.cookies);
+  if (!id || !supabase) return null;
+
+  // RLS only returns the organizer's own tournaments, so "not the owner" also lands here as null.
+  const { data: league, error: leagueError } = await supabase
+    .from("tournaments")
+    .select("id, name, points_win, points_draw, points_loss, created_at")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (leagueError) {
+    if (leagueError.code === INVALID_TEXT_REPRESENTATION) return null;
+    throw new Error(leagueError.message);
+  }
+  if (!league) return null;
+
+  const [playersResult, matchesResult] = await Promise.all([
+    supabase.from("players").select("id, name").eq("tournament_id", league.id),
+    supabase
+      .from("matches")
+      .select("id, position, player_a_id, player_b_id")
+      .eq("tournament_id", league.id)
+      .order("position", { ascending: true }),
+  ]);
+
+  if (playersResult.error) throw new Error(playersResult.error.message);
+  if (matchesResult.error) throw new Error(matchesResult.error.message);
+
+  const playersById = new Map<string, PlayerDTO>(playersResult.data.map((player) => [player.id, player]));
+
+  const fixtures = matchesResult.data.flatMap((match): FixtureDTO[] => {
+    const playerA = playersById.get(match.player_a_id);
+    const playerB = playersById.get(match.player_b_id);
+    return playerA && playerB ? [{ id: match.id, position: match.position, playerA, playerB }] : [];
+  });
+
+  return { league, fixtures };
+}
+
+const result = await loadLeague(Astro.params.id);
+if (!result) {
+  Astro.response.status = 404;
+}
+---
+
+<Layout title={result ? result.league.name : "League not found"}>
+  <div class="bg-cosmic flex min-h-screen items-center justify-center p-4">
+    <div class="w-full max-w-lg rounded-2xl border border-white/10 bg-white/10 p-8 text-white backdrop-blur-xl">
+      {result ? (
+        <>
+          <h1 class="mb-2 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
+            {result.league.name}
+          </h1>
+          <p class="text-blue-100/80">
+            W {result.league.points_win} / D {result.league.points_draw} / L {result.league.points_loss}
+          </p>
+          <p class="mt-1 text-sm text-blue-100/50">{result.fixtures.length} matches</p>
+          <ol class="mt-6 space-y-2">
+            {result.fixtures.map((fixture) => (
+              <li class="rounded-lg border border-white/10 bg-white/5 px-4 py-2">
+                {fixture.position}. {fixture.playerA.name} vs {fixture.playerB.name}
+              </li>
+            ))}
+          </ol>
+        </>
+      ) : (
+        <>
+          <h1 class="mb-2 text-2xl font-bold">League not found</h1>
+          <p class="text-blue-100/80">This league does not exist or you do not have access to it.</p>
+        </>
+      )}
+    </div>
+  </div>
+</Layout>

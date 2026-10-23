@@ -427,31 +427,31 @@ This is the first migration. Locally it runs with `npx supabase db reset`. In CI
 
 #### Automated
 
-- [x] 2.1 Migration applies on a clean local DB: `npx supabase db reset`
-- [x] 2.2 Generated types are up to date: `npx supabase gen types typescript --local | diff - src/db/database.types.ts`
-- [x] 2.3 Lint passes: `npm run lint`
-- [x] 2.4 Type check passes: `npx astro check`
-- [x] 2.5 Existing smoke test still passes against local preview: `npm run smoke`
+- [x] 2.1 Migration applies on a clean local DB: `npx supabase db reset` — f65042a
+- [x] 2.2 Generated types are up to date: `npx supabase gen types typescript --local | diff - src/db/database.types.ts` — f65042a
+- [x] 2.3 Lint passes: `npm run lint` — f65042a
+- [x] 2.4 Type check passes: `npx astro check` — f65042a
+- [x] 2.5 Existing smoke test still passes against local preview: `npm run smoke` — f65042a
 
 #### Manual
 
-- [x] 2.6 Using Studio's SQL editor impersonating an authenticated user, calling `create_league` with 4 names creates 1 tournament, 4 players and 6 matches; a call with a duplicate name ('Tomek', 'tomek') or a wrong fixture count creates nothing
-- [x] 2.7 Impersonating a second user in Studio's SQL editor, a select cannot see the first user's tournament
+- [x] 2.6 Using Studio's SQL editor impersonating an authenticated user, calling `create_league` with 4 names creates 1 tournament, 4 players and 6 matches; a call with a duplicate name ('Tomek', 'tomek') or a wrong fixture count creates nothing — f65042a
+- [x] 2.7 Impersonating a second user in Studio's SQL editor, a select cannot see the first user's tournament — f65042a
 
 ### Phase 3: Create endpoint + fixtures page
 
 #### Automated
 
-- [ ] 3.1 Unit tests pass: `npm run test`
-- [ ] 3.2 Lint passes: `npm run lint`
-- [ ] 3.3 Type check passes: `npx astro check`
-- [ ] 3.4 Build succeeds: `npm run build`
-- [ ] 3.5 Extended smoke passes against local preview with local Supabase: `npm run smoke`
+- [x] 3.1 Unit tests pass: `npm run test`
+- [x] 3.2 Lint passes: `npm run lint`
+- [x] 3.3 Type check passes: `npx astro check`
+- [x] 3.4 Build succeeds: `npm run build`
+- [x] 3.5 Extended smoke passes against local preview with local Supabase: `npm run smoke`
 
 #### Manual
 
-- [ ] 3.6 Posting a 5-player league (e.g. via the smoke script or curl) and opening the redirect shows 10 numbered fixtures in which no player appears twice within each block of 2
-- [ ] 3.7 Opening `/leagues/<id>` as a different signed-in user returns 404
+- [x] 3.6 Posting a 5-player league (e.g. via the smoke script or curl) and opening the redirect shows 10 numbered fixtures in which no player appears twice within each block of 2
+- [x] 3.7 Opening `/leagues/<id>` as a different signed-in user returns 404
 
 ### Phase 4: Create-league form UI
 
