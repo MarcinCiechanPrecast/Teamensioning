@@ -457,15 +457,15 @@ This is the first migration. Locally it runs with `npx supabase db reset`. In CI
 
 #### Automated
 
-- [x] 4.1 Lint passes: `npm run lint`
-- [x] 4.2 Type check passes: `npx astro check`
-- [x] 4.3 Build succeeds: `npm run build`
-- [x] 4.4 Unit tests pass: `npm run test`
-- [x] 4.5 Smoke passes against local preview: `npm run smoke`
+- [x] 4.1 Lint passes: `npm run lint` — 12a7919
+- [x] 4.2 Type check passes: `npx astro check` — 12a7919
+- [x] 4.3 Build succeeds: `npm run build` — 12a7919
+- [x] 4.4 Unit tests pass: `npm run test` — 12a7919
+- [x] 4.5 Smoke passes against local preview: `npm run smoke` — 12a7919
 
 #### Manual
 
-- [x] 4.6 From the dashboard, create a 4-player league through the form and land on a page with 6 fixtures
-- [x] 4.7 Entering 'Tomek' and 'tomek ' shows a duplicate-name error without submitting
-- [x] 4.8 Setting draw points higher than win points shows a points error without submitting
-- [x] 4.9 Add/remove buttons respect the 3 and 20 limits, and the form is keyboard-usable
+- [x] 4.6 From the dashboard, create a 4-player league through the form and land on a page with 6 fixtures — 12a7919
+- [x] 4.7 Entering 'Tomek' and 'tomek ' shows a duplicate-name error without submitting — 12a7919
+- [x] 4.8 Setting draw points higher than win points shows a points error without submitting — 12a7919
+- [x] 4.9 Add/remove buttons respect the 3 and 20 limits, and the form is keyboard-usable — 12a7919
