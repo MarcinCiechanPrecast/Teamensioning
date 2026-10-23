@@ -442,30 +442,30 @@ This is the first migration. Locally it runs with `npx supabase db reset`. In CI
 
 #### Automated
 
-- [x] 3.1 Unit tests pass: `npm run test`
-- [x] 3.2 Lint passes: `npm run lint`
-- [x] 3.3 Type check passes: `npx astro check`
-- [x] 3.4 Build succeeds: `npm run build`
-- [x] 3.5 Extended smoke passes against local preview with local Supabase: `npm run smoke`
+- [x] 3.1 Unit tests pass: `npm run test` — bd0cb18
+- [x] 3.2 Lint passes: `npm run lint` — bd0cb18
+- [x] 3.3 Type check passes: `npx astro check` — bd0cb18
+- [x] 3.4 Build succeeds: `npm run build` — bd0cb18
+- [x] 3.5 Extended smoke passes against local preview with local Supabase: `npm run smoke` — bd0cb18
 
 #### Manual
 
-- [x] 3.6 Posting a 5-player league (e.g. via the smoke script or curl) and opening the redirect shows 10 numbered fixtures in which no player appears twice within each block of 2
-- [x] 3.7 Opening `/leagues/<id>` as a different signed-in user returns 404
+- [x] 3.6 Posting a 5-player league (e.g. via the smoke script or curl) and opening the redirect shows 10 numbered fixtures in which no player appears twice within each block of 2 — bd0cb18
+- [x] 3.7 Opening `/leagues/<id>` as a different signed-in user returns 404 — bd0cb18
 
 ### Phase 4: Create-league form UI
 
 #### Automated
 
-- [ ] 4.1 Lint passes: `npm run lint`
-- [ ] 4.2 Type check passes: `npx astro check`
-- [ ] 4.3 Build succeeds: `npm run build`
-- [ ] 4.4 Unit tests pass: `npm run test`
-- [ ] 4.5 Smoke passes against local preview: `npm run smoke`
+- [x] 4.1 Lint passes: `npm run lint`
+- [x] 4.2 Type check passes: `npx astro check`
+- [x] 4.3 Build succeeds: `npm run build`
+- [x] 4.4 Unit tests pass: `npm run test`
+- [x] 4.5 Smoke passes against local preview: `npm run smoke`
 
 #### Manual
 
-- [ ] 4.6 From the dashboard, create a 4-player league through the form and land on a page with 6 fixtures
-- [ ] 4.7 Entering 'Tomek' and 'tomek ' shows a duplicate-name error without submitting
-- [ ] 4.8 Setting draw points higher than win points shows a points error without submitting
-- [ ] 4.9 Add/remove buttons respect the 3 and 20 limits, and the form is keyboard-usable
+- [x] 4.6 From the dashboard, create a 4-player league through the form and land on a page with 6 fixtures
+- [x] 4.7 Entering 'Tomek' and 'tomek ' shows a duplicate-name error without submitting
+- [x] 4.8 Setting draw points higher than win points shows a points error without submitting
+- [x] 4.9 Add/remove buttons respect the 3 and 20 limits, and the form is keyboard-usable
