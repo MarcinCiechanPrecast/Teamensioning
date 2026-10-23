@@ -3,7 +3,7 @@ project: Teamensioning
 version: 1
 status: draft
 created: 2026-10-16
-updated: 2026-10-16
+updated: 2026-10-23
 prd_version: 2
 main_goal: speed
 top_blocker: time
@@ -39,15 +39,15 @@ Office league organizers track matches in spreadsheets and chat, which wastes ti
 
 ## At a glance
 
-| ID   | Change ID                   | Outcome (user can …)                                                          | Prerequisites | PRD refs                              | Status   |
-| ---- | --------------------------- | ----------------------------------------------------------------------------- | ------------- | ------------------------------------- | -------- |
-| S-01 | create-league-with-fixtures | organizer can create a league with players and see all its fixtures           | —             | US-01, FR-001, FR-002, FR-003, FR-007 | ready    |
-| S-02 | my-tournaments-list         | organizer can find their tournaments and delete one after confirming          | S-01          | FR-004, FR-012                        | proposed |
-| S-03 | shared-league-link          | anyone with the link can view fixtures and filter a player's unplayed matches | S-01          | US-01, FR-005, FR-010                 | proposed |
-| S-04 | link-score-entry            | a link holder can enter a match score once                                    | S-03          | US-01, FR-009                         | proposed |
-| S-05 | live-leaderboard            | a link holder can view a leaderboard that reflects every entered score        | S-04          | US-01, FR-008, FR-011                 | proposed |
-| S-06 | organizer-score-correction  | organizer can correct an already-entered score                                | S-04          | US-01, FR-006                         | proposed |
-| S-07 | edit-tournament-settings    | organizer can rename a tournament and change points before the first score    | S-01, S-04    | FR-013                                | proposed |
+| ID   | Change ID                   | Outcome (user can …)                                                          | Prerequisites | PRD refs                              | Status      |
+| ---- | --------------------------- | ----------------------------------------------------------------------------- | ------------- | ------------------------------------- | ----------- |
+| S-01 | create-league-with-fixtures | organizer can create a league with players and see all its fixtures           | —             | US-01, FR-001, FR-002, FR-003, FR-007 | in-progress |
+| S-02 | my-tournaments-list         | organizer can find their tournaments and delete one after confirming          | S-01          | FR-004, FR-012                        | proposed    |
+| S-03 | shared-league-link          | anyone with the link can view fixtures and filter a player's unplayed matches | S-01          | US-01, FR-005, FR-010                 | proposed    |
+| S-04 | link-score-entry            | a link holder can enter a match score once                                    | S-03          | US-01, FR-009                         | proposed    |
+| S-05 | live-leaderboard            | a link holder can view a leaderboard that reflects every entered score        | S-04          | US-01, FR-008, FR-011                 | proposed    |
+| S-06 | organizer-score-correction  | organizer can correct an already-entered score                                | S-04          | US-01, FR-006                         | proposed    |
+| S-07 | edit-tournament-settings    | organizer can rename a tournament and change points before the first score    | S-01, S-04    | FR-013                                | proposed    |
 
 ## Streams
 
@@ -88,7 +88,7 @@ None in this milestone. Auth and deploy are present per the Baseline. The absent
 - **Unknowns:**
   - Minimum and maximum player count per league — Owner: user. Block: no.
 - **Risk:** First slice to create tables and ownership rules from scratch; the fixture generator must be proven correct (every pair exactly once, odd counts included) by automated tests, since the guardrail depends on it.
-- **Status:** ready
+- **Status:** in-progress
 
 ### S-02: Find and delete my tournaments
 
