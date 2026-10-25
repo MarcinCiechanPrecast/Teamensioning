@@ -288,26 +288,26 @@ No data changes. The delete endpoint's redirect format changes from a message to
 
 #### Automated
 
-- [x] 1.1 Components exist: `ls src/components/ui/card.tsx src/components/ui/alert.tsx`
-- [x] 1.2 Linting passes: `npm run lint`
-- [x] 1.3 Build passes with the font config: `npm run build`
+- [x] 1.1 Components exist: `ls src/components/ui/card.tsx src/components/ui/alert.tsx` — cfd462d
+- [x] 1.2 Linting passes: `npm run lint` — cfd462d
+- [x] 1.3 Build passes with the font config: `npm run build` — cfd462d
 
 #### Manual
 
-- [x] 1.4 With the dev server, `/auth/signin` still renders readably under `class="dark"` (dark token values, existing white/N literals intact)
+- [x] 1.4 With the dev server, `/auth/signin` still renders readably under `class="dark"` (dark token values, existing white/N literals intact) — cfd462d
 
 ### Phase 2: Token values
 
 #### Automated
 
-- [ ] 2.1 No hex colours remain in the token utility: `grep -nE '#[0-9a-fA-F]{3,8}\b' src/styles/global.css` returns no lines
-- [ ] 2.2 Linting passes: `npm run lint`
-- [ ] 2.3 Build passes: `npm run build`
+- [x] 2.1 No hex colours remain in the token utility: `grep -nE '#[0-9a-fA-F]{3,8}\b' src/styles/global.css` returns no lines
+- [x] 2.2 Linting passes: `npm run lint`
+- [x] 2.3 Build passes: `npm run build`
 
 #### Manual
 
-- [ ] 2.4 `/auth/signin` and `/dashboard` show the green-tinted dark background and Outfit font
-- [ ] 2.5 No page is unreadable (contrast still acceptable on the 9 pages that use `bg-cosmic`)
+- [x] 2.4 `/auth/signin` and `/dashboard` show the green-tinted dark background and Outfit font
+- [x] 2.5 No page is unreadable (contrast still acceptable on the 9 pages that use `bg-cosmic`)
 
 ### Phase 3: Dashboard view
 
