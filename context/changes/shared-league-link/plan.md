@@ -234,11 +234,11 @@ Adding a column with a volatile default rewrites the table and backfills a disti
 
 #### Automated
 
-- [x] 3.1 Full test suite passes: `npm run test`
-- [x] 3.2 Lint, typecheck and build pass: `npm run lint && npx astro check && npm run build`
-- [x] 3.3 Smoke passes against a running local server: `npm run smoke`
+- [x] 3.1 Full test suite passes: `npm run test` — dc7076d
+- [x] 3.2 Lint, typecheck and build pass: `npm run lint && npx astro check && npm run build` — dc7076d
+- [x] 3.3 Smoke passes against a running local server: `npm run smoke` — dc7076d
 
 #### Manual
 
-- [x] 3.4 Copy button puts the full `/t/<token>` URL on the clipboard and it opens in a private window
-- [x] 3.5 Organizer page for another user's league still shows "League not found"
+- [x] 3.4 Copy button puts the full `/t/<token>` URL on the clipboard and it opens in a private window — dc7076d
+- [x] 3.5 Organizer page for another user's league still shows "League not found" — dc7076d

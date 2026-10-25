@@ -1,7 +1,7 @@
 ---
 change_id: shared-league-link
 title: Shared league link
-status: implementing
+status: implemented
 created: 2026-10-25
 updated: 2026-10-25
 archived_at: null
