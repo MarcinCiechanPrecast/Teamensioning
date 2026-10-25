@@ -165,15 +165,15 @@ None in this milestone. Auth and deploy are present per the Baseline. The absent
 
 ## Backlog Handoff
 
-| Roadmap ID | Change ID                   | Issue | Suggested issue title                             | Ready for `/10x-plan` | Notes                                       |
-| ---------- | --------------------------- | ----- | ------------------------------------------------- | --------------------- | ------------------------------------------- |
-| S-01       | create-league-with-fixtures | #7    | Organizer creates a league and sees all fixtures  | yes                   | Run `/10x-plan create-league-with-fixtures` |
-| S-02       | my-tournaments-list         | #8    | Organizer lists and deletes their tournaments     | no                    | Waits for S-01                              |
-| S-03       | shared-league-link          | #9    | Shared tournament link with player fixture filter | no                    | Waits for S-01                              |
-| S-04       | link-score-entry            | #10   | Link holder enters a match score once             | no                    | Waits for S-03                              |
-| S-05       | live-leaderboard            | #11   | Leaderboard with tiebreakers from entered scores  | no                    | Waits for S-04                              |
-| S-06       | organizer-score-correction  | #12   | Organizer corrects an entered score               | no                    | Waits for S-04                              |
-| S-07       | edit-tournament-settings    | #13   | Organizer edits tournament name and points        | no                    | Waits for S-01, S-04                        |
+| Roadmap ID | Change ID                   | Issue | Suggested issue title                             | Ready for `/10x-plan` | Notes                         |
+| ---------- | --------------------------- | ----- | ------------------------------------------------- | --------------------- | ----------------------------- |
+| S-01       | create-league-with-fixtures | #7    | Organizer creates a league and sees all fixtures  | done                  | Archived 2026-10-23           |
+| S-02       | my-tournaments-list         | #8    | Organizer lists and deletes their tournaments     | yes                   | Unblocked; S-01 done          |
+| S-03       | shared-league-link          | #9    | Shared tournament link with player fixture filter | done                  | Archived 2026-10-25           |
+| S-04       | link-score-entry            | #10   | Link holder enters a match score once             | done                  | Archived 2026-10-25           |
+| S-05       | live-leaderboard            | #11   | Leaderboard with tiebreakers from entered scores  | yes                   | Unblocked; S-04 done          |
+| S-06       | organizer-score-correction  | #12   | Organizer corrects an entered score               | yes                   | Unblocked; S-04 done          |
+| S-07       | edit-tournament-settings    | #13   | Organizer edits tournament name and points        | yes                   | Unblocked; S-01 and S-04 done |
 
 Issues live in GitHub milestone `M-1: First playable league` with labels `roadmap:slice`, `status:*` and `stream:*`. This file stays canonical; issue labels are a view.
 
