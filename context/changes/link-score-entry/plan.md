@@ -245,29 +245,29 @@ New table only; no backfill. Existing tournaments simply have no results, so eve
 
 #### Automated
 
-- [x] 2.1 Unit tests pass: `npm test`
-- [x] 2.2 Type checking passes: `npx astro check`
-- [x] 2.3 Linting passes: `npm run lint`
-- [x] 2.4 Production build succeeds: `npm run build`
+- [x] 2.1 Unit tests pass: `npm test` — 229628c
+- [x] 2.2 Type checking passes: `npx astro check` — 229628c
+- [x] 2.3 Linting passes: `npm run lint` — 229628c
+- [x] 2.4 Production build succeeds: `npm run build` — 229628c
 
 #### Manual
 
-- [x] 2.5 `POST /api/scores` with no cookies and a valid token and match stores a score and redirects to `/t/<token>`
-- [x] 2.6 The same request repeated redirects with `notice=already-entered` and does not change the stored score
+- [x] 2.5 `POST /api/scores` with no cookies and a valid token and match stores a score and redirects to `/t/<token>` — 229628c
+- [x] 2.6 The same request repeated redirects with `notice=already-entered` and does not change the stored score — 229628c
 
 ### Phase 3: Share page UI and smoke
 
 #### Automated
 
-- [ ] 3.1 Smoke test passes against a running server with local Supabase: `npm run smoke`
-- [ ] 3.2 Unit tests pass: `npm test`
-- [ ] 3.3 Linting and formatting pass: `npm run lint`
-- [ ] 3.4 Production build succeeds: `npm run build`
+- [x] 3.1 Smoke test passes against a running server with local Supabase: `npm run smoke`
+- [x] 3.2 Unit tests pass: `npm test`
+- [x] 3.3 Linting and formatting pass: `npm run lint`
+- [x] 3.4 Production build succeeds: `npm run build`
 
 #### Manual
 
-- [ ] 3.5 In a private window with no session, opening the link, entering `2` and `1` on an unplayed match shows it as played with 2–1
-- [ ] 3.6 Submitting the same match from a second browser shows "already entered" and the stored 2–1
-- [ ] 3.7 A 0–0 submit is accepted and shown as played
-- [ ] 3.8 Empty, negative and `100` inputs are rejected with a readable message
-- [ ] 3.9 The player filter still lists only that player's unplayed matches and hides played ones
+- [x] 3.5 In a private window with no session, opening the link, entering `2` and `1` on an unplayed match shows it as played with 2–1
+- [x] 3.6 Submitting the same match from a second browser shows "already entered" and the stored 2–1
+- [x] 3.7 A 0–0 submit is accepted and shown as played
+- [x] 3.8 Empty, negative and `100` inputs are rejected with a readable message
+- [x] 3.9 The player filter still lists only that player's unplayed matches and hides played ones

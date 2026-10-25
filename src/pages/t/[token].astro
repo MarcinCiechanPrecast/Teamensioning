@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase";
 import {
   filterFixturesByPlayer,
   isValidShareToken,
+  playedMatchIds,
   resolvePlayerFilter,
   toSharedLeague,
 } from "@/lib/services/shared-league";
@@ -24,8 +25,10 @@ async function loadSharedLeague(token: string | undefined): Promise<SharedLeague
 }
 
 // The token is the only secret: keep the page out of search indexes and never leak the URL via Referer.
+// "same-origin", not "no-referrer": no-referrer makes browsers send `Origin: null` on the score form POST,
+// which Astro's CSRF origin check rejects. Cross-origin requests still get no Referer.
 Astro.response.headers.set("X-Robots-Tag", "noindex");
-Astro.response.headers.set("Referrer-Policy", "no-referrer");
+Astro.response.headers.set("Referrer-Policy", "same-origin");
 
 const shared = await loadSharedLeague(Astro.params.token);
 if (!shared) {
@@ -33,7 +36,14 @@ if (!shared) {
 }
 
 const selectedPlayerId = shared ? resolvePlayerFilter(shared.players, Astro.url.searchParams.get("player")) : null;
-const visibleFixtures = shared ? filterFixturesByPlayer(shared.fixtures, selectedPlayerId) : [];
+const visibleFixtures = shared
+  ? filterFixturesByPlayer(shared.fixtures, selectedPlayerId, playedMatchIds(shared.fixtures))
+  : [];
+const playedFixtures = shared ? shared.fixtures.filter((fixture) => fixture.score !== null) : [];
+const token = Astro.params.token ?? "";
+// Rendered as plain escaped text only: these values come from the query string.
+const errorMessage = Astro.url.searchParams.get("error");
+const alreadyEntered = Astro.url.searchParams.get("notice") === "already-entered";
 ---
 
 <Layout title={shared ? shared.league.name : "League not found"}>
@@ -69,14 +79,71 @@ const visibleFixtures = shared ? filterFixturesByPlayer(shared.fixtures, selecte
               Filter
             </button>
           </form>
-          <p class="mt-4 text-sm text-blue-100/50">{visibleFixtures.length} matches</p>
+          {errorMessage && (
+            <p role="alert" class="mt-4 rounded-lg border border-red-400/30 bg-red-500/10 px-4 py-2 text-red-200">
+              {errorMessage}
+            </p>
+          )}
+          {alreadyEntered && (
+            <p role="status" class="mt-4 rounded-lg border border-blue-300/30 bg-blue-500/10 px-4 py-2 text-blue-100">
+              A score was already entered for that match. It is shown below.
+            </p>
+          )}
+          <p class="mt-4 text-sm text-blue-100/50">{visibleFixtures.length} to play</p>
           <ol class="mt-2 space-y-2">
             {visibleFixtures.map((fixture) => (
               <li class="rounded-lg border border-white/10 bg-white/5 px-4 py-2">
-                {fixture.position}. {fixture.playerA.name} vs {fixture.playerB.name}
+                <form method="POST" action="/api/scores" class="flex flex-wrap items-center gap-2">
+                  <input type="hidden" name="token" value={token} />
+                  <input type="hidden" name="matchId" value={fixture.id} />
+                  <span class="min-w-0 flex-1">
+                    {fixture.position}. {fixture.playerA.name} vs {fixture.playerB.name}
+                  </span>
+                  <input
+                    type="number"
+                    name="scoreA"
+                    required
+                    min="0"
+                    max="99"
+                    step="1"
+                    inputmode="numeric"
+                    aria-label={`Score of ${fixture.playerA.name}`}
+                    class="w-16 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white"
+                  />
+                  <span aria-hidden="true">–</span>
+                  <input
+                    type="number"
+                    name="scoreB"
+                    required
+                    min="0"
+                    max="99"
+                    step="1"
+                    inputmode="numeric"
+                    aria-label={`Score of ${fixture.playerB.name}`}
+                    class="w-16 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white"
+                  />
+                  <button
+                    type="submit"
+                    class="rounded-lg border border-white/10 bg-white/10 px-3 py-1 hover:bg-white/20"
+                  >
+                    Save
+                  </button>
+                </form>
               </li>
             ))}
           </ol>
+          {playedFixtures.length > 0 && (
+            <>
+              <h2 class="mt-6 text-sm text-blue-100/50">Played ({playedFixtures.length})</h2>
+              <ol class="mt-2 space-y-2">
+                {playedFixtures.map((fixture) => (
+                  <li class="rounded-lg border border-white/10 bg-white/5 px-4 py-2">
+                    {fixture.playerA.name} {fixture.score?.a}–{fixture.score?.b} {fixture.playerB.name}
+                  </li>
+                ))}
+              </ol>
+            </>
+          )}
         </>
       ) : (
         <>

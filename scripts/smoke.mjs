@@ -1,6 +1,8 @@
 // Smoke test: proves the built app, the Cloudflare adapter and the Supabase auth flow still work together.
 // Zero dependencies on purpose. Run against a live server: BASE_URL=http://localhost:4321 node scripts/smoke.mjs
 
+import { randomUUID } from "node:crypto";
+
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:4321";
 const email = `smoke-${Date.now()}@example.com`;
 const password = "Smoke-Test-Passw0rd!";
@@ -33,7 +35,12 @@ async function request(path, { method = "GET", form, anonymous = false } = {}) {
     body: form ? new URLSearchParams(form).toString() : undefined,
   });
   if (!anonymous) storeCookies(response);
-  return { status: response.status, location: response.headers.get("location") ?? "", body: await response.text() };
+  return {
+    status: response.status,
+    location: response.headers.get("location") ?? "",
+    referrerPolicy: response.headers.get("referrer-policy") ?? "",
+    body: await response.text(),
+  };
 }
 
 // Entries array, not a plain object: repeated "players" keys must survive into URLSearchParams.
@@ -49,11 +56,23 @@ function leagueForm(players) {
 
 let leagueLocation = "";
 let sharePath = "";
+let matchId = "";
+let sharedToken = "";
 
 // Takes only the path from the rendered share URL: its origin is the server's own view, not BASE_URL.
 function extractSharePath(html) {
   const match = /data-share-url="[^"]*?(\/t\/[0-9a-f]{64})"/.exec(html);
   return match ? match[1] : "";
+}
+
+// Reads the hidden matchId input the share page renders for an unplayed match.
+function extractMatchId(html) {
+  const match = /name="matchId"[^>]*value="([0-9a-f-]{36})"|value="([0-9a-f-]{36})"[^>]*name="matchId"/.exec(html);
+  return match ? (match[1] ?? match[2]) : "";
+}
+
+function scoreForm(overrides = {}) {
+  return { token: sharedToken, matchId, scoreA: "2", scoreB: "1", ...overrides };
 }
 
 const steps = [
@@ -103,6 +122,71 @@ const steps = [
     { status: 200 },
   ],
   ["share link renders without cookies", () => request(sharePath, { anonymous: true }), { status: 200 }],
+  [
+    "share page exposes a match to score",
+    async () => {
+      const result = await request(sharePath, { anonymous: true });
+      matchId = extractMatchId(result.body);
+      sharedToken = sharePath.slice("/t/".length);
+      return { ...result, status: matchId ? result.status : 0 };
+    },
+    { status: 200 },
+  ],
+  [
+    // no-referrer makes browsers send `Origin: null` on the score form POST, which Astro's origin check rejects.
+    "share page keeps the token off other sites without breaking form posts",
+    async () => {
+      const result = await request(sharePath, { anonymous: true });
+      return { ...result, status: result.referrerPolicy === "same-origin" ? result.status : 0 };
+    },
+    { status: 200 },
+  ],
+  [
+    "anonymous score submit redirects to share page",
+    () => request("/api/scores", { method: "POST", form: scoreForm(), anonymous: true }),
+    { status: 302, location: sharePath },
+  ],
+  [
+    "share page shows the stored score",
+    async () => {
+      const result = await request(sharePath, { anonymous: true });
+      return { ...result, status: result.body.includes("2–1") ? result.status : 0 };
+    },
+    { status: 200 },
+  ],
+  [
+    "second submit reports already entered",
+    () => request("/api/scores", { method: "POST", form: scoreForm({ scoreA: "5", scoreB: "5" }), anonymous: true }),
+    { status: 302, locationIncludes: "notice=already-entered" },
+  ],
+  [
+    "already entered score is unchanged",
+    async () => {
+      const result = await request(sharePath, { anonymous: true });
+      return { ...result, status: result.body.includes("2–1") && !result.body.includes("5–5") ? result.status : 0 };
+    },
+    { status: 200 },
+  ],
+  [
+    "out-of-range score is rejected",
+    () => request("/api/scores", { method: "POST", form: scoreForm({ scoreA: "100" }), anonymous: true }),
+    { status: 302, locationIncludes: "error=" },
+  ],
+  [
+    "malformed token is not found",
+    () => request("/api/scores", { method: "POST", form: scoreForm({ token: "x" }), anonymous: true }),
+    { status: 404 },
+  ],
+  [
+    "unknown token is rejected",
+    () => request("/api/scores", { method: "POST", form: scoreForm({ token: "0".repeat(64) }), anonymous: true }),
+    { status: 302, locationIncludes: "error=" },
+  ],
+  [
+    "match from another tournament is rejected",
+    () => request("/api/scores", { method: "POST", form: scoreForm({ matchId: randomUUID() }), anonymous: true }),
+    { status: 302, locationIncludes: "error=" },
+  ],
   ["unknown share token is not found", () => request(`/t/${"0".repeat(64)}`, { anonymous: true }), { status: 404 }],
   [
     "owner page redirects without cookies",
@@ -123,7 +207,8 @@ for (const [name, run, expected] of steps) {
   const actual = await run();
   const ok =
     actual.status === expected.status &&
-    (expected.location === undefined || actual.location.startsWith(expected.location));
+    (expected.location === undefined || actual.location.startsWith(expected.location)) &&
+    (expected.locationIncludes === undefined || actual.location.includes(expected.locationIncludes));
   console.log(`${ok ? "PASS" : "FAIL"}  ${name}  -> ${actual.status} ${actual.location}`);
   if (!ok) {
     failed++;
