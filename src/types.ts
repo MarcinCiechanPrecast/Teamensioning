@@ -22,3 +22,10 @@ export interface FixtureDTO {
   playerA: PlayerDTO;
   playerB: PlayerDTO;
 }
+
+/** A league as shown to anyone holding its share link: no owner, no ids, no token. */
+export interface SharedLeagueDTO {
+  league: Pick<Tables<"tournaments">, "name" | "points_win" | "points_draw" | "points_loss">;
+  players: PlayerDTO[];
+  fixtures: FixtureDTO[];
+}
