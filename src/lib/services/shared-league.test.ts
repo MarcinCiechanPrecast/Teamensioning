@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { Json } from "@/db/database.types";
 import {
   filterFixturesByPlayer,
+  playedMatchIds,
   resolvePlayerFilter,
   toSharedLeague,
   isValidShareToken,
@@ -16,9 +17,9 @@ const dan: PlayerDTO = { id: "p4", name: "Dan" };
 const players = [ann, bob, cid, dan];
 
 const fixtures: FixtureDTO[] = [
-  { id: "m1", position: 1, playerA: ann, playerB: bob },
-  { id: "m2", position: 2, playerA: cid, playerB: ann },
-  { id: "m3", position: 3, playerA: bob, playerB: cid },
+  { id: "m1", position: 1, playerA: ann, playerB: bob, score: null },
+  { id: "m2", position: 2, playerA: cid, playerB: ann, score: null },
+  { id: "m3", position: 3, playerA: bob, playerB: cid, score: null },
 ];
 
 describe("filterFixturesByPlayer", () => {
@@ -39,9 +40,29 @@ describe("filterFixturesByPlayer", () => {
     expect(filterFixturesByPlayer(fixtures, null, new Set(["m2"])).map((f) => f.id)).toEqual(["m1", "m3"]);
   });
 
+  it("hides played matches derived from fixture scores", () => {
+    const withScore = fixtures.map((f) => (f.id === "m1" ? { ...f, score: { a: 2, b: 1 } } : f));
+    expect(filterFixturesByPlayer(withScore, "p1", playedMatchIds(withScore)).map((f) => f.id)).toEqual(["m2"]);
+  });
+
   it("preserves the original order", () => {
     const shuffledPositions = [fixtures[2], fixtures[0], fixtures[1]];
     expect(filterFixturesByPlayer(shuffledPositions, "p2").map((f) => f.id)).toEqual(["m3", "m1"]);
+  });
+});
+
+describe("playedMatchIds", () => {
+  it("collects only the ids of fixtures with a score", () => {
+    const mixed: FixtureDTO[] = [
+      { ...fixtures[0], score: { a: 0, b: 0 } },
+      fixtures[1],
+      { ...fixtures[2], score: { a: 3, b: 1 } },
+    ];
+    expect(playedMatchIds(mixed)).toEqual(new Set(["m1", "m3"]));
+  });
+
+  it("is empty when nothing is played", () => {
+    expect(playedMatchIds(fixtures).size).toBe(0);
   });
 });
 
@@ -69,8 +90,8 @@ describe("toSharedLeague", () => {
       { id: "p2", name: "Bob" },
     ],
     matches: [
-      { id: "m1", position: 1, player_a_id: "p1", player_b_id: "p2" },
-      { id: "m2", position: 2, player_a_id: "p1", player_b_id: "ghost" },
+      { id: "m1", position: 1, player_a_id: "p1", player_b_id: "p2", score_a: null, score_b: null },
+      { id: "m2", position: 2, player_a_id: "p1", player_b_id: "ghost", score_a: null, score_b: null },
     ],
   };
 
@@ -78,8 +99,41 @@ describe("toSharedLeague", () => {
     expect(toSharedLeague(payload)).toEqual({
       league: { name: "Cup", points_win: 3, points_draw: 1, points_loss: 0 },
       players: [ann, bob],
-      fixtures: [{ id: "m1", position: 1, playerA: ann, playerB: bob }],
+      fixtures: [{ id: "m1", position: 1, playerA: ann, playerB: bob, score: null }],
     });
+  });
+
+  it("reads scores for played fixtures and null for unplayed ones", () => {
+    const result = toSharedLeague({
+      league: { name: "Cup", points_win: 3, points_draw: 1, points_loss: 0 },
+      players: [
+        { id: "p1", name: "Ann" },
+        { id: "p2", name: "Bob" },
+      ],
+      matches: [
+        { id: "m1", position: 1, player_a_id: "p1", player_b_id: "p2", score_a: 2, score_b: 0 },
+        { id: "m2", position: 2, player_a_id: "p2", player_b_id: "p1", score_a: null, score_b: null },
+      ],
+    });
+    expect(result?.fixtures.map((f) => f.score)).toEqual([{ a: 2, b: 0 }, null]);
+  });
+
+  it.each<[string, Record<string, Json>]>([
+    ["only score_a set", { score_a: 1, score_b: null }],
+    ["only score_b set", { score_a: null, score_b: 1 }],
+    ["a non-numeric score", { score_a: "1", score_b: "2" }],
+    ["missing score keys", {}],
+  ])("returns null when scores are inconsistent (%s)", (_label, scores) => {
+    expect(
+      toSharedLeague({
+        league: { name: "Cup", points_win: 3, points_draw: 1, points_loss: 0 },
+        players: [
+          { id: "p1", name: "Ann" },
+          { id: "p2", name: "Bob" },
+        ],
+        matches: [{ id: "m1", position: 1, player_a_id: "p1", player_b_id: "p2", ...scores }],
+      }),
+    ).toBeNull();
   });
 
   it("returns null for a null payload", () => {

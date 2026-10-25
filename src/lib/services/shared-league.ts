@@ -17,6 +17,18 @@ function toPlayer(value: unknown): PlayerDTO | null {
   return { id: value.id, name: value.name };
 }
 
+/** Both null means unplayed (null); both numbers is a score; anything else is malformed (undefined). */
+function toScore(a: unknown, b: unknown): FixtureDTO["score"] | undefined {
+  if (a === null && b === null) return null;
+  if (typeof a === "number" && typeof b === "number") return { a, b };
+  return undefined;
+}
+
+/** The ids of fixtures that already have a stored score, for `filterFixturesByPlayer`. */
+export function playedMatchIds(fixtures: FixtureDTO[]): Set<string> {
+  return new Set(fixtures.filter((fixture) => fixture.score !== null).map((fixture) => fixture.id));
+}
+
 /**
  * Turns the get_shared_league RPC payload into a SharedLeagueDTO.
  *
@@ -58,9 +70,11 @@ export function toSharedLeague(payload: Json | null | undefined): SharedLeagueDT
     ) {
       return null;
     }
+    const score = toScore(raw.score_a, raw.score_b);
+    if (score === undefined) return null;
     const playerA = playersById.get(raw.player_a_id);
     const playerB = playersById.get(raw.player_b_id);
-    if (playerA && playerB) fixtures.push({ id: raw.id, position: raw.position, playerA, playerB });
+    if (playerA && playerB) fixtures.push({ id: raw.id, position: raw.position, playerA, playerB, score });
   }
 
   return {

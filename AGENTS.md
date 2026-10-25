@@ -10,6 +10,7 @@ This file provides guidance to AI Agent when working with code in this repositor
 - `npm run lint` — ESLint with type-checked rules
 - `npm run lint:fix` — auto-fix lint issues
 - `npm run format` — Prettier (includes prettier-plugin-astro + prettier-plugin-tailwindcss)
+- `npm test` — Vitest unit tests
 - `npm run smoke` — dependency-free auth-flow smoke test (`scripts/smoke.mjs`) against a running server, `BASE_URL` env (default `http://localhost:4321`). Run after dependency upgrades; CI runs it against the production preview with a local Supabase.
 
 Pre-commit hooks: husky + lint-staged runs `eslint --fix` on `*.{ts,tsx,astro}` and `prettier --write` on `*.{json,css,md}`.
@@ -27,6 +28,7 @@ Full server-side rendering (`output: "server"` in astro.config.mjs). All pages a
 - `src/lib/supabase.ts` — creates a Supabase SSR client using `@supabase/ssr` with cookie-based sessions. Uses `astro:env/server` for `SUPABASE_URL` and `SUPABASE_KEY` (server-only secrets declared in astro.config.mjs `env.schema`).
 - `src/middleware.ts` — runs on every request, resolves the current user, attaches to `context.locals.user`. Redirects unauthenticated users away from routes listed in `PROTECTED_ROUTES`.
 - API endpoints: `src/pages/api/auth/{signin,signup,signout}.ts`
+- `POST /api/scores` (`src/pages/api/scores.ts`) — the anonymous write endpoint: share token in a hidden form field, calls the `submit_match_score` RPC as anon, outside `PROTECTED_ROUTES`.
 - Auth pages: `src/pages/auth/{signin,signup,confirm-email}.astro`
 - Protected page example: `src/pages/dashboard.astro`
 

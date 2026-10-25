@@ -106,6 +106,35 @@ export type Database = {
           },
         ]
       }
+      results: {
+        Row: {
+          created_at: string
+          match_id: string
+          score_a: number
+          score_b: number
+        }
+        Insert: {
+          created_at?: string
+          match_id: string
+          score_a: number
+          score_b: number
+        }
+        Update: {
+          created_at?: string
+          match_id?: string
+          score_a?: number
+          score_b?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "results_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: true
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tournaments: {
         Row: {
           created_at: string
@@ -156,6 +185,15 @@ export type Database = {
         Returns: string
       }
       get_shared_league: { Args: { p_token: string }; Returns: Json }
+      submit_match_score: {
+        Args: {
+          p_match_id: string
+          p_score_a: number
+          p_score_b: number
+          p_token: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
