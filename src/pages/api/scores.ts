@@ -1,21 +1,23 @@
 import type { APIRoute } from "astro";
 import { createClient } from "@/lib/supabase";
 import { isValidShareToken } from "@/lib/services/shared-league";
+import { rpcErrorCode, toScoreOutcome, validationErrorCode } from "@/lib/services/score-submission";
+import type { ScoreErrorCode } from "@/lib/services/score-submission";
 import { submitScoreSchema } from "@/lib/validation/score";
 
 function formString(value: FormDataEntryValue | null): string {
   return typeof value === "string" ? value : "";
 }
 
-/** Reads `status` from the submit_match_score payload without trusting its shape. */
-function readStatus(data: unknown): string | null {
-  if (typeof data !== "object" || data === null || Array.isArray(data)) return null;
-  const status = (data as Record<string, unknown>).status;
-  return typeof status === "string" ? status : null;
-}
-
 export const POST: APIRoute = async (context) => {
-  const form = await context.request.formData();
+  // A body that is not a form (JSON, or none) is a client error, not a server fault.
+  let form: FormData;
+  try {
+    form = await context.request.formData();
+  } catch {
+    return new Response("Bad request", { status: 400 });
+  }
+
   const token = formString(form.get("token"));
 
   if (!isValidShareToken(token)) {
@@ -23,7 +25,8 @@ export const POST: APIRoute = async (context) => {
   }
 
   const sharePage = `/t/${token}`;
-  const failWith = (message: string) => context.redirect(`${sharePage}?error=${encodeURIComponent(message)}`);
+  // Only a fixed code travels in the URL; the share page maps it to a message. Raw errors stay server-side.
+  const failWith = (code: ScoreErrorCode) => context.redirect(`${sharePage}?error=${code}`);
 
   const parsed = submitScoreSchema.safeParse({
     token,
@@ -33,12 +36,14 @@ export const POST: APIRoute = async (context) => {
   });
 
   if (!parsed.success) {
-    return failWith(parsed.error.issues[0]?.message ?? "Invalid score");
+    return failWith(validationErrorCode(parsed.error.issues));
   }
 
   const supabase = createClient(context.request.headers, context.cookies);
   if (!supabase) {
-    return failWith("Supabase is not configured");
+    // eslint-disable-next-line no-console -- server-side log; the user only gets a fixed error code
+    console.error("submit_match_score: Supabase is not configured");
+    return failWith("server");
   }
 
   const { matchId, scoreA, scoreB } = parsed.data;
@@ -50,17 +55,18 @@ export const POST: APIRoute = async (context) => {
   });
 
   if (error) {
-    return failWith(error.message);
+    // eslint-disable-next-line no-console -- server-side log; the user only gets a fixed error code
+    console.error("submit_match_score failed:", error.code, error.message);
+    return failWith(rpcErrorCode(error));
   }
 
-  switch (readStatus(data)) {
+  const outcome = toScoreOutcome(data);
+  switch (outcome.kind) {
     case "created":
       return context.redirect(sharePage);
-    case "already_entered":
+    case "already-entered":
       return context.redirect(`${sharePage}?notice=already-entered`);
-    case "not_found":
-      return failWith("Match not found");
-    default:
-      return failWith("Unexpected response from the server");
+    case "error":
+      return failWith(outcome.code);
   }
 };

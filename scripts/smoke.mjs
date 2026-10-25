@@ -23,7 +23,7 @@ function storeCookies(response) {
 }
 
 // anonymous: send no cookies and ignore any Set-Cookie, so the jar is never touched.
-async function request(path, { method = "GET", form, anonymous = false } = {}) {
+async function request(path, { method = "GET", form, json, anonymous = false } = {}) {
   const response = await fetch(BASE_URL + path, {
     method,
     redirect: "manual",
@@ -31,8 +31,9 @@ async function request(path, { method = "GET", form, anonymous = false } = {}) {
       ...(anonymous ? {} : { Cookie: cookieHeader() }),
       Origin: BASE_URL,
       ...(form ? { "Content-Type": "application/x-www-form-urlencoded" } : {}),
+      ...(json ? { "Content-Type": "application/json" } : {}),
     },
-    body: form ? new URLSearchParams(form).toString() : undefined,
+    body: form ? new URLSearchParams(form).toString() : json,
   });
   if (!anonymous) storeCookies(response);
   return {
@@ -58,6 +59,9 @@ let leagueLocation = "";
 let sharePath = "";
 let matchId = "";
 let sharedToken = "";
+let foreignLeagueLocation = "";
+let foreignSharePath = "";
+let foreignMatchId = "";
 
 // Takes only the path from the rendered share URL: its origin is the server's own view, not BASE_URL.
 function extractSharePath(html) {
@@ -170,7 +174,7 @@ const steps = [
   [
     "out-of-range score is rejected",
     () => request("/api/scores", { method: "POST", form: scoreForm({ scoreA: "100" }), anonymous: true }),
-    { status: 302, locationIncludes: "error=" },
+    { status: 302, locationIncludes: "error=invalid-score" },
   ],
   [
     "malformed token is not found",
@@ -183,9 +187,80 @@ const steps = [
     { status: 302, locationIncludes: "error=" },
   ],
   [
-    "match from another tournament is rejected",
+    "unknown match id is rejected",
     () => request("/api/scores", { method: "POST", form: scoreForm({ matchId: randomUUID() }), anonymous: true }),
-    { status: 302, locationIncludes: "error=" },
+    { status: 302, locationIncludes: "error=match-not-found" },
+  ],
+  [
+    "second league is created for the tournament boundary check",
+    async () => {
+      const result = await request("/api/leagues", {
+        method: "POST",
+        form: leagueForm(["Ela", "Franek", "Gosia"]),
+      });
+      foreignLeagueLocation = result.location;
+      return result;
+    },
+    { status: 302, location: "/leagues/" },
+  ],
+  [
+    "second league exposes an unplayed match",
+    async () => {
+      const owner = await request(foreignLeagueLocation);
+      foreignSharePath = extractSharePath(owner.body);
+      const shared = await request(foreignSharePath, { anonymous: true });
+      foreignMatchId = extractMatchId(shared.body);
+      return { ...shared, status: foreignMatchId ? shared.status : 0 };
+    },
+    { status: 200 },
+  ],
+  [
+    "match of another tournament is rejected for this link",
+    () => request("/api/scores", { method: "POST", form: scoreForm({ matchId: foreignMatchId }), anonymous: true }),
+    { status: 302, locationIncludes: "error=match-not-found" },
+  ],
+  [
+    "other tournament's match stays unplayed",
+    async () => {
+      const result = await request(foreignSharePath, { anonymous: true });
+      return { ...result, status: result.body.includes("Played (") ? 0 : result.status };
+    },
+    { status: 200 },
+  ],
+  [
+    "share page ignores free text in the error parameter",
+    async () => {
+      const result = await request(
+        `${sharePath}?error=${encodeURIComponent("Session expired, sign in at evil.example")}`,
+        {
+          anonymous: true,
+        },
+      );
+      return { ...result, status: result.body.includes("evil.example") ? 0 : result.status };
+    },
+    { status: 200 },
+  ],
+  [
+    "share page shows a fixed message for a known error code",
+    async () => {
+      const result = await request(`${sharePath}?error=invalid-score`, { anonymous: true });
+      return { ...result, status: result.body.includes("whole number from 0 to 99") ? result.status : 0 };
+    },
+    { status: 200 },
+  ],
+  [
+    "share page does not expose owner or tournament identifiers",
+    async () => {
+      const result = await request(sharePath, { anonymous: true });
+      const leaks = /owner_id|tournament_id|share_token/.test(result.body);
+      return { ...result, status: leaks ? 0 : result.status };
+    },
+    { status: 200 },
+  ],
+  [
+    "non-form body is a bad request, not a server error",
+    () => request("/api/scores", { method: "POST", json: '{"token":"x"}', anonymous: true }),
+    { status: 400 },
   ],
   ["unknown share token is not found", () => request(`/t/${"0".repeat(64)}`, { anonymous: true }), { status: 404 }],
   [

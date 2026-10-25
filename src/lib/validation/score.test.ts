@@ -27,6 +27,9 @@ describe("submitScoreSchema", () => {
     ["over the maximum", "100"],
     ["non-integer", "1.5"],
     ["not a number", "abc"],
+    ["exponent notation", "1e1"],
+    ["hex notation", "0x10"],
+    ["explicit plus sign", "+5"],
   ])("rejects a %s score", (_label, value) => {
     expect(submitScoreSchema.safeParse({ ...valid, scoreA: value }).success).toBe(false);
     expect(submitScoreSchema.safeParse({ ...valid, scoreB: value }).success).toBe(false);

@@ -9,6 +9,8 @@ const score = z
   .string()
   .trim()
   .min(1, "Score is required")
+  // Plain decimal notation only: `Number()` would also accept "1e1", "0x10" and "+5".
+  .regex(/^-?\d+(\.\d+)?$/, "Score must be a number")
   .pipe(
     z.coerce
       .number<string>("Score must be a number")

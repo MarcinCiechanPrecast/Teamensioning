@@ -168,6 +168,8 @@ Render score forms and results on the share page and extend the smoke test.
 
 **Contract**: Edit the Commands and Auth flow sections only.
 
+**Addendum (found during Phase 3 browser verification, recorded after impl review)**: the plan kept `Referrer-Policy: no-referrer` on the share page, but with it browsers send `Origin: null` on the score form POST and Astro's origin check rejects it with 403. The page now sends `Referrer-Policy: same-origin`: cross-origin requests still get no `Referer`, so the S-03 guarantee that the token does not leak to other sites holds. Smoke asserts the header value. Impl review also moved the route to fixed error codes (`?error=invalid-score|match-not-found|server`, mapped to messages on the page), guarded non-form POSTs with a 400, and extracted the status mapping to `src/lib/services/score-submission.ts` with tests.
+
 ### Success Criteria:
 
 #### Automated Verification:
@@ -214,6 +216,8 @@ None material: one extra lookup by primary key per submit and a left join on `re
 ## Migration Notes
 
 New table only; no backfill. Existing tournaments simply have no results, so every match renders as unplayed.
+
+**Deploy order**: apply the migration before (or together with) the app deploy. `toSharedLeague` treats a payload without `score_a`/`score_b` as malformed, so new app code against the old `get_shared_league` renders every share link as "not valid". The old app against the new database is fine, since the extra keys are ignored.
 
 ## References
 

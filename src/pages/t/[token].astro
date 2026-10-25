@@ -8,6 +8,7 @@ import {
   resolvePlayerFilter,
   toSharedLeague,
 } from "@/lib/services/shared-league";
+import { SCORE_ERROR_MESSAGES, isScoreErrorCode } from "@/lib/services/score-submission";
 import type { SharedLeagueDTO } from "@/types";
 
 async function loadSharedLeague(token: string | undefined): Promise<SharedLeagueDTO | null> {
@@ -41,8 +42,9 @@ const visibleFixtures = shared
   : [];
 const playedFixtures = shared ? shared.fixtures.filter((fixture) => fixture.score !== null) : [];
 const token = Astro.params.token ?? "";
-// Rendered as plain escaped text only: these values come from the query string.
-const errorMessage = Astro.url.searchParams.get("error");
+// The query string only selects a fixed message: free text from a crafted link is never shown.
+const errorCode = Astro.url.searchParams.get("error");
+const errorMessage = isScoreErrorCode(errorCode) ? SCORE_ERROR_MESSAGES[errorCode] : null;
 const alreadyEntered = Astro.url.searchParams.get("notice") === "already-entered";
 ---
 
