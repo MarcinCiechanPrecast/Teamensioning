@@ -115,6 +115,7 @@ export type Database = {
           points_draw: number
           points_loss: number
           points_win: number
+          share_token: string
         }
         Insert: {
           created_at?: string
@@ -124,6 +125,7 @@ export type Database = {
           points_draw: number
           points_loss: number
           points_win: number
+          share_token?: string
         }
         Update: {
           created_at?: string
@@ -133,6 +135,7 @@ export type Database = {
           points_draw?: number
           points_loss?: number
           points_win?: number
+          share_token?: string
         }
         Relationships: []
       }
@@ -152,6 +155,7 @@ export type Database = {
         }
         Returns: string
       }
+      get_shared_league: { Args: { p_token: string }; Returns: Json }
     }
     Enums: {
       [_ in never]: never
