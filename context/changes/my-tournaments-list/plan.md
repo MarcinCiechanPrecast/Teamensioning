@@ -191,31 +191,31 @@ Additive: one policy. No data backfill. The delete is irreversible by design.
 
 #### Automated
 
-- [x] 1.1 Type check passes: `npx astro check`
-- [x] 1.2 Lint passes: `npm run lint`
-- [x] 1.3 Production build succeeds: `npm run build`
-- [x] 1.4 Existing smoke steps still pass: `npm run smoke`
+- [x] 1.1 Type check passes: `npx astro check` — 78765b7
+- [x] 1.2 Lint passes: `npm run lint` — 78765b7
+- [x] 1.3 Production build succeeds: `npm run build` — 78765b7
+- [x] 1.4 Existing smoke steps still pass: `npm run smoke` — 78765b7
 
 #### Manual
 
-- [x] 1.5 A brand-new account sees the empty state with a working "Create your first league" link
-- [x] 1.6 After creating two leagues, the dashboard lists both, newest first, and each opens its league page
-- [x] 1.7 A second account's dashboard does not show the first account's leagues
+- [x] 1.5 A brand-new account sees the empty state with a working "Create your first league" link — 78765b7
+- [x] 1.6 After creating two leagues, the dashboard lists both, newest first, and each opens its league page — 78765b7
+- [x] 1.7 A second account's dashboard does not show the first account's leagues — 78765b7
 
 ### Phase 2: Delete with confirmation
 
 #### Automated
 
-- [ ] 2.1 Migration applies cleanly: `npx supabase db reset`
-- [ ] 2.2 Type check passes: `npx astro check`
-- [ ] 2.3 Lint passes: `npm run lint`
-- [ ] 2.4 Unit tests pass: `npm test`
-- [ ] 2.5 Production build succeeds: `npm run build`
-- [ ] 2.6 Smoke passes including cross-owner delete: `npm run smoke`
+- [x] 2.1 Migration applies cleanly: `npx supabase db reset`
+- [x] 2.2 Type check passes: `npx astro check`
+- [x] 2.3 Lint passes: `npm run lint`
+- [x] 2.4 Unit tests pass: `npm test`
+- [x] 2.5 Production build succeeds: `npm run build`
+- [x] 2.6 Smoke passes including cross-owner delete: `npm run smoke`
 
 #### Manual
 
-- [ ] 2.7 "Delete league" opens the confirm page; "Cancel" returns to the league untouched
-- [ ] 2.8 "Delete permanently" removes the league, lands on the dashboard and the league no longer appears
-- [ ] 2.9 A previously shared `/t/<token>` link for the deleted league shows not found
-- [ ] 2.10 Opening another user's `/leagues/<id>/delete` shows the not-found page
+- [x] 2.7 "Delete league" opens the confirm page; "Cancel" returns to the league untouched
+- [x] 2.8 "Delete permanently" removes the league, lands on the dashboard and the league no longer appears
+- [x] 2.9 A previously shared `/t/<token>` link for the deleted league shows not found
+- [x] 2.10 Opening another user's `/leagues/<id>/delete` shows the not-found page

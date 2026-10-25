@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:4321";
 const email = `smoke-${Date.now()}@example.com`;
+const email2 = `smoke-other-${Date.now()}@example.com`;
 const password = "Smoke-Test-Passw0rd!";
 const jar = new Map();
 
@@ -56,6 +57,7 @@ function leagueForm(players) {
 }
 
 let leagueLocation = "";
+const leagueId = () => leagueLocation.slice("/leagues/".length);
 let sharePath = "";
 let matchId = "";
 let sharedToken = "";
@@ -272,6 +274,71 @@ const steps = [
     "create league rejects duplicate names",
     () => request("/api/leagues", { method: "POST", form: leagueForm(["Anna", "Bartek", "anna"]) }),
     { status: 302, location: "/leagues/new?error=" },
+  ],
+  [
+    "dashboard lists the owner's leagues",
+    async () => {
+      const result = await request("/dashboard");
+      return { ...result, status: result.body.includes(`href="${leagueLocation}"`) ? result.status : 0 };
+    },
+    { status: 200 },
+  ],
+  ["delete confirm page renders for owner", () => request(`${leagueLocation}/delete`), { status: 200 }],
+  [
+    "anonymous delete redirects to sign-in",
+    () => request(`/api/leagues/${leagueId()}/delete`, { method: "POST", anonymous: true }),
+    { status: 302, location: "/auth/signin" },
+  ],
+  [
+    "owner signs out before the cross-owner check",
+    () => request("/api/auth/signout", { method: "POST" }),
+    { status: 302, location: "/" },
+  ],
+  [
+    "second account signs up",
+    () => request("/api/auth/signup", { method: "POST", form: { email: email2, password } }),
+    { status: 302, location: "/auth/confirm-email" },
+  ],
+  [
+    "second account signs in",
+    () => request("/api/auth/signin", { method: "POST", form: { email: email2, password } }),
+    { status: 302, location: "/" },
+  ],
+  ["other owner's delete confirm page is not found", () => request(`${leagueLocation}/delete`), { status: 404 }],
+  [
+    "other owner cannot delete the league",
+    () => request(`/api/leagues/${leagueId()}/delete`, { method: "POST" }),
+    { status: 302, locationIncludes: "/dashboard?error=" },
+  ],
+  ["second account signs out", () => request("/api/auth/signout", { method: "POST" }), { status: 302, location: "/" }],
+  [
+    "owner signs back in",
+    () => request("/api/auth/signin", { method: "POST", form: { email, password } }),
+    { status: 302, location: "/" },
+  ],
+  ["league survives the other owner's delete attempt", () => request(leagueLocation), { status: 200 }],
+  [
+    "owner deletes the league",
+    async () => {
+      const result = await request(`/api/leagues/${leagueId()}/delete`, { method: "POST" });
+      return { ...result, status: result.location === "/dashboard" ? result.status : 0 };
+    },
+    { status: 302, location: "/dashboard" },
+  ],
+  ["deleted league is not found", () => request(leagueLocation), { status: 404 }],
+  ["deleted league's share link is not found", () => request(sharePath, { anonymous: true }), { status: 404 }],
+  [
+    "dashboard no longer lists the deleted league",
+    async () => {
+      const result = await request("/dashboard");
+      return { ...result, status: result.body.includes(`href="${leagueLocation}"`) ? 0 : result.status };
+    },
+    { status: 200 },
+  ],
+  [
+    "deleting it again reports not found",
+    () => request(`/api/leagues/${leagueId()}/delete`, { method: "POST" }),
+    { status: 302, locationIncludes: "/dashboard?error=" },
   ],
   ["signout clears session", () => request("/api/auth/signout", { method: "POST" }), { status: 302, location: "/" }],
   ["dashboard redirects after signout", () => request("/dashboard"), { status: 302, location: "/auth/signin" }],

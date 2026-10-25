@@ -90,9 +90,12 @@ if (!result) {
               </li>
             ))}
           </ol>
-          <p class="mt-6 text-center text-sm">
+          <p class="mt-6 flex items-center justify-between text-sm">
             <a href="/dashboard" class="text-purple-300 hover:underline">
               Back to dashboard
+            </a>
+            <a href={`/leagues/${result.league.id}/delete`} class="text-red-300 hover:underline">
+              Delete league
             </a>
           </p>
         </>

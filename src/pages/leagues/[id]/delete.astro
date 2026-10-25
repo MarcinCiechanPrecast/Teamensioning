@@ -1,0 +1,73 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { createClient } from "@/lib/supabase";
+
+// PostgREST answers a malformed uuid with 22P02; to the organizer that is simply "not found".
+const INVALID_TEXT_REPRESENTATION = "22P02";
+
+interface DeleteSummary {
+  id: string;
+  name: string;
+  playerCount: number;
+  matchCount: number;
+}
+
+async function loadSummary(id: string | undefined): Promise<DeleteSummary | null> {
+  const supabase = createClient(Astro.request.headers, Astro.cookies);
+  if (!id || !supabase) return null;
+
+  // RLS only returns the organizer's own tournaments, so "not the owner" also lands here as null.
+  const { data: league, error } = await supabase.from("tournaments").select("id, name").eq("id", id).maybeSingle();
+  if (error) {
+    if (error.code === INVALID_TEXT_REPRESENTATION) return null;
+    throw new Error(error.message);
+  }
+  if (!league) return null;
+
+  const [players, matches] = await Promise.all([
+    supabase.from("players").select("id", { count: "exact", head: true }).eq("tournament_id", league.id),
+    supabase.from("matches").select("id", { count: "exact", head: true }).eq("tournament_id", league.id),
+  ]);
+  if (players.error) throw new Error(players.error.message);
+  if (matches.error) throw new Error(matches.error.message);
+
+  return { ...league, playerCount: players.count ?? 0, matchCount: matches.count ?? 0 };
+}
+
+const summary = await loadSummary(Astro.params.id);
+if (!summary) {
+  Astro.response.status = 404;
+}
+---
+
+<Layout title={summary ? `Delete ${summary.name}` : "League not found"}>
+  <div class="bg-cosmic flex min-h-screen items-center justify-center p-4">
+    <div class="w-full max-w-lg rounded-2xl border border-white/10 bg-white/10 p-8 text-white backdrop-blur-xl">
+      {summary ? (
+        <>
+          <h1 class="mb-2 text-2xl font-bold">Delete {summary.name}?</h1>
+          <p class="text-blue-100/80">
+            This permanently deletes the league, its {summary.playerCount} players and {summary.matchCount} matches,
+            including every entered score. The share link stops working. This cannot be undone.
+          </p>
+          <form method="POST" action={`/api/leagues/${summary.id}/delete`} class="mt-6 flex items-center gap-4">
+            <button
+              type="submit"
+              class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-500"
+            >
+              Delete permanently
+            </button>
+            <a href={`/leagues/${summary.id}`} class="text-sm text-purple-300 hover:underline">
+              Cancel
+            </a>
+          </form>
+        </>
+      ) : (
+        <>
+          <h1 class="mb-2 text-2xl font-bold">League not found</h1>
+          <p class="text-blue-100/80">This league does not exist or you do not have access to it.</p>
+        </>
+      )}
+    </div>
+  </div>
+</Layout>
