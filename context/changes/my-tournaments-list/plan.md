@@ -206,16 +206,16 @@ Additive: one policy. No data backfill. The delete is irreversible by design.
 
 #### Automated
 
-- [x] 2.1 Migration applies cleanly: `npx supabase db reset`
-- [x] 2.2 Type check passes: `npx astro check`
-- [x] 2.3 Lint passes: `npm run lint`
-- [x] 2.4 Unit tests pass: `npm test`
-- [x] 2.5 Production build succeeds: `npm run build`
-- [x] 2.6 Smoke passes including cross-owner delete: `npm run smoke`
+- [x] 2.1 Migration applies cleanly: `npx supabase db reset` — ddeb237
+- [x] 2.2 Type check passes: `npx astro check` — ddeb237
+- [x] 2.3 Lint passes: `npm run lint` — ddeb237
+- [x] 2.4 Unit tests pass: `npm test` — ddeb237
+- [x] 2.5 Production build succeeds: `npm run build` — ddeb237
+- [x] 2.6 Smoke passes including cross-owner delete: `npm run smoke` — ddeb237
 
 #### Manual
 
-- [x] 2.7 "Delete league" opens the confirm page; "Cancel" returns to the league untouched
-- [x] 2.8 "Delete permanently" removes the league, lands on the dashboard and the league no longer appears
-- [x] 2.9 A previously shared `/t/<token>` link for the deleted league shows not found
-- [x] 2.10 Opening another user's `/leagues/<id>/delete` shows the not-found page
+- [x] 2.7 "Delete league" opens the confirm page; "Cancel" returns to the league untouched — ddeb237
+- [x] 2.8 "Delete permanently" removes the league, lands on the dashboard and the league no longer appears — ddeb237
+- [x] 2.9 A previously shared `/t/<token>` link for the deleted league shows not found — ddeb237
+- [x] 2.10 Opening another user's `/leagues/<id>/delete` shows the not-found page — ddeb237
