@@ -1,10 +1,10 @@
 ---
 change_id: link-score-entry
 title: Link score entry
-status: impl_reviewed
+status: archived
 created: 2026-10-25
 updated: 2026-10-25
-archived_at: null
+archived_at: 2026-10-25T20:08:25Z
 ---
 
 ## Notes
