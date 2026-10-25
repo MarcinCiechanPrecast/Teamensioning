@@ -42,7 +42,7 @@ Office league organizers track matches in spreadsheets and chat, which wastes ti
 | ID   | Change ID                   | Outcome (user can …)                                                          | Prerequisites | PRD refs                              | Status   |
 | ---- | --------------------------- | ----------------------------------------------------------------------------- | ------------- | ------------------------------------- | -------- |
 | S-01 | create-league-with-fixtures | organizer can create a league with players and see all its fixtures           | —             | US-01, FR-001, FR-002, FR-003, FR-007 | done     |
-| S-02 | my-tournaments-list         | organizer can find their tournaments and delete one after confirming          | S-01          | FR-004, FR-012                        | proposed |
+| S-02 | my-tournaments-list         | organizer can find their tournaments and delete one after confirming          | S-01          | FR-004, FR-012                        | done     |
 | S-03 | shared-league-link          | anyone with the link can view fixtures and filter a player's unplayed matches | S-01          | US-01, FR-005, FR-010                 | done     |
 | S-04 | link-score-entry            | a link holder can enter a match score once                                    | S-03          | US-01, FR-009                         | done     |
 | S-05 | live-leaderboard            | a link holder can view a leaderboard that reflects every entered score        | S-04          | US-01, FR-008, FR-011                 | proposed |
@@ -100,7 +100,7 @@ None in this milestone. Auth and deploy are present per the Baseline. The absent
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Low; sequenced right after S-01 so the organizer is never stranded without a bookmark. Deletion is permanent, so the confirmation step must be reliable.
-- **Status:** proposed
+- **Status:** done
 
 ### S-03: Share the league link and browse fixtures
 
@@ -197,3 +197,4 @@ None open. The three PRD v1 questions were resolved on 2026-10-16 and moved to `
 - **S-01: organizer can sign in, create a league with a name, win/draw/loss points (prefilled 3/1/0) and uniquely named players, and on save see the complete list of fixtures.** — Archived 2026-10-23 → `context/archive/2026-10-16-create-league-with-fixtures/`. Lesson: —.
 - **S-03: organizer can copy an unlisted tournament link; anyone with it, without signing in, can view the fixtures and filter them by player to see that player's unplayed matches.** — Archived 2026-10-25 → `context/archive/2026-10-25-shared-league-link/`. Lesson: —.
 - **S-04: a link holder can enter the score of an unplayed match; the first submission wins, and a later attempt shows that the score is already entered.** — Archived 2026-10-25 → `context/archive/2026-10-25-link-score-entry/`. Lesson: —.
+- **S-02: organizer can see a list of their own tournaments, open one, and delete one after explicitly confirming.** — Archived 2026-10-25 → `context/archive/2026-10-25-my-tournaments-list/`. Lesson: —.
