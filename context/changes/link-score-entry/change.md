@@ -1,7 +1,7 @@
 ---
 change_id: link-score-entry
 title: Link score entry
-status: implementing
+status: implemented
 created: 2026-10-25
 updated: 2026-10-25
 archived_at: null

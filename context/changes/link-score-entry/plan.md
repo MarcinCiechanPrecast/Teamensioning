@@ -259,15 +259,15 @@ New table only; no backfill. Existing tournaments simply have no results, so eve
 
 #### Automated
 
-- [x] 3.1 Smoke test passes against a running server with local Supabase: `npm run smoke`
-- [x] 3.2 Unit tests pass: `npm test`
-- [x] 3.3 Linting and formatting pass: `npm run lint`
-- [x] 3.4 Production build succeeds: `npm run build`
+- [x] 3.1 Smoke test passes against a running server with local Supabase: `npm run smoke` — f0b9f85
+- [x] 3.2 Unit tests pass: `npm test` — f0b9f85
+- [x] 3.3 Linting and formatting pass: `npm run lint` — f0b9f85
+- [x] 3.4 Production build succeeds: `npm run build` — f0b9f85
 
 #### Manual
 
-- [x] 3.5 In a private window with no session, opening the link, entering `2` and `1` on an unplayed match shows it as played with 2–1
-- [x] 3.6 Submitting the same match from a second browser shows "already entered" and the stored 2–1
-- [x] 3.7 A 0–0 submit is accepted and shown as played
-- [x] 3.8 Empty, negative and `100` inputs are rejected with a readable message
-- [x] 3.9 The player filter still lists only that player's unplayed matches and hides played ones
+- [x] 3.5 In a private window with no session, opening the link, entering `2` and `1` on an unplayed match shows it as played with 2–1 — f0b9f85
+- [x] 3.6 Submitting the same match from a second browser shows "already entered" and the stored 2–1 — f0b9f85
+- [x] 3.7 A 0–0 submit is accepted and shown as played — f0b9f85
+- [x] 3.8 Empty, negative and `100` inputs are rejected with a readable message — f0b9f85
+- [x] 3.9 The player filter still lists only that player's unplayed matches and hides played ones — f0b9f85
