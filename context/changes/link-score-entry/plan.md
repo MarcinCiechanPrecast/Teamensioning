@@ -229,31 +229,31 @@ New table only; no backfill. Existing tournaments simply have no results, so eve
 
 #### Automated
 
-- [x] 1.1 Migration applies cleanly on a fresh local database: `npx supabase db reset`
-- [x] 1.2 Regenerated types include `results` and `submit_match_score`: `npx supabase gen types typescript --local` (output written to `src/db/database.types.ts`)
-- [x] 1.3 Type checking passes: `npx astro check`
-- [x] 1.4 Linting passes: `npm run lint`
+- [x] 1.1 Migration applies cleanly on a fresh local database: `npx supabase db reset` — b6e9566
+- [x] 1.2 Regenerated types include `results` and `submit_match_score`: `npx supabase gen types typescript --local` (output written to `src/db/database.types.ts`) — b6e9566
+- [x] 1.3 Type checking passes: `npx astro check` — b6e9566
+- [x] 1.4 Linting passes: `npm run lint` — b6e9566
 
 #### Manual
 
-- [x] 1.5 In SQL as `anon`, a first `submit_match_score` returns `created` and a second for the same match returns `already_entered` with the first score kept
-- [x] 1.6 A match id from another tournament, or an unknown token, returns `not_found` and writes nothing
-- [x] 1.7 Direct `select`/`insert` on `public.results` as `anon` is denied
-- [x] 1.8 `get_shared_league` shows `score_a`/`score_b` after a submit and `null` before
+- [x] 1.5 In SQL as `anon`, a first `submit_match_score` returns `created` and a second for the same match returns `already_entered` with the first score kept — b6e9566
+- [x] 1.6 A match id from another tournament, or an unknown token, returns `not_found` and writes nothing — b6e9566
+- [x] 1.7 Direct `select`/`insert` on `public.results` as `anon` is denied — b6e9566
+- [x] 1.8 `get_shared_league` shows `score_a`/`score_b` after a submit and `null` before — b6e9566
 
 ### Phase 2: Server logic
 
 #### Automated
 
-- [ ] 2.1 Unit tests pass: `npm test`
-- [ ] 2.2 Type checking passes: `npx astro check`
-- [ ] 2.3 Linting passes: `npm run lint`
-- [ ] 2.4 Production build succeeds: `npm run build`
+- [x] 2.1 Unit tests pass: `npm test`
+- [x] 2.2 Type checking passes: `npx astro check`
+- [x] 2.3 Linting passes: `npm run lint`
+- [x] 2.4 Production build succeeds: `npm run build`
 
 #### Manual
 
-- [ ] 2.5 `POST /api/scores` with no cookies and a valid token and match stores a score and redirects to `/t/<token>`
-- [ ] 2.6 The same request repeated redirects with `notice=already-entered` and does not change the stored score
+- [x] 2.5 `POST /api/scores` with no cookies and a valid token and match stores a score and redirects to `/t/<token>`
+- [x] 2.6 The same request repeated redirects with `notice=already-entered` and does not change the stored score
 
 ### Phase 3: Share page UI and smoke
 

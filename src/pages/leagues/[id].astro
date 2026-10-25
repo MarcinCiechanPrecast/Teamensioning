@@ -55,7 +55,7 @@ async function loadLeague(id: string | undefined): Promise<LoadedLeague | null> 
   const fixtures = matchesResult.data.flatMap((match): FixtureDTO[] => {
     const playerA = playersById.get(match.player_a_id);
     const playerB = playersById.get(match.player_b_id);
-    return playerA && playerB ? [{ id: match.id, position: match.position, playerA, playerB }] : [];
+    return playerA && playerB ? [{ id: match.id, position: match.position, playerA, playerB, score: null }] : [];
   });
 
   return { league, shareToken: tokenRow.share_token, fixtures };

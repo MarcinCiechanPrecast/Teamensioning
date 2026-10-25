@@ -21,6 +21,8 @@ export interface FixtureDTO {
   position: Tables<"matches">["position"];
   playerA: PlayerDTO;
   playerB: PlayerDTO;
+  /** The stored result, or null while the match is unplayed. */
+  score: { a: number; b: number } | null;
 }
 
 /** A league as shown to anyone holding its share link: no owner, no ids, no token. */
