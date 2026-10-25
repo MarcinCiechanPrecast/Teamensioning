@@ -1,0 +1,85 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { createClient } from "@/lib/supabase";
+import {
+  filterFixturesByPlayer,
+  isValidShareToken,
+  resolvePlayerFilter,
+  toSharedLeague,
+} from "@/lib/services/shared-league";
+import type { SharedLeagueDTO } from "@/types";
+
+async function loadSharedLeague(token: string | undefined): Promise<SharedLeagueDTO | null> {
+  // A malformed token never reaches the database; it looks exactly like an unknown one.
+  if (!isValidShareToken(token)) return null;
+
+  const supabase = createClient(Astro.request.headers, Astro.cookies);
+  if (!supabase) return null;
+
+  // Runs as anon: get_shared_league is the only anonymous read path.
+  const { data, error } = await supabase.rpc("get_shared_league", { p_token: token });
+  if (error) throw new Error(error.message);
+
+  return toSharedLeague(data);
+}
+
+const shared = await loadSharedLeague(Astro.params.token);
+if (!shared) {
+  Astro.response.status = 404;
+}
+
+const selectedPlayerId = shared ? resolvePlayerFilter(shared.players, Astro.url.searchParams.get("player")) : null;
+const visibleFixtures = shared ? filterFixturesByPlayer(shared.fixtures, selectedPlayerId) : [];
+---
+
+<Layout title={shared ? shared.league.name : "League not found"}>
+  <div class="bg-cosmic flex min-h-screen items-center justify-center p-4">
+    <div class="w-full max-w-lg rounded-2xl border border-white/10 bg-white/10 p-8 text-white backdrop-blur-xl">
+      {shared ? (
+        <>
+          <h1 class="mb-2 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
+            {shared.league.name}
+          </h1>
+          <p class="text-blue-100/80">
+            W {shared.league.points_win} / D {shared.league.points_draw} / L {shared.league.points_loss}
+          </p>
+          <form method="get" class="mt-6 flex items-center gap-2">
+            <label for="player" class="text-sm text-blue-100/80">
+              Player
+            </label>
+            <select
+              id="player"
+              name="player"
+              class="min-w-0 flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
+            >
+              <option value="" class="text-black" selected={selectedPlayerId === null}>
+                All players
+              </option>
+              {shared.players.map((player) => (
+                <option value={player.id} class="text-black" selected={player.id === selectedPlayerId}>
+                  {player.name}
+                </option>
+              ))}
+            </select>
+            <button type="submit" class="rounded-lg border border-white/10 bg-white/10 px-4 py-2 hover:bg-white/20">
+              Filter
+            </button>
+          </form>
+          <p class="mt-4 text-sm text-blue-100/50">{visibleFixtures.length} matches</p>
+          <ol class="mt-2 space-y-2">
+            {visibleFixtures.map((fixture) => (
+              <li class="rounded-lg border border-white/10 bg-white/5 px-4 py-2">
+                {fixture.position}. {fixture.playerA.name} vs {fixture.playerB.name}
+              </li>
+            ))}
+          </ol>
+        </>
+      ) : (
+        <>
+          <h1 class="mb-2 text-2xl font-bold">League not found</h1>
+          <p class="text-blue-100/80">This link is not valid.</p>
+        </>
+      )}
+    </div>
+  </div>
+</Layout>

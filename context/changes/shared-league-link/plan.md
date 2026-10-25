@@ -207,28 +207,28 @@ Adding a column with a volatile default rewrites the table and backfills a disti
 
 #### Automated
 
-- [x] 1.1 Migration applies on a fresh local database: `npx supabase db reset`
-- [x] 1.2 Types regenerate with the new column and function, and typecheck passes: `npx astro check`
-- [x] 1.3 Lint passes: `npm run lint`
+- [x] 1.1 Migration applies on a fresh local database: `npx supabase db reset` — 0d2bc56
+- [x] 1.2 Types regenerate with the new column and function, and typecheck passes: `npx astro check` — 0d2bc56
+- [x] 1.3 Lint passes: `npm run lint` — 0d2bc56
 
 #### Manual
 
-- [x] 1.4 As `anon`, direct table selects return nothing or are denied, while `get_shared_league` returns JSON for a valid token and null for an invalid one
-- [x] 1.5 Existing tournaments each have a distinct 64-char token after the migration
+- [x] 1.4 As `anon`, direct table selects return nothing or are denied, while `get_shared_league` returns JSON for a valid token and null for an invalid one — 0d2bc56
+- [x] 1.5 Existing tournaments each have a distinct 64-char token after the migration — 0d2bc56
 
 ### Phase 2: Public page and filter
 
 #### Automated
 
-- [ ] 2.1 Filter unit tests pass: `npm run test`
-- [ ] 2.2 Typecheck and lint pass: `npx astro check && npm run lint`
-- [ ] 2.3 Build succeeds: `npm run build`
+- [x] 2.1 Filter unit tests pass: `npm run test`
+- [x] 2.2 Typecheck and lint pass: `npx astro check && npm run lint`
+- [x] 2.3 Build succeeds: `npm run build`
 
 #### Manual
 
-- [ ] 2.4 `/t/<token>` opens in a private window without signing in and shows all fixtures
-- [ ] 2.5 `?player=<id>` shows only that player's matches; a garbage `?player=` shows all
-- [ ] 2.6 A tampered token returns the 404 view; `/leagues/<id>` still redirects an anonymous visitor to sign-in
+- [x] 2.4 `/t/<token>` opens in a private window without signing in and shows all fixtures
+- [x] 2.5 `?player=<id>` shows only that player's matches; a garbage `?player=` shows all
+- [x] 2.6 A tampered token returns the 404 view; `/leagues/<id>` still redirects an anonymous visitor to sign-in
 
 ### Phase 3: Organizer link and smoke
 
