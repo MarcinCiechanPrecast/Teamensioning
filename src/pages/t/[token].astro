@@ -23,6 +23,10 @@ async function loadSharedLeague(token: string | undefined): Promise<SharedLeague
   return toSharedLeague(data);
 }
 
+// The token is the only secret: keep the page out of search indexes and never leak the URL via Referer.
+Astro.response.headers.set("X-Robots-Tag", "noindex");
+Astro.response.headers.set("Referrer-Policy", "no-referrer");
+
 const shared = await loadSharedLeague(Astro.params.token);
 if (!shared) {
   Astro.response.status = 404;
