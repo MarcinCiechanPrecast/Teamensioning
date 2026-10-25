@@ -220,25 +220,25 @@ Adding a column with a volatile default rewrites the table and backfills a disti
 
 #### Automated
 
-- [x] 2.1 Filter unit tests pass: `npm run test`
-- [x] 2.2 Typecheck and lint pass: `npx astro check && npm run lint`
-- [x] 2.3 Build succeeds: `npm run build`
+- [x] 2.1 Filter unit tests pass: `npm run test` — 8c6cd0e
+- [x] 2.2 Typecheck and lint pass: `npx astro check && npm run lint` — 8c6cd0e
+- [x] 2.3 Build succeeds: `npm run build` — 8c6cd0e
 
 #### Manual
 
-- [x] 2.4 `/t/<token>` opens in a private window without signing in and shows all fixtures
-- [x] 2.5 `?player=<id>` shows only that player's matches; a garbage `?player=` shows all
-- [x] 2.6 A tampered token returns the 404 view; `/leagues/<id>` still redirects an anonymous visitor to sign-in
+- [x] 2.4 `/t/<token>` opens in a private window without signing in and shows all fixtures — 8c6cd0e
+- [x] 2.5 `?player=<id>` shows only that player's matches; a garbage `?player=` shows all — 8c6cd0e
+- [x] 2.6 A tampered token returns the 404 view; `/leagues/<id>` still redirects an anonymous visitor to sign-in — 8c6cd0e
 
 ### Phase 3: Organizer link and smoke
 
 #### Automated
 
-- [ ] 3.1 Full test suite passes: `npm run test`
-- [ ] 3.2 Lint, typecheck and build pass: `npm run lint && npx astro check && npm run build`
-- [ ] 3.3 Smoke passes against a running local server: `npm run smoke`
+- [x] 3.1 Full test suite passes: `npm run test`
+- [x] 3.2 Lint, typecheck and build pass: `npm run lint && npx astro check && npm run build`
+- [x] 3.3 Smoke passes against a running local server: `npm run smoke`
 
 #### Manual
 
-- [ ] 3.4 Copy button puts the full `/t/<token>` URL on the clipboard and it opens in a private window
-- [ ] 3.5 Organizer page for another user's league still shows "League not found"
+- [x] 3.4 Copy button puts the full `/t/<token>` URL on the clipboard and it opens in a private window
+- [x] 3.5 Organizer page for another user's league still shows "League not found"

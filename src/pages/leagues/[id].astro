@@ -1,12 +1,19 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import CopyLinkField from "@/components/leagues/CopyLinkField";
 import { createClient } from "@/lib/supabase";
 import type { FixtureDTO, PlayerDTO, TournamentDTO } from "@/types";
 
 // PostgREST answers a malformed uuid with 22P02; to the organizer that is simply "not found".
 const INVALID_TEXT_REPRESENTATION = "22P02";
 
-async function loadLeague(id: string | undefined): Promise<{ league: TournamentDTO; fixtures: FixtureDTO[] } | null> {
+interface LoadedLeague {
+  league: TournamentDTO;
+  shareToken: string;
+  fixtures: FixtureDTO[];
+}
+
+async function loadLeague(id: string | undefined): Promise<LoadedLeague | null> {
   const supabase = createClient(Astro.request.headers, Astro.cookies);
   if (!id || !supabase) return null;
 
@@ -22,6 +29,14 @@ async function loadLeague(id: string | undefined): Promise<{ league: TournamentD
     throw new Error(leagueError.message);
   }
   if (!league) return null;
+
+  // Selected separately so TournamentDTO never carries the token.
+  const { data: tokenRow, error: tokenError } = await supabase
+    .from("tournaments")
+    .select("share_token")
+    .eq("id", league.id)
+    .single();
+  if (tokenError) throw new Error(tokenError.message);
 
   const [playersResult, matchesResult] = await Promise.all([
     supabase.from("players").select("id, name").eq("tournament_id", league.id),
@@ -43,7 +58,7 @@ async function loadLeague(id: string | undefined): Promise<{ league: TournamentD
     return playerA && playerB ? [{ id: match.id, position: match.position, playerA, playerB }] : [];
   });
 
-  return { league, fixtures };
+  return { league, shareToken: tokenRow.share_token, fixtures };
 }
 
 const result = await loadLeague(Astro.params.id);
@@ -64,6 +79,10 @@ if (!result) {
             W {result.league.points_win} / D {result.league.points_draw} / L {result.league.points_loss}
           </p>
           <p class="mt-1 text-sm text-blue-100/50">{result.fixtures.length} matches</p>
+          <div class="mt-6">
+            <p class="mb-2 text-sm text-blue-100/80">Share link</p>
+            <CopyLinkField url={`${Astro.url.origin}/t/${result.shareToken}`} client:load />
+          </div>
           <ol class="mt-6 space-y-2">
             {result.fixtures.map((fixture) => (
               <li class="rounded-lg border border-white/10 bg-white/5 px-4 py-2">

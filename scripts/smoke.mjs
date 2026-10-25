@@ -20,19 +20,20 @@ function storeCookies(response) {
   }
 }
 
-async function request(path, { method = "GET", form } = {}) {
+// anonymous: send no cookies and ignore any Set-Cookie, so the jar is never touched.
+async function request(path, { method = "GET", form, anonymous = false } = {}) {
   const response = await fetch(BASE_URL + path, {
     method,
     redirect: "manual",
     headers: {
-      Cookie: cookieHeader(),
+      ...(anonymous ? {} : { Cookie: cookieHeader() }),
       Origin: BASE_URL,
       ...(form ? { "Content-Type": "application/x-www-form-urlencoded" } : {}),
     },
     body: form ? new URLSearchParams(form).toString() : undefined,
   });
-  storeCookies(response);
-  return { status: response.status, location: response.headers.get("location") ?? "" };
+  if (!anonymous) storeCookies(response);
+  return { status: response.status, location: response.headers.get("location") ?? "", body: await response.text() };
 }
 
 // Entries array, not a plain object: repeated "players" keys must survive into URLSearchParams.
@@ -47,6 +48,13 @@ function leagueForm(players) {
 }
 
 let leagueLocation = "";
+let sharePath = "";
+
+// Takes only the path from the rendered share URL: its origin is the server's own view, not BASE_URL.
+function extractSharePath(html) {
+  const match = /data-share-url="[^"]*?(\/t\/[0-9a-f]{64})"/.exec(html);
+  return match ? match[1] : "";
+}
 
 const steps = [
   ["home renders", () => request("/"), { status: 200 }],
@@ -80,7 +88,27 @@ const steps = [
     },
     { status: 302, location: "/leagues/" },
   ],
-  ["fixtures page renders for owner", () => request(leagueLocation), { status: 200 }],
+  [
+    "fixtures page renders for owner",
+    async () => {
+      const result = await request(leagueLocation);
+      sharePath = extractSharePath(result.body);
+      return result;
+    },
+    { status: 200 },
+  ],
+  [
+    "owner page exposes a share link",
+    async () => ({ status: /^\/t\/[0-9a-f]{64}$/.test(sharePath) ? 200 : 0, location: sharePath }),
+    { status: 200 },
+  ],
+  ["share link renders without cookies", () => request(sharePath, { anonymous: true }), { status: 200 }],
+  ["unknown share token is not found", () => request(`/t/${"0".repeat(64)}`, { anonymous: true }), { status: 404 }],
+  [
+    "owner page redirects without cookies",
+    () => request(leagueLocation, { anonymous: true }),
+    { status: 302, location: "/auth/signin" },
+  ],
   [
     "create league rejects duplicate names",
     () => request("/api/leagues", { method: "POST", form: leagueForm(["Anna", "Bartek", "anna"]) }),
