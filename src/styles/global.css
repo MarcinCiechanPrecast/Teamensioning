@@ -59,7 +59,9 @@
   --muted-foreground: oklch(0.7753 0.02 164.4487);
   --accent: oklch(0.3109 0.0616 153.0738);
   --accent-foreground: oklch(0.7763 0.2066 149.5172);
-  --destructive: oklch(0.5875 0.2303 28.2622);
+  /* Departs from Jamaica (oklch(0.5875 0.2303 28.2622)): that value gives error text 3.42:1 on --card, below AA.
+     This is the original shadcn dark value, 5.43:1. */
+  --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(0.2843 0.0249 162.5796);
   --input: oklch(0.2843 0.0249 162.5796);
   --ring: oklch(0.7763 0.2066 149.5172);

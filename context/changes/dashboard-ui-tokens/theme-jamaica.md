@@ -76,4 +76,6 @@ Fonts: Outfit (sans), JetBrains Mono (mono), Georgia (serif). Radius `1.25rem`. 
 --sidebar-ring: oklch(0.7763 0.2066 149.5172);
 ```
 
+Deviation: the repo's `.dark` uses `--destructive: oklch(0.704 0.191 22.216)` (original shadcn dark value, 5.43:1 on `--card`) instead of the preset's `oklch(0.5875 0.2303 28.2622)` above (3.42:1, fails AA for small text). `.dark` is the dark block above; the light block is unchanged.
+
 Not carried here: `destructive-foreground` (light `oklch(0.9838 0.0035 247.8583)`, dark `oklch(1 0 0)`) and the `--shadow-*` set. Both are in the registry JSON above. The current `global.css` has no `--destructive-foreground`, so adding it is a plan decision.
