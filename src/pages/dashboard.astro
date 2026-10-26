@@ -1,7 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import DashboardView from "@/components/dashboard/DashboardView.astro";
+import { isDashboardErrorCode } from "@/lib/services/dashboard-errors";
 import { createClient } from "@/lib/supabase";
 import type { TournamentDTO } from "@/types";
 
@@ -24,66 +24,12 @@ async function loadTournaments(): Promise<TournamentListItem[]> {
 }
 
 const tournaments = await loadTournaments();
-const errorMessage = Astro.url.searchParams.get("error");
+const errorParam = Astro.url.searchParams.get("error");
+const errorCode = isDashboardErrorCode(errorParam) ? errorParam : undefined;
 ---
 
 <Layout title="Dashboard">
   <div class="bg-cosmic flex min-h-screen items-center justify-center p-4">
-    <div class="w-full max-w-lg rounded-2xl border border-white/10 bg-white/10 p-8 text-center text-white backdrop-blur-xl">
-      <h1 class="mb-4 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
-        Dashboard
-      </h1>
-      <p class="text-blue-100/80">
-        Welcome, <span class="font-semibold text-white">{user?.email}</span>
-      </p>
-      {errorMessage && (
-        <p role="alert" class="mt-4 rounded-lg border border-red-400/30 bg-red-500/10 px-4 py-2 text-sm text-red-200">
-          {errorMessage}
-        </p>
-      )}
-      {tournaments.length > 0 ? (
-        <ul class="mt-6 space-y-2 text-left">
-          {tournaments.map((tournament) => (
-            <li>
-              <a
-                href={`/leagues/${tournament.id}`}
-                class:list={cn(
-                  "block rounded-lg border border-white/10 bg-white/5 px-4 py-2 transition-colors",
-                  "hover:bg-white/10",
-                )}
-              >
-                {tournament.name}
-              </a>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div class="mt-6">
-          <p class="text-sm text-blue-100/50">You have no leagues yet.</p>
-          <a
-            href="/leagues/new"
-            class:list={cn(buttonVariants(), "mt-4 rounded-lg bg-purple-600 text-white hover:bg-purple-500")}
-          >
-            Create your first league
-          </a>
-        </div>
-      )}
-      {tournaments.length > 0 && (
-        <a
-          href="/leagues/new"
-          class:list={cn(buttonVariants(), "mt-6 rounded-lg bg-purple-600 text-white hover:bg-purple-500")}
-        >
-          Create league
-        </a>
-      )}
-      <form method="POST" action="/api/auth/signout" class="mt-6">
-        <button
-          type="submit"
-          class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm transition-colors hover:bg-white/20"
-        >
-          Sign out
-        </button>
-      </form>
-    </div>
+    <DashboardView email={user?.email ?? ""} tournaments={tournaments} errorCode={errorCode} />
   </div>
 </Layout>

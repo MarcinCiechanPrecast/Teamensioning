@@ -300,30 +300,30 @@ No data changes. The delete endpoint's redirect format changes from a message to
 
 #### Automated
 
-- [x] 2.1 No hex colours remain in the token utility: `grep -nE '#[0-9a-fA-F]{3,8}\b' src/styles/global.css` returns no lines
-- [x] 2.2 Linting passes: `npm run lint`
-- [x] 2.3 Build passes: `npm run build`
+- [x] 2.1 No hex colours remain in the token utility: `grep -nE '#[0-9a-fA-F]{3,8}\b' src/styles/global.css` returns no lines — 32339ad
+- [x] 2.2 Linting passes: `npm run lint` — 32339ad
+- [x] 2.3 Build passes: `npm run build` — 32339ad
 
 #### Manual
 
-- [x] 2.4 `/auth/signin` and `/dashboard` show the green-tinted dark background and Outfit font
-- [x] 2.5 No page is unreadable (contrast still acceptable on the 9 pages that use `bg-cosmic`)
+- [x] 2.4 `/auth/signin` and `/dashboard` show the green-tinted dark background and Outfit font — 32339ad
+- [x] 2.5 No page is unreadable (contrast still acceptable on the 9 pages that use `bg-cosmic`) — 32339ad
 
 ### Phase 3: Dashboard view
 
 #### Automated
 
-- [ ] 3.1 Unit tests pass: `npm test`
-- [ ] 3.2 Hardcoded-value scan returns 0 lines on `src/pages/dashboard.astro` and `src/components/dashboard/DashboardView.astro`
-- [ ] 3.3 Linting passes: `npm run lint`
-- [ ] 3.4 Type check passes: `npx astro check`
-- [ ] 3.5 Build passes: `npm run build`
+- [x] 3.1 Unit tests pass: `npm test`
+- [x] 3.2 Hardcoded-value scan returns 0 lines on `src/pages/dashboard.astro` and `src/components/dashboard/DashboardView.astro`
+- [x] 3.3 Linting passes: `npm run lint`
+- [x] 3.4 Type check passes: `npx astro check`
+- [x] 3.5 Build passes: `npm run build`
 
 #### Manual
 
-- [ ] 3.6 `/dashboard` with leagues, and with none, renders from tokens with the green accent and rounded card
-- [ ] 3.7 Deleting a league that does not exist shows "League not found" (code-mapped); `/dashboard?error=hello` shows no alert
-- [ ] 3.8 Tab order reaches every row link, Create league and Sign out, each with a visible ring
+- [x] 3.6 `/dashboard` with leagues, and with none, renders from tokens with the green accent and rounded card
+- [x] 3.7 Deleting a league that does not exist shows "League not found" (code-mapped); `/dashboard?error=hello` shows no alert
+- [x] 3.8 Tab order reaches every row link, Create league and Sign out, each with a visible ring
 
 ### Phase 4: States, gate and guard
 

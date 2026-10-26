@@ -1,11 +1,12 @@
 import type { APIRoute } from "astro";
 import { createClient } from "@/lib/supabase";
+import type { DashboardErrorCode } from "@/lib/services/dashboard-errors";
 
 // PostgREST answers a malformed uuid with 22P02; to the organizer that is simply "not found".
 const INVALID_TEXT_REPRESENTATION = "22P02";
 
 export const POST: APIRoute = async (context) => {
-  const failWith = (message: string) => context.redirect(`/dashboard?error=${encodeURIComponent(message)}`);
+  const failWith = (code: DashboardErrorCode) => context.redirect(`/dashboard?error=${code}`);
 
   if (!context.locals.user) {
     return context.redirect("/auth/signin");
@@ -13,7 +14,7 @@ export const POST: APIRoute = async (context) => {
 
   const supabase = createClient(context.request.headers, context.cookies);
   if (!supabase) {
-    return failWith("Supabase is not configured");
+    return failWith("supabase-not-configured");
   }
 
   // RLS decides ownership: a league that is not the caller's is invisible, so nothing is deleted or returned.
@@ -24,10 +25,10 @@ export const POST: APIRoute = async (context) => {
     .select("id");
 
   if (error) {
-    return failWith(error.code === INVALID_TEXT_REPRESENTATION ? "League not found" : error.message);
+    return failWith(error.code === INVALID_TEXT_REPRESENTATION ? "league-not-found" : "server");
   }
   if (data.length === 0) {
-    return failWith("League not found");
+    return failWith("league-not-found");
   }
 
   return context.redirect("/dashboard");
