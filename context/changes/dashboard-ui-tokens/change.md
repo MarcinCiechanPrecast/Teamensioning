@@ -1,9 +1,9 @@
 ---
 change_id: dashboard-ui-tokens
 title: Dashboard UI on design tokens and shared components
-status: implementing
+status: implemented
 created: 2026-10-25
-updated: 2026-10-25
+updated: 2026-10-26
 archived_at: null
 ---
 

@@ -329,15 +329,15 @@ No data changes. The delete endpoint's redirect format changes from a message to
 
 #### Automated
 
-- [x] 4.1 Guard passes on the cleaned view: `npm run check:ui`
-- [x] 4.2 Guard fails on a literal: a temporary `bg-purple-600` in the view makes `npm run check:ui` exit non-zero (then revert)
-- [x] 4.3 Tests pass: `npm test`
-- [x] 4.4 Linting passes: `npm run lint`
-- [x] 4.5 Build passes: `npm run build`
-- [x] 4.6 Smoke test passes against the running server: `npm run smoke`
+- [x] 4.1 Guard passes on the cleaned view: `npm run check:ui` — d469a06
+- [x] 4.2 Guard fails on a literal: a temporary `bg-purple-600` in the view makes `npm run check:ui` exit non-zero (then revert) — d469a06
+- [x] 4.3 Tests pass: `npm test` — d469a06
+- [x] 4.4 Linting passes: `npm run lint` — d469a06
+- [x] 4.5 Build passes: `npm run build` — d469a06
+- [x] 4.6 Smoke test passes against the running server: `npm run smoke` — d469a06
 
 #### Manual
 
-- [x] 4.7 Kitchen sink shows default, hover, focus-visible, error and empty with tokens only; disabled and loading are marked N/A with reasons
-- [x] 4.8 Screenshots exist for desktop and 375px width and match the Jamaica look in both
-- [x] 4.9 The focus ring is visible on every control and uses `--ring`
+- [x] 4.7 Kitchen sink shows default, hover, focus-visible, error and empty with tokens only; disabled and loading are marked N/A with reasons — d469a06
+- [x] 4.8 Screenshots exist for desktop and 375px width and match the Jamaica look in both — d469a06
+- [x] 4.9 The focus ring is visible on every control and uses `--ring` — d469a06
