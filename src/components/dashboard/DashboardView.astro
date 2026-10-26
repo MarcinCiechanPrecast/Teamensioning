@@ -1,5 +1,5 @@
 ---
-import { Alert } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DASHBOARD_ERROR_MESSAGES, type DashboardErrorCode } from "@/lib/services/dashboard-errors";
@@ -19,7 +19,11 @@ const { email, tournaments, errorCode } = Astro.props;
   <p class="text-muted-foreground">
     Welcome, <span class="text-foreground font-semibold">{email}</span>
   </p>
-  {errorCode && <Alert variant="destructive">{DASHBOARD_ERROR_MESSAGES[errorCode]}</Alert>}
+  {errorCode && (
+    <Alert variant="destructive">
+      <AlertDescription>{DASHBOARD_ERROR_MESSAGES[errorCode]}</AlertDescription>
+    </Alert>
+  )}
   {tournaments.length > 0 ? (
     <ul class="space-y-2 text-left">
       {tournaments.map((tournament) => (

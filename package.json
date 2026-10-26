@@ -11,6 +11,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "smoke": "node scripts/smoke.mjs",
+    "check:ui": "node scripts/check-ui-literals.mjs",
     "test": "vitest run",
     "prepare": "husky"
   },
@@ -64,6 +65,9 @@
     ],
     "*.{json,css,md}": [
       "prettier --write"
+    ],
+    "src/{pages/dashboard.astro,components/dashboard/*.astro}": [
+      "node scripts/check-ui-literals.mjs"
     ]
   },
   "overrides": {

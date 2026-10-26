@@ -313,31 +313,31 @@ No data changes. The delete endpoint's redirect format changes from a message to
 
 #### Automated
 
-- [x] 3.1 Unit tests pass: `npm test`
-- [x] 3.2 Hardcoded-value scan returns 0 lines on `src/pages/dashboard.astro` and `src/components/dashboard/DashboardView.astro`
-- [x] 3.3 Linting passes: `npm run lint`
-- [x] 3.4 Type check passes: `npx astro check`
-- [x] 3.5 Build passes: `npm run build`
+- [x] 3.1 Unit tests pass: `npm test` — 529b21f
+- [x] 3.2 Hardcoded-value scan returns 0 lines on `src/pages/dashboard.astro` and `src/components/dashboard/DashboardView.astro` — 529b21f
+- [x] 3.3 Linting passes: `npm run lint` — 529b21f
+- [x] 3.4 Type check passes: `npx astro check` — 529b21f
+- [x] 3.5 Build passes: `npm run build` — 529b21f
 
 #### Manual
 
-- [x] 3.6 `/dashboard` with leagues, and with none, renders from tokens with the green accent and rounded card
-- [x] 3.7 Deleting a league that does not exist shows "League not found" (code-mapped); `/dashboard?error=hello` shows no alert
-- [x] 3.8 Tab order reaches every row link, Create league and Sign out, each with a visible ring
+- [x] 3.6 `/dashboard` with leagues, and with none, renders from tokens with the green accent and rounded card — 529b21f
+- [x] 3.7 Deleting a league that does not exist shows "League not found" (code-mapped); `/dashboard?error=hello` shows no alert — 529b21f
+- [x] 3.8 Tab order reaches every row link, Create league and Sign out, each with a visible ring — 529b21f
 
 ### Phase 4: States, gate and guard
 
 #### Automated
 
-- [ ] 4.1 Guard passes on the cleaned view: `npm run check:ui`
-- [ ] 4.2 Guard fails on a literal: a temporary `bg-purple-600` in the view makes `npm run check:ui` exit non-zero (then revert)
-- [ ] 4.3 Tests pass: `npm test`
-- [ ] 4.4 Linting passes: `npm run lint`
-- [ ] 4.5 Build passes: `npm run build`
-- [ ] 4.6 Smoke test passes against the running server: `npm run smoke`
+- [x] 4.1 Guard passes on the cleaned view: `npm run check:ui`
+- [x] 4.2 Guard fails on a literal: a temporary `bg-purple-600` in the view makes `npm run check:ui` exit non-zero (then revert)
+- [x] 4.3 Tests pass: `npm test`
+- [x] 4.4 Linting passes: `npm run lint`
+- [x] 4.5 Build passes: `npm run build`
+- [x] 4.6 Smoke test passes against the running server: `npm run smoke`
 
 #### Manual
 
-- [ ] 4.7 Kitchen sink shows default, hover, focus-visible, error and empty with tokens only; disabled and loading are marked N/A with reasons
-- [ ] 4.8 Screenshots exist for desktop and 375px width and match the Jamaica look in both
-- [ ] 4.9 The focus ring is visible on every control and uses `--ring`
+- [x] 4.7 Kitchen sink shows default, hover, focus-visible, error and empty with tokens only; disabled and loading are marked N/A with reasons
+- [x] 4.8 Screenshots exist for desktop and 375px width and match the Jamaica look in both
+- [x] 4.9 The focus ring is visible on every control and uses `--ring`
