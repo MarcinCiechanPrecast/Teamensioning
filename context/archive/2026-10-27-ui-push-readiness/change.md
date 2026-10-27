@@ -1,10 +1,10 @@
 ---
 change_id: ui-push-readiness
 title: UI audit: can PR #23 ship to master
-status: preparing
+status: archived
 created: 2026-10-27
 updated: 2026-10-27
-archived_at: null
+archived_at: 2026-10-27T15:03:47Z
 ---
 
 ## Notes
