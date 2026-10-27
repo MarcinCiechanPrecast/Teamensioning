@@ -1,0 +1,57 @@
+---
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { buttonVariants } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { DASHBOARD_ERROR_MESSAGES, type DashboardErrorCode } from "@/lib/services/dashboard-errors";
+import { cn } from "@/lib/utils";
+
+interface Props {
+  email: string;
+  tournaments: { id: string; name: string }[];
+  errorCode?: DashboardErrorCode;
+}
+
+const { email, tournaments, errorCode } = Astro.props;
+---
+
+<Card className="w-full max-w-lg p-8 text-center">
+  <h1 class="text-foreground mb-4 text-3xl font-bold">Dashboard</h1>
+  <p class="text-muted-foreground">
+    Welcome, <span class="text-foreground font-semibold break-words">{email}</span>
+  </p>
+  {errorCode && (
+    <Alert variant="destructive">
+      <AlertDescription>{DASHBOARD_ERROR_MESSAGES[errorCode]}</AlertDescription>
+    </Alert>
+  )}
+  {tournaments.length > 0 ? (
+    <ul class="space-y-2 text-left">
+      {tournaments.map((tournament) => (
+        <li>
+          <a
+            href={`/leagues/${tournament.id}`}
+            class:list={cn(
+              "border-border bg-card text-card-foreground block rounded-lg border px-4 py-2 transition-colors",
+              "hover:bg-accent hover:text-accent-foreground",
+              "focus-visible:ring-ring outline-hidden focus-visible:ring-2",
+            )}
+          >
+            {tournament.name}
+          </a>
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <p class="text-muted-foreground text-sm">You have no leagues yet.</p>
+  )}
+  <div>
+    <a href="/leagues/new" class:list={buttonVariants()}>
+      Create league
+    </a>
+  </div>
+  <form method="POST" action="/api/auth/signout">
+    <button type="submit" class:list={buttonVariants({ variant: "outline" })}>
+      Sign out
+    </button>
+  </form>
+</Card>

@@ -1,0 +1,80 @@
+---
+import DashboardView from "@/components/dashboard/DashboardView.astro";
+import { Card } from "@/components/ui/card";
+import Layout from "@/layouts/Layout.astro";
+
+// Dev-only visual gate: not listed in PROTECTED_ROUTES so it renders without a login.
+// Outside dev the route answers 404 with an empty body (no top-level `return`: it crashes typescript-eslint).
+const isDev = import.meta.env.DEV;
+if (!isDev) Astro.response.status = 404;
+
+const email = "organizer@example.test";
+const tournaments = [
+  { id: "00000000-0000-4000-8000-000000000001", name: "Friday Five-a-side" },
+  { id: "00000000-0000-4000-8000-000000000002", name: "Office FIFA Cup" },
+  { id: "00000000-0000-4000-8000-000000000003", name: "Sunday Table Tennis" },
+];
+
+const states = [
+  { key: "default", label: "Default", note: "Three leagues." },
+  { key: "hover", label: "Hover", note: "First league forced to its hover colours." },
+  { key: "focus", label: "Focus-visible", note: "First league forced to its focus ring." },
+  { key: "error", label: "Error", note: 'errorCode="league-not-found".' },
+  { key: "empty", label: "Empty", note: "No leagues." },
+];
+
+const notApplicable = [
+  { label: "Disabled", reason: "N/A: the dashboard has no disabled control." },
+  {
+    label: "Loading",
+    reason: "N/A: server-rendered, data is awaited before render (dashboard.astro), so no client loading state.",
+  },
+];
+---
+
+{isDev && (
+  <Layout title="Dashboard states">
+    <div class="bg-cosmic min-h-screen p-4">
+      <h1 class="text-foreground mb-2 text-2xl font-bold">Dashboard states</h1>
+      <p class="text-muted-foreground mb-6 text-sm">
+        Dev-only kitchen sink. Every cell renders the real DashboardView.
+      </p>
+      <div class="grid gap-6 lg:grid-cols-2">
+        {states.map((state) => (
+          <section data-state={state.key} class="space-y-2">
+            <h2 class="text-foreground text-lg font-semibold">{state.label}</h2>
+            <p class="text-muted-foreground text-sm">{state.note}</p>
+            {state.key === "error" ? (
+              <DashboardView email={email} tournaments={tournaments} errorCode="league-not-found" />
+            ) : state.key === "empty" ? (
+              <DashboardView email={email} tournaments={[]} />
+            ) : (
+              <DashboardView email={email} tournaments={tournaments} />
+            )}
+          </section>
+        ))}
+        {notApplicable.map((item) => (
+          <section class="space-y-2">
+            <h2 class="text-foreground text-lg font-semibold">{item.label}</h2>
+            <Card className="p-4">
+              <p class="text-muted-foreground text-sm">{item.reason}</p>
+            </Card>
+          </section>
+        ))}
+      </div>
+    </div>
+  </Layout>
+)}
+
+<style is:global>
+  /* Mirrors the hover: classes on the league links in DashboardView. */
+  [data-state="hover"] ul li:first-child a {
+    background-color: var(--accent);
+    color: var(--accent-foreground);
+  }
+
+  /* Mirrors the focus-visible: classes on the league links in DashboardView. */
+  [data-state="focus"] ul li:first-child a {
+    box-shadow: 0 0 0 2px var(--ring);
+  }
+</style>

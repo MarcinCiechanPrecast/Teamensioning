@@ -44,6 +44,14 @@ Full server-side rendering (`output: "server"` in astro.config.mjs). All pages a
 - **Services/helpers** go in `src/lib/` (or `src/lib/services/` for extracted business logic).
 - **Shared types** (entities, DTOs) go in `src/types.ts`.
 
+### UI
+
+- **Tokens** live in `src/styles/global.css`: values in `:root`/`.dark`, published through `@theme inline` (the Jamaica provenance comment explains the palette). Change a colour there, not in a view.
+- **Components** live in `src/components/ui/`. Add missing ones with `npx shadcn@latest add <name>`; do not hand-build cards, alerts or buttons in views.
+- **No literal colours or arbitrary values in views**: no hex/rgb/hsl/oklch, no palette classes like `bg-purple-600`, no `-[12px]`. Use token classes (`bg-card`, `text-muted-foreground`, `ring-ring`).
+- **Guard**: `npm run check:ui` (also run by lint-staged) scans only the cleaned views, `src/pages/dashboard.astro` and `src/components/dashboard/*.astro`. Other views are not migrated yet.
+- **Visual gate**: the kitchen sink `src/pages/dev/dashboard-states.astro` (dev only, 404 otherwise) shows the dashboard in every applicable state.
+
 ### Environment
 
 - Node.js v22.23.3 (see `.nvmrc`)
