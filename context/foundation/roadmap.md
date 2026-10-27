@@ -3,7 +3,7 @@ project: Teamensioning
 version: 1
 status: draft
 created: 2026-10-16
-updated: 2026-10-25
+updated: 2026-10-27
 prd_version: 2
 main_goal: speed
 top_blocker: time
@@ -165,15 +165,16 @@ None in this milestone. Auth and deploy are present per the Baseline. The absent
 
 ## Backlog Handoff
 
-| Roadmap ID | Change ID                   | Issue | Suggested issue title                             | Ready for `/10x-plan` | Notes                         |
-| ---------- | --------------------------- | ----- | ------------------------------------------------- | --------------------- | ----------------------------- |
-| S-01       | create-league-with-fixtures | #7    | Organizer creates a league and sees all fixtures  | done                  | Archived 2026-10-23           |
-| S-02       | my-tournaments-list         | #8    | Organizer lists and deletes their tournaments     | yes                   | Unblocked; S-01 done          |
-| S-03       | shared-league-link          | #9    | Shared tournament link with player fixture filter | done                  | Archived 2026-10-25           |
-| S-04       | link-score-entry            | #10   | Link holder enters a match score once             | done                  | Archived 2026-10-25           |
-| S-05       | live-leaderboard            | #11   | Leaderboard with tiebreakers from entered scores  | yes                   | Unblocked; S-04 done          |
-| S-06       | organizer-score-correction  | #12   | Organizer corrects an entered score               | yes                   | Unblocked; S-04 done          |
-| S-07       | edit-tournament-settings    | #13   | Organizer edits tournament name and points        | yes                   | Unblocked; S-01 and S-04 done |
+| Roadmap ID | Change ID                   | Issue | Suggested issue title                             | Ready for `/10x-plan` | Notes                                                        |
+| ---------- | --------------------------- | ----- | ------------------------------------------------- | --------------------- | ------------------------------------------------------------ |
+| S-01       | create-league-with-fixtures | #7    | Organizer creates a league and sees all fixtures  | done                  | Archived 2026-10-23                                          |
+| S-02       | my-tournaments-list         | #8    | Organizer lists and deletes their tournaments     | done                  | Archived 2026-10-25                                          |
+| S-03       | shared-league-link          | #9    | Shared tournament link with player fixture filter | done                  | Archived 2026-10-25                                          |
+| S-04       | link-score-entry            | #10   | Link holder enters a match score once             | done                  | Archived 2026-10-25                                          |
+| S-05       | live-leaderboard            | #11   | Leaderboard with tiebreakers from entered scores  | yes                   | Unblocked; S-04 done                                         |
+| S-06       | organizer-score-correction  | #12   | Organizer corrects an entered score               | yes                   | Unblocked; S-04 done                                         |
+| S-07       | edit-tournament-settings    | #13   | Organizer edits tournament name and points        | yes                   | Unblocked; S-01 and S-04 done                                |
+| —          | dashboard-ui-tokens         | —     | Dashboard on the Jamaica design tokens            | done                  | Archived 2026-10-27; not a slice (cross-cutting UI contract) |
 
 Issues live in GitHub milestone `M-1: First playable league` with labels `roadmap:slice`, `status:*` and `stream:*`. This file stays canonical; issue labels are a view.
 
@@ -189,6 +190,7 @@ None open. The three PRD v1 questions were resolved on 2026-10-16 and moved to `
 - **Changing the player list after creation** — Why parked: PRD §Non-Goals; recreate the tournament instead, keeping fixtures tied to a fixed player list.
 - **Other formats (cup, group→knockout, Swiss) and the format picker** — Why parked: PRD §Non-Goals; candidates for a later milestone, picker arrives with the cup format (FR-002).
 - **App-level logging and error tracking** — Why parked: speed goal; Workers platform observability covers the MVP.
+- **Migrating the remaining views to the design tokens** (auth pages, landing, league pages, Topbar) — Why parked: `dashboard-ui-tokens` covered one view plus the global tokens by design. When the league view is migrated, fix `src/pages/leagues/[id].astro:81` (`text-blue-100/50`, 4.31:1) and add the migrated views to the `npm run check:ui` guard (`context/archive/2026-10-25-dashboard-ui-tokens/follow-ups/review-fixes.md`).
 
 ## Milestone History
 
@@ -198,3 +200,4 @@ None open. The three PRD v1 questions were resolved on 2026-10-16 and moved to `
 - **S-03: organizer can copy an unlisted tournament link; anyone with it, without signing in, can view the fixtures and filter them by player to see that player's unplayed matches.** — Archived 2026-10-25 → `context/archive/2026-10-25-shared-league-link/`. Lesson: —.
 - **S-04: a link holder can enter the score of an unplayed match; the first submission wins, and a later attempt shows that the score is already entered.** — Archived 2026-10-25 → `context/archive/2026-10-25-link-score-entry/`. Lesson: —.
 - **S-02: organizer can see a list of their own tournaments, open one, and delete one after explicitly confirming.** — Archived 2026-10-25 → `context/archive/2026-10-25-my-tournaments-list/`. Lesson: —.
+- **UI: the dashboard is built from the Jamaica design tokens and shared components (Card, Alert, Button), dark by default; `?error=` carries fixed codes, and a scoped `check:ui` guard plus an `AGENTS.md` UI block keep new views on the tokens.** — Archived 2026-10-27 → `context/archive/2026-10-25-dashboard-ui-tokens/`. Lesson: a visual gate (screenshots of every state) caught an Alert layout bug that text-only checks missed.
