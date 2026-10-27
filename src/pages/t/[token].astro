@@ -98,7 +98,7 @@ const alreadyEntered = Astro.url.searchParams.get("notice") === "already-entered
                 <form method="POST" action="/api/scores" class="flex flex-wrap items-center gap-2">
                   <input type="hidden" name="token" value={token} />
                   <input type="hidden" name="matchId" value={fixture.id} />
-                  <span class="min-w-0 flex-1">
+                  <span class="min-w-0 basis-full break-words sm:flex-1">
                     {fixture.position}. {fixture.playerA.name} vs {fixture.playerB.name}
                   </span>
                   <input
