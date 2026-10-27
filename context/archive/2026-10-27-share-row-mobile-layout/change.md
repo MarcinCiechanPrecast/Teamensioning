@@ -1,10 +1,10 @@
 ---
 change_id: share-row-mobile-layout
 title: Fix score inputs overlapping player names on the share page at 375px
-status: implemented
+status: archived
 created: 2026-10-27
 updated: 2026-10-27
-archived_at: null
+archived_at: 2026-10-27T15:03:30Z
 ---
 
 ## Notes
