@@ -17,7 +17,7 @@ const { email, tournaments, errorCode } = Astro.props;
 <Card className="w-full max-w-lg p-8 text-center">
   <h1 class="text-foreground mb-4 text-3xl font-bold">Dashboard</h1>
   <p class="text-muted-foreground">
-    Welcome, <span class="text-foreground font-semibold">{email}</span>
+    Welcome, <span class="text-foreground font-semibold break-words">{email}</span>
   </p>
   {errorCode && (
     <Alert variant="destructive">
@@ -33,7 +33,7 @@ const { email, tournaments, errorCode } = Astro.props;
             class:list={cn(
               "border-border bg-card text-card-foreground block rounded-lg border px-4 py-2 transition-colors",
               "hover:bg-accent hover:text-accent-foreground",
-              "focus-visible:ring-ring outline-none focus-visible:ring-2",
+              "focus-visible:ring-ring outline-hidden focus-visible:ring-2",
             )}
           >
             {tournament.name}
