@@ -171,7 +171,7 @@ None in this milestone. Auth and deploy are present per the Baseline. The absent
 | S-02       | my-tournaments-list         | #8    | Organizer lists and deletes their tournaments     | done                  | Archived 2026-10-25                                          |
 | S-03       | shared-league-link          | #9    | Shared tournament link with player fixture filter | done                  | Archived 2026-10-25                                          |
 | S-04       | link-score-entry            | #10   | Link holder enters a match score once             | done                  | Archived 2026-10-25                                          |
-| S-05       | live-leaderboard            | #11   | Leaderboard with tiebreakers from entered scores  | yes                   | Unblocked; S-04 done                                         |
+| S-05       | live-leaderboard            | #11   | Leaderboard with tiebreakers from entered scores  | done                  | Archived 2026-11-02                                          |
 | S-06       | organizer-score-correction  | #12   | Organizer corrects an entered score               | yes                   | Unblocked; S-04 done                                         |
 | S-07       | edit-tournament-settings    | #13   | Organizer edits tournament name and points        | yes                   | Unblocked; S-01 and S-04 done                                |
 | —          | dashboard-ui-tokens         | —     | Dashboard on the Jamaica design tokens            | done                  | Archived 2026-10-27; not a slice (cross-cutting UI contract) |
