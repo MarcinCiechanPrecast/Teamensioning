@@ -1,0 +1,89 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import EditLeagueSettingsForm from "@/components/leagues/EditLeagueSettingsForm";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { createClient } from "@/lib/supabase";
+import type { TournamentDTO } from "@/types";
+
+// PostgREST answers a malformed uuid with 22P02; to the organizer that is simply "not found".
+const INVALID_TEXT_REPRESENTATION = "22P02";
+
+type EditableLeague = Pick<TournamentDTO, "id" | "name" | "points_win" | "points_draw" | "points_loss">;
+
+interface LoadedSettings {
+  league: EditableLeague;
+  pointsLocked: boolean;
+}
+
+async function loadSettings(id: string | undefined): Promise<LoadedSettings | null> {
+  const supabase = createClient(Astro.request.headers, Astro.cookies);
+  if (!id || !supabase) return null;
+
+  // RLS only returns the organizer's own tournaments, so "not the owner" also lands here as null.
+  const { data: league, error } = await supabase
+    .from("tournaments")
+    .select("id, name, points_win, points_draw, points_loss")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) {
+    if (error.code === INVALID_TEXT_REPRESENTATION) return null;
+    throw new Error(error.message);
+  }
+  if (!league) return null;
+
+  // Any result on any of the tournament's matches locks the points (results are RLS-scoped to the owner too).
+  const { count, error: resultsError } = await supabase
+    .from("results")
+    .select("match_id, matches!inner(tournament_id)", { count: "exact", head: true })
+    .eq("matches.tournament_id", league.id);
+  if (resultsError) throw new Error(resultsError.message);
+
+  return { league, pointsLocked: (count ?? 0) > 0 };
+}
+
+const loaded = await loadSettings(Astro.params.id);
+if (!loaded) {
+  Astro.response.status = 404;
+}
+const error = Astro.url.searchParams.get("error");
+---
+
+<Layout title={loaded ? `Edit ${loaded.league.name}` : "League not found"}>
+  <div class="bg-cosmic flex min-h-screen items-center justify-center p-4">
+    <Card className="w-full max-w-lg">
+      {loaded ? (
+        <>
+          <CardHeader>
+            <CardTitle className="text-2xl">Edit settings</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <EditLeagueSettingsForm
+              leagueId={loaded.league.id}
+              name={loaded.league.name}
+              pointsWin={loaded.league.points_win}
+              pointsDraw={loaded.league.points_draw}
+              pointsLoss={loaded.league.points_loss}
+              pointsLocked={loaded.pointsLocked}
+              serverError={error}
+              client:load
+            />
+            <p class="text-muted-foreground text-center text-sm">
+              <a href={`/leagues/${loaded.league.id}`} class="text-primary hover:underline">
+                Cancel
+              </a>
+            </p>
+          </CardContent>
+        </>
+      ) : (
+        <>
+          <CardHeader>
+            <CardTitle className="text-2xl">League not found</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p class="text-muted-foreground">This league does not exist or you do not have access to it.</p>
+          </CardContent>
+        </>
+      )}
+    </Card>
+  </div>
+</Layout>
