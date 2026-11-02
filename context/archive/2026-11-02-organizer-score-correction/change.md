@@ -1,10 +1,10 @@
 ---
 change_id: organizer-score-correction
 title: Organizer corrects an entered score
-status: implemented
+status: archived
 created: 2026-11-02
 updated: 2026-11-02
-archived_at: null
+archived_at: 2026-11-02T20:15:33Z
 ---
 
 ## Notes
