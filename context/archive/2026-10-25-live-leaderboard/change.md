@@ -1,10 +1,10 @@
 ---
 change_id: live-leaderboard
 title: Live leaderboard
-status: implemented
+status: archived
 created: 2026-10-25
 updated: 2026-11-02
-archived_at: null
+archived_at: 2026-11-02T20:08:40Z
 ---
 
 ## Notes
