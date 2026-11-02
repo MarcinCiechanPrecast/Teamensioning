@@ -232,6 +232,10 @@ Additive: one policy and a column-level grant on an existing table; no data migr
 - Fixed-code score validation pattern: `src/lib/validation/score.ts`, `src/lib/services/score-submission.ts`
 - Share-page score form markup: `src/pages/t/[token].astro:95-136`
 
+## Verification note (integration run, 2026-11-02)
+
+The three open slices (S-05, S-06, S-07) were merged on a throwaway branch and run against a fresh local database (`supabase db reset`, all migrations apply). Manual rows were checked by the agent, not by a human. Phase 1 rows 1.3–1.7 were re-run as the `authenticated` and `anon` roles in a rolled-back transaction: owner update changes the row, other user and anon update 0 rows, `score_a = 100` fails `23514`, `match_id` and `created_at` updates are denied. Phase 2 rows and Phase 3 behaviour ran over HTTP against a built preview (26 checks, repeated 3 times, plus `npm run smoke`): notice, signed-out redirect, non-owner and wrong-tournament `match-not-found`, no first score from the organizer, `100` and `abc` give `invalid-score`, the link holder gets `already-entered` and the stored score is unchanged, and the correction shows on the share page and in the leaderboard. In the browser at 375px the correction forms are prefilled, unplayed matches have no form and nothing overflows. The embedded `results(score_a, score_b)` select returns an object and works against PostgREST.
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.
@@ -240,16 +244,16 @@ Additive: one policy and a column-level grant on an existing table; no data migr
 
 #### Automated
 
-- [ ] 1.1 Migration applies cleanly on a fresh local database: `npx supabase db reset`
+- [x] 1.1 Migration applies cleanly on a fresh local database: `npx supabase db reset` — a59234b
 - [x] 1.2 Lint passes: `npm run lint` — a59234b
 
 #### Manual
 
-- [ ] 1.3 As the owner, updating a result's score through the authenticated client changes the row
-- [ ] 1.4 As a different signed-in user, the same update returns 0 rows and the score is unchanged
-- [ ] 1.5 As anon the update is rejected, and `submit_match_score` still returns `already_entered`
-- [ ] 1.6 An update to `score_a = 100` fails with check violation `23514`
-- [ ] 1.7 An update to `match_id` is rejected (column not updatable)
+- [x] 1.3 As the owner, updating a result's score through the authenticated client changes the row — a59234b
+- [x] 1.4 As a different signed-in user, the same update returns 0 rows and the score is unchanged — a59234b
+- [x] 1.5 As anon the update is rejected, and `submit_match_score` still returns `already_entered` — a59234b
+- [x] 1.6 An update to `score_a = 100` fails with check violation `23514` — a59234b
+- [x] 1.7 An update to `match_id` is rejected (column not updatable) — a59234b
 
 ### Phase 2: Correction endpoint and tests
 
@@ -262,11 +266,11 @@ Additive: one policy and a column-level grant on an existing table; no data migr
 
 #### Manual
 
-- [ ] 2.5 Owner POST with valid fields updates the row and redirects with `?notice=score-updated`
-- [ ] 2.6 The same request while signed out redirects to `/auth/signin`
-- [ ] 2.7 The same request as a non-owner redirects with `?error=match-not-found` and changes nothing
-- [ ] 2.8 A request for a match with no result redirects with `?error=match-not-found`
-- [ ] 2.9 Scores `100` and `abc` redirect with `?error=invalid-score`
+- [x] 2.5 Owner POST with valid fields updates the row and redirects with `?notice=score-updated` — ec42158
+- [x] 2.6 The same request while signed out redirects to `/auth/signin` — ec42158
+- [x] 2.7 The same request as a non-owner redirects with `?error=match-not-found` and changes nothing — ec42158
+- [x] 2.8 A request for a match with no result redirects with `?error=match-not-found` — ec42158
+- [x] 2.9 Scores `100` and `abc` redirect with `?error=invalid-score` — ec42158
 
 ### Phase 3: Organizer UI
 
@@ -279,9 +283,9 @@ Additive: one policy and a column-level grant on an existing table; no data migr
 
 #### Manual
 
-- [ ] 3.5 A played match shows its score and a prefilled correction form; an unplayed match shows no form
-- [ ] 3.6 Saving a changed score returns to the league page showing the new score and "Score updated."; reload keeps it
-- [ ] 3.7 The organizer's correction is visible on the share page on next load
-- [ ] 3.8 An invalid score shows the fixed error text and leaves the score unchanged
-- [ ] 3.9 The page is usable at 375px with no overlap between inputs and player names
-- [ ] 3.10 A link holder still cannot overwrite a score from the share page
+- [x] 3.5 A played match shows its score and a prefilled correction form; an unplayed match shows no form — 51fa2e3
+- [x] 3.6 Saving a changed score returns to the league page showing the new score and "Score updated."; reload keeps it — 51fa2e3
+- [x] 3.7 The organizer's correction is visible on the share page on next load — 51fa2e3
+- [x] 3.8 An invalid score shows the fixed error text and leaves the score unchanged — 51fa2e3
+- [x] 3.9 The page is usable at 375px with no overlap between inputs and player names — 51fa2e3
+- [x] 3.10 A link holder still cannot overwrite a score from the share page — 51fa2e3
