@@ -46,7 +46,7 @@ Office league organizers track matches in spreadsheets and chat, which wastes ti
 | S-03 | shared-league-link          | anyone with the link can view fixtures and filter a player's unplayed matches | S-01          | US-01, FR-005, FR-010                 | done     |
 | S-04 | link-score-entry            | a link holder can enter a match score once                                    | S-03          | US-01, FR-009                         | done     |
 | S-05 | live-leaderboard            | a link holder can view a leaderboard that reflects every entered score        | S-04          | US-01, FR-008, FR-011                 | done     |
-| S-06 | organizer-score-correction  | organizer can correct an already-entered score                                | S-04          | US-01, FR-006                         | proposed |
+| S-06 | organizer-score-correction  | organizer can correct an already-entered score                                | S-04          | US-01, FR-006                         | done     |
 | S-07 | edit-tournament-settings    | organizer can rename a tournament and change points before the first score    | S-01, S-04    | FR-013                                | proposed |
 
 ## Streams
@@ -149,7 +149,7 @@ None in this milestone. Auth and deploy are present per the Baseline. The absent
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Only the tournament's owner may overwrite a score; a correction overwrites without history (PRD Non-Goal).
-- **Status:** proposed
+- **Status:** done
 
 ### S-07: Edit tournament name and points
 
@@ -172,7 +172,7 @@ None in this milestone. Auth and deploy are present per the Baseline. The absent
 | S-03       | shared-league-link          | #9    | Shared tournament link with player fixture filter | done                  | Archived 2026-10-25                                          |
 | S-04       | link-score-entry            | #10   | Link holder enters a match score once             | done                  | Archived 2026-10-25                                          |
 | S-05       | live-leaderboard            | #11   | Leaderboard with tiebreakers from entered scores  | done                  | Archived 2026-11-02                                          |
-| S-06       | organizer-score-correction  | #12   | Organizer corrects an entered score               | yes                   | Unblocked; S-04 done                                         |
+| S-06       | organizer-score-correction  | #12   | Organizer corrects an entered score               | done                  | Archived 2026-11-02                                          |
 | S-07       | edit-tournament-settings    | #13   | Organizer edits tournament name and points        | yes                   | Unblocked; S-01 and S-04 done                                |
 | —          | dashboard-ui-tokens         | —     | Dashboard on the Jamaica design tokens            | done                  | Archived 2026-10-27; not a slice (cross-cutting UI contract) |
 
@@ -202,3 +202,4 @@ None open. The three PRD v1 questions were resolved on 2026-10-16 and moved to `
 - **S-02: organizer can see a list of their own tournaments, open one, and delete one after explicitly confirming.** — Archived 2026-10-25 → `context/archive/2026-10-25-my-tournaments-list/`. Lesson: —.
 - **UI: the dashboard is built from the Jamaica design tokens and shared components (Card, Alert, Button), dark by default; `?error=` carries fixed codes, and a scoped `check:ui` guard plus an `AGENTS.md` UI block keep new views on the tokens.** — Archived 2026-10-27 → `context/archive/2026-10-25-dashboard-ui-tokens/`. Lesson: a visual gate (screenshots of every state) caught an Alert layout bug that text-only checks missed.
 - **S-05: a link holder can view a leaderboard with played, won/drawn/lost, goals for/against, goal difference and points, ordered by points, then goal difference, then goals scored, reflecting every entered score on the next view.** — Archived 2026-11-02 → `context/archive/2026-10-25-live-leaderboard/`. Lesson: —.
+- **S-06: organizer can change an already-entered match score, and the leaderboard reflects the correction on the next view.** — Archived 2026-11-02 → `context/archive/2026-11-02-organizer-score-correction/`. Lesson: —.

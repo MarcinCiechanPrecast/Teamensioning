@@ -1,0 +1,69 @@
+---
+import type { FixtureDTO } from "@/types";
+
+interface Props {
+  leagueId: string;
+  fixtures: FixtureDTO[];
+  errorMessage: string | null;
+  notice: string | null;
+}
+
+const { leagueId, fixtures, errorMessage, notice } = Astro.props;
+---
+
+{errorMessage && (
+  <p role="alert" class="mt-4 rounded-lg border border-red-400/30 bg-red-500/10 px-4 py-2 text-red-200">
+    {errorMessage}
+  </p>
+)}
+{notice && (
+  <p role="status" class="mt-4 rounded-lg border border-blue-300/30 bg-blue-500/10 px-4 py-2 text-blue-100">
+    {notice}
+  </p>
+)}
+<ol class="mt-6 space-y-2">
+  {fixtures.map((fixture) => (
+    <li class="rounded-lg border border-white/10 bg-white/5 px-4 py-2">
+      {fixture.score ? (
+        <form method="POST" action={`/api/leagues/${leagueId}/scores`} class="flex flex-wrap items-center gap-2">
+          <input type="hidden" name="matchId" value={fixture.id} />
+          <span class="min-w-0 basis-full break-words sm:flex-1">
+            {fixture.position}. {fixture.playerA.name} vs {fixture.playerB.name}
+          </span>
+          <input
+            type="number"
+            name="scoreA"
+            required
+            min="0"
+            max="99"
+            step="1"
+            inputmode="numeric"
+            value={fixture.score.a}
+            aria-label={`Score of ${fixture.playerA.name}`}
+            class="w-16 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white"
+          />
+          <span aria-hidden="true">–</span>
+          <input
+            type="number"
+            name="scoreB"
+            required
+            min="0"
+            max="99"
+            step="1"
+            inputmode="numeric"
+            value={fixture.score.b}
+            aria-label={`Score of ${fixture.playerB.name}`}
+            class="w-16 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white"
+          />
+          <button type="submit" class="rounded-lg border border-white/10 bg-white/10 px-3 py-1 hover:bg-white/20">
+            Save
+          </button>
+        </form>
+      ) : (
+        <span class="break-words">
+          {fixture.position}. {fixture.playerA.name} vs {fixture.playerB.name}
+        </span>
+      )}
+    </li>
+  ))}
+</ol>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { submitScoreSchema } from "@/lib/validation/score";
+import { correctScoreSchema, submitScoreSchema } from "@/lib/validation/score";
 
 const token = "a".repeat(64);
 const matchId = "123e4567-e89b-42d3-a456-426614174000";
@@ -47,5 +47,26 @@ describe("submitScoreSchema", () => {
 
   it.each(["", "m1", "not-a-uuid"])("rejects a non-uuid match id (%j)", (bad) => {
     expect(submitScoreSchema.safeParse({ ...valid, matchId: bad }).success).toBe(false);
+  });
+});
+
+describe("correctScoreSchema", () => {
+  const input = { matchId, scoreA: "2", scoreB: "1" };
+
+  it("parses valid input into numbers", () => {
+    expect(correctScoreSchema.parse(input)).toEqual({ matchId, scoreA: 2, scoreB: 1 });
+  });
+
+  it("accepts the boundaries 0 and 99", () => {
+    expect(correctScoreSchema.parse({ ...input, scoreA: "0", scoreB: "99" })).toMatchObject({ scoreA: 0, scoreB: 99 });
+  });
+
+  it.each(["-1", "100", "1.5", "", "1e1"])("rejects the score %j", (value) => {
+    expect(correctScoreSchema.safeParse({ ...input, scoreA: value }).success).toBe(false);
+    expect(correctScoreSchema.safeParse({ ...input, scoreB: value }).success).toBe(false);
+  });
+
+  it("rejects a non-uuid match id", () => {
+    expect(correctScoreSchema.safeParse({ ...input, matchId: "not-a-uuid" }).success).toBe(false);
   });
 });

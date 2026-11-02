@@ -28,3 +28,12 @@ export const submitScoreSchema = z.object({
 });
 
 export type SubmitScoreInput = z.infer<typeof submitScoreSchema>;
+
+/** Input of the organizer's correction form posted to /api/leagues/[id]/scores. The league id comes from the path. */
+export const correctScoreSchema = z.object({
+  matchId: z.uuid("Invalid match"),
+  scoreA: score,
+  scoreB: score,
+});
+
+export type CorrectScoreInput = z.infer<typeof correctScoreSchema>;
