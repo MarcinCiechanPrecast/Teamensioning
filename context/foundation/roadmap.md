@@ -173,7 +173,7 @@ None in this milestone. Auth and deploy are present per the Baseline. The absent
 | S-04       | link-score-entry            | #10   | Link holder enters a match score once             | done                  | Archived 2026-10-25                                          |
 | S-05       | live-leaderboard            | #11   | Leaderboard with tiebreakers from entered scores  | done                  | Archived 2026-11-02                                          |
 | S-06       | organizer-score-correction  | #12   | Organizer corrects an entered score               | done                  | Archived 2026-11-02                                          |
-| S-07       | edit-tournament-settings    | #13   | Organizer edits tournament name and points        | yes                   | Unblocked; S-01 and S-04 done                                |
+| S-07       | edit-tournament-settings    | #13   | Organizer edits tournament name and points        | done                  | Archived 2026-11-02                                          |
 | —          | dashboard-ui-tokens         | —     | Dashboard on the Jamaica design tokens            | done                  | Archived 2026-10-27; not a slice (cross-cutting UI contract) |
 
 Issues live in GitHub milestone `M-1: First playable league` with labels `roadmap:slice`, `status:*` and `stream:*`. This file stays canonical; issue labels are a view.
