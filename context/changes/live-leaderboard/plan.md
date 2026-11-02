@@ -80,6 +80,8 @@ Add the pure standings function, its DTO and tests.
 
 **Implementation Note**: After this phase and its automated checks pass, pause for manual confirmation before Phase 2.
 
+**Execution note**: Manual step 1.4 (test names read as PRD rules) was not confirmed by a human, so it stays pending.
+
 ---
 
 ## Phase 2: Render on the share page
@@ -114,6 +116,8 @@ Show the table above the fixtures, with an empty state, and verify the "next vie
 - Two players level on all three tiebreakers show the same rank and the next rank is skipped
 - A league with no scores shows the "No scores yet" state, not a ranked table
 - The table is readable (contrast) on the page background and does not break a narrow mobile viewport
+
+**Execution note**: Manual steps 2.5, 2.6, 2.8 and 2.9 were checked in a browser against the local dev server (seeded "Smoke League": table above fixtures; scores posted to /api/scores and the redirect view showed updated rows and order; "No scores yet" before any score; 375px viewport readable in the dark theme). Step 2.7 (shared rank in the browser) was not exercised; a unit test covers it.
 
 ---
 
@@ -156,7 +160,7 @@ Standings are O(matches + players) per request over data already fetched; no ext
 
 #### Manual
 
-- [x] 1.4 The test names read as the PRD rules (points, tiebreakers, unplayed, shared rank) — 743a984
+- [ ] 1.4 The test names read as the PRD rules (points, tiebreakers, unplayed, shared rank)
 
 ### Phase 2: Render on the share page
 
