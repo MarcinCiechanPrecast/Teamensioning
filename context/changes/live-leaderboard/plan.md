@@ -146,6 +146,10 @@ Standings are O(matches + players) per request over data already fetched; no ext
 - PRD: `context/foundation/prd.md` (FR-008, FR-011, NFR no stale standings)
 - Similar service + test pattern: `src/lib/services/shared-league.ts`, `src/lib/services/shared-league.test.ts`
 
+## Verification note (integration run, 2026-11-02)
+
+The three open slices (S-05, S-06, S-07) were merged on a throwaway branch and run against a fresh local database (`supabase db reset`). Manual rows were checked by the agent, not by a human: 1.4 by reading the standings test names against the PRD rules; 2.7 by an HTTP run (4 players, one 1–0 and five 0–0 matches gives ranks 1, 2, 2, 4) and a 375px browser screenshot showing the table fits the card. Gates on the merged tree: 204 tests, lint, `astro check`, build, `check:ui` and `npm run smoke` pass.
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.
@@ -160,7 +164,7 @@ Standings are O(matches + players) per request over data already fetched; no ext
 
 #### Manual
 
-- [ ] 1.4 The test names read as the PRD rules (points, tiebreakers, unplayed, shared rank)
+- [x] 1.4 The test names read as the PRD rules (points, tiebreakers, unplayed, shared rank) — 743a984
 
 ### Phase 2: Render on the share page
 
@@ -175,6 +179,6 @@ Standings are O(matches + players) per request over data already fetched; no ext
 
 - [x] 2.5 Open a seeded league link: the table lists all players above the fixtures — 5a31d1e
 - [x] 2.6 Save a score via the form: the next view (the redirect) shows updated P/W/D/L/GF/GA/GD/Pts and order — 5a31d1e
-- [ ] 2.7 Two players level on all three tiebreakers show the same rank and the next rank is skipped
+- [x] 2.7 Two players level on all three tiebreakers show the same rank and the next rank is skipped — 5a31d1e
 - [x] 2.8 A league with no scores shows the "No scores yet" state, not a ranked table — 5a31d1e
 - [x] 2.9 The table is readable (contrast) on the page background and does not break a narrow mobile viewport — 5a31d1e
