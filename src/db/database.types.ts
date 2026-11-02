@@ -194,6 +194,16 @@ export type Database = {
         }
         Returns: Json
       }
+      update_tournament_settings: {
+        Args: {
+          p_name: string
+          p_points_draw: number
+          p_points_loss: number
+          p_points_win: number
+          p_tournament_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

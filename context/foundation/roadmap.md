@@ -47,7 +47,7 @@ Office league organizers track matches in spreadsheets and chat, which wastes ti
 | S-04 | link-score-entry            | a link holder can enter a match score once                                    | S-03          | US-01, FR-009                         | done     |
 | S-05 | live-leaderboard            | a link holder can view a leaderboard that reflects every entered score        | S-04          | US-01, FR-008, FR-011                 | done     |
 | S-06 | organizer-score-correction  | organizer can correct an already-entered score                                | S-04          | US-01, FR-006                         | done     |
-| S-07 | edit-tournament-settings    | organizer can rename a tournament and change points before the first score    | S-01, S-04    | FR-013                                | proposed |
+| S-07 | edit-tournament-settings    | organizer can rename a tournament and change points before the first score    | S-01, S-04    | FR-013                                | done     |
 
 ## Streams
 
@@ -161,7 +161,7 @@ None in this milestone. Auth and deploy are present per the Baseline. The absent
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** The points lock depends on knowing whether any score exists, so it is sequenced after S-04; small slice, safe to drop last if the deadline tightens.
-- **Status:** proposed
+- **Status:** done
 
 ## Backlog Handoff
 
@@ -173,7 +173,7 @@ None in this milestone. Auth and deploy are present per the Baseline. The absent
 | S-04       | link-score-entry            | #10   | Link holder enters a match score once             | done                  | Archived 2026-10-25                                          |
 | S-05       | live-leaderboard            | #11   | Leaderboard with tiebreakers from entered scores  | done                  | Archived 2026-11-02                                          |
 | S-06       | organizer-score-correction  | #12   | Organizer corrects an entered score               | done                  | Archived 2026-11-02                                          |
-| S-07       | edit-tournament-settings    | #13   | Organizer edits tournament name and points        | yes                   | Unblocked; S-01 and S-04 done                                |
+| S-07       | edit-tournament-settings    | #13   | Organizer edits tournament name and points        | done                  | Archived 2026-11-02                                          |
 | —          | dashboard-ui-tokens         | —     | Dashboard on the Jamaica design tokens            | done                  | Archived 2026-10-27; not a slice (cross-cutting UI contract) |
 
 Issues live in GitHub milestone `M-1: First playable league` with labels `roadmap:slice`, `status:*` and `stream:*`. This file stays canonical; issue labels are a view.
@@ -203,3 +203,4 @@ None open. The three PRD v1 questions were resolved on 2026-10-16 and moved to `
 - **UI: the dashboard is built from the Jamaica design tokens and shared components (Card, Alert, Button), dark by default; `?error=` carries fixed codes, and a scoped `check:ui` guard plus an `AGENTS.md` UI block keep new views on the tokens.** — Archived 2026-10-27 → `context/archive/2026-10-25-dashboard-ui-tokens/`. Lesson: a visual gate (screenshots of every state) caught an Alert layout bug that text-only checks missed.
 - **S-05: a link holder can view a leaderboard with played, won/drawn/lost, goals for/against, goal difference and points, ordered by points, then goal difference, then goals scored, reflecting every entered score on the next view.** — Archived 2026-11-02 → `context/archive/2026-10-25-live-leaderboard/`. Lesson: —.
 - **S-06: organizer can change an already-entered match score, and the leaderboard reflects the correction on the next view.** — Archived 2026-11-02 → `context/archive/2026-11-02-organizer-score-correction/`. Lesson: —.
+- **S-07: organizer can rename a tournament at any time, and change its win/draw/loss points only while no score has been entered.** — Archived 2026-11-02 → `context/archive/2026-11-02-edit-tournament-settings/`. Lesson: —.
