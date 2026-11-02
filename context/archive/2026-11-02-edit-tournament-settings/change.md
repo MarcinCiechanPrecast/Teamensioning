@@ -1,10 +1,10 @@
 ---
 change_id: edit-tournament-settings
 title: Edit tournament settings
-status: implemented
+status: archived
 created: 2026-11-02
 updated: 2026-11-02
-archived_at: null
+archived_at: 2026-11-02T20:30:21Z
 ---
 
 ## Notes
