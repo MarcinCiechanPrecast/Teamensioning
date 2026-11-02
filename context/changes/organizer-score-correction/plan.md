@@ -73,6 +73,8 @@ Allow the tournament owner, and only the owner, to update the score columns of a
 
 **Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation from the human that the manual testing was successful before proceeding to the next phase. Phase blocks use plain bullets — the corresponding `- [ ]` checkboxes for these items live in the `## Progress` section at the bottom of the plan.
 
+**Execution note**: `supabase db reset` (1.1) was not run because sibling worktrees share the local Supabase. `supabase migration up --include-all` also failed with `LegacyMigrationMissingLocalError`: the shared DB already holds the sibling S-07 migration `20261102130000`, which is absent from this branch (history not repaired, to avoid touching shared state). Instead the migration SQL was run inside a rolled-back transaction on the local DB (nothing persisted) with role and JWT claim switched. That verified 1.3, 1.4, 1.6, 1.7. Row 1.5 stays pending: the anon update returned 0 rows, but the `already_entered` check was invalid (the token lookup ran as anon and RLS hid it).
+
 ---
 
 ## Phase 2: Correction endpoint and tests
@@ -134,6 +136,8 @@ Validate a correction, apply it as the signed-in organizer, and map every outcom
 
 **Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation from the human that the manual testing was successful before proceeding to the next phase. Phase blocks use plain bullets — the corresponding `- [ ]` checkboxes for these items live in the `## Progress` section at the bottom of the plan.
 
+**Execution note**: Manual rows 2.5-2.9 were not run (migration not applied to the shared local DB, so the endpoint was not exercised end to end). They stay pending for the human.
+
 ---
 
 ## Phase 3: Organizer UI
@@ -188,6 +192,8 @@ Show scores on the organizer's league page and let the organizer correct a playe
 
 **Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation from the human that the manual testing was successful before proceeding to the next phase. Phase blocks use plain bullets — the corresponding `- [ ]` checkboxes for these items live in the `## Progress` section at the bottom of the plan.
 
+**Execution note**: The loader follows the plan's first option: the matches select embeds `results(score_a, score_b)` (one-to-one relation, typed as object or null; `astro check` and build pass). It has not run against a live PostgREST. Manual rows 3.5-3.10 were not run (migration not applied to the shared local DB). They stay pending for the human.
+
 ---
 
 ## Testing Strategy
@@ -237,11 +243,11 @@ Additive: one policy and a column-level grant on an existing table; no data migr
 
 #### Manual
 
-- [x] 1.3 As the owner, updating a result's score through the authenticated client changes the row — a59234b (verified in a rolled-back transaction on the local DB)
-- [x] 1.4 As a different signed-in user, the same update returns 0 rows and the score is unchanged — a59234b (verified in a rolled-back transaction on the local DB)
+- [x] 1.3 As the owner, updating a result's score through the authenticated client changes the row — a59234b
+- [x] 1.4 As a different signed-in user, the same update returns 0 rows and the score is unchanged — a59234b
 - [ ] 1.5 As anon the update is rejected, and `submit_match_score` still returns `already_entered`
-- [x] 1.6 An update to `score_a = 100` fails with check violation `23514` — a59234b (verified in a rolled-back transaction on the local DB)
-- [x] 1.7 An update to `match_id` is rejected (column not updatable) — a59234b (verified in a rolled-back transaction on the local DB)
+- [x] 1.6 An update to `score_a = 100` fails with check violation `23514` — a59234b
+- [x] 1.7 An update to `match_id` is rejected (column not updatable) — a59234b
 
 ### Phase 2: Correction endpoint and tests
 
