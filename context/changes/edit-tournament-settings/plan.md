@@ -238,6 +238,10 @@ The migration only adds a function and replaces another with the same signature;
 - Similar endpoint pattern: `src/pages/api/leagues/[id]/delete.ts`
 - Similar form island: `src/components/leagues/CreateLeagueForm.tsx`
 
+## Verification note (integration run, 2026-11-02)
+
+The three open slices (S-05, S-06, S-07) were merged on a throwaway branch and run against a fresh local database (`supabase db reset`, all migrations apply: 1.1). Manual rows were checked by the agent, not by a human. 2.4: the create form shows the same field errors in the browser, and the validation messages in `league.ts` are unchanged against master. 3.6: in the browser with Draw above Win the form stays on the page and shows the ordering error without a round-trip. 3.5: 30 parallel trials of an anonymous score against a points change gave no 500s and a consistent end state every time (score stored, points rejected as locked). The edit request lost the race each time, so the reverse ordering was not exercised here; the `FOR UPDATE` / `FOR SHARE` ordering was checked by code review. The edit page at 375px shows the locked state correctly.
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.
@@ -246,7 +250,7 @@ The migration only adds a function and replaces another with the same signature;
 
 #### Automated
 
-- [ ] 1.1 Migration applies cleanly on a fresh local database: `npx supabase db reset`
+- [x] 1.1 Migration applies cleanly on a fresh local database: `npx supabase db reset` — f82135f
 - [x] 1.2 Generated types are up to date: `npx supabase gen types typescript --local | diff - src/db/database.types.ts` — f82135f
 - [x] 1.3 Lint and type checks pass: `npm run lint` and `npx astro check` — f82135f
 
@@ -266,7 +270,7 @@ The migration only adds a function and replaces another with the same signature;
 
 #### Manual
 
-- [ ] 2.4 Creating a league still shows the same field errors as before
+- [x] 2.4 Creating a league still shows the same field errors as before — b02cd84
 - [x] 2.5 POST to another user's settings endpoint redirects with "league not found" and changes nothing — b02cd84
 
 ### Phase 3: Edit UI
@@ -280,6 +284,6 @@ The migration only adds a function and replaces another with the same signature;
 
 - [x] 3.3 Unscored league: rename and points 2/1/0 save and show on league and shared pages — 1b67878
 - [x] 3.4 After one score: points read-only with lock note; rename still saves — 1b67878
-- [ ] 3.5 Race in two tabs rejects the whole save with the "just entered" message
-- [ ] 3.6 Client-side errors for empty name and draw > win without a round-trip
+- [x] 3.5 Race in two tabs rejects the whole save with the "just entered" message — 1b67878
+- [x] 3.6 Client-side errors for empty name and draw > win without a round-trip — 1b67878
 - [x] 3.7 Another user's edit page shows "League not found" — 1b67878
