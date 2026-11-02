@@ -11,6 +11,14 @@ describe("toCorrectionOutcome", () => {
     expect(toCorrectionOutcome({ error: null, rowCount: 0 })).toEqual({ kind: "error", code: "match-not-found" });
   });
 
+  it("maps a match outside the URL's tournament to match-not-found even with a row count", () => {
+    expect(toCorrectionOutcome({ error: null, rowCount: 1, inTournament: false })).toEqual({
+      kind: "error",
+      code: "match-not-found",
+    });
+    expect(toCorrectionOutcome({ error: null, rowCount: 1, inTournament: true })).toEqual({ kind: "updated" });
+  });
+
   it("maps a check violation to invalid-score", () => {
     expect(toCorrectionOutcome({ error: { code: "23514" }, rowCount: 0 })).toEqual({
       kind: "error",

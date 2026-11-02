@@ -136,6 +136,8 @@ Validate a correction, apply it as the signed-in organizer, and map every outcom
 
 **Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation from the human that the manual testing was successful before proceeding to the next phase. Phase blocks use plain bullets — the corresponding `- [ ]` checkboxes for these items live in the `## Progress` section at the bottom of the plan.
 
+**Plan adjustment (review fix)**: the endpoint now first looks up the match with `tournament_id` equal to the path id and treats a miss as `match-not-found`, so the path `[id]` is tied to the match.
+
 **Execution note**: Manual rows 2.5-2.9 were not run (migration not applied to the shared local DB, so the endpoint was not exercised end to end). They stay pending for the human.
 
 ---

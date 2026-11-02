@@ -26,11 +26,17 @@ const INVALID_TEXT_REPRESENTATION = "22P02";
  * RLS hides results of other owners' matches, so a non-owner, an unknown match and a match without
  * a result all return 0 rows and are one outcome.
  */
-export function toCorrectionOutcome(result: { error: { code?: string } | null; rowCount: number }): CorrectionOutcome {
+export function toCorrectionOutcome(result: {
+  error: { code?: string } | null;
+  rowCount: number;
+  /** False when the match is not part of the tournament named in the URL; defaults to true. */
+  inTournament?: boolean;
+}): CorrectionOutcome {
   if (result.error) {
     if (result.error.code === CHECK_VIOLATION) return { kind: "error", code: "invalid-score" };
     if (result.error.code === INVALID_TEXT_REPRESENTATION) return { kind: "error", code: "match-not-found" };
     return { kind: "error", code: "server" };
   }
+  if (result.inTournament === false) return { kind: "error", code: "match-not-found" };
   return result.rowCount === 0 ? { kind: "error", code: "match-not-found" } : { kind: "updated" };
 }

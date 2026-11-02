@@ -30,6 +30,24 @@ export const POST: APIRoute = async (context) => {
     return failWith("server");
   }
 
+  // The path id must own the match: otherwise an owner could correct a match of another of their leagues
+  // through the wrong URL. RLS already hides matches of other owners.
+  const { data: match, error: matchError } = await supabase
+    .from("matches")
+    .select("id")
+    .eq("id", parsed.data.matchId)
+    .eq("tournament_id", leagueId)
+    .maybeSingle();
+  if (matchError) {
+    // eslint-disable-next-line no-console -- server-side log; the user only gets a fixed error code
+    console.error("score correction match lookup failed:", matchError.code, matchError.message);
+  }
+  // A malformed league id (22P02) or a match outside this league is simply "not found".
+  const lookup = toCorrectionOutcome({ error: matchError, rowCount: 1, inTournament: match !== null });
+  if (lookup.kind === "error") {
+    return failWith(lookup.code);
+  }
+
   // RLS decides ownership: a result of someone else's match is invisible, so nothing is updated or returned.
   const { data, error } = await supabase
     .from("results")
