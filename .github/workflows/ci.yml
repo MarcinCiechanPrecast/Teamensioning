@@ -55,3 +55,25 @@ jobs:
           BASE_URL=http://localhost:4321 npm run smoke
       - if: always()
         run: supabase stop --no-backup
+
+  # Workers Builds deploys master on its own, outside Actions, so this job
+  # cannot gate the deploy. It runs straight away (no `needs`) to keep the
+  # window where new code meets the old schema short. `smoke` already proved
+  # on the PR that the migrations apply to a fresh database.
+  # Never add `supabase config push` here: it would reset production auth.
+  migrate:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    concurrency: { group: production-migrate, cancel-in-progress: false }
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_REF: eortunvxkvspuuousnff
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.121.0
+      - run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
+      - run: supabase db push --linked
+      - run: supabase migration list --linked

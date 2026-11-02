@@ -58,8 +58,13 @@ Full server-side rendering (`output: "server"` in astro.config.mjs). All pages a
 - Env vars: `SUPABASE_URL`, `SUPABASE_KEY` (copy `.env.example` to `.env` for Node, or `.dev.vars` for Cloudflare local dev)
 - Local Supabase: `npx supabase start` (requires Docker)
 - Cloudflare local dev: secrets go in `.dev.vars` (gitignored)
-- Deploy: `npx wrangler deploy` (requires Cloudflare account + `wrangler` auth)
+- Deploy: Cloudflare Workers Builds deploys `master` automatically (manual fallback: `npx wrangler deploy`). Production migrations are applied by the CI `migrate` job, not by hand.
+- Production Supabase project ref: `eortunvxkvspuuousnff`. Never run `npx supabase config push` against it: `supabase/config.toml` is the local config and would reset production auth settings.
 
 ## CI
 
-`@.github/workflows/ci.yml` runs two jobs on every push and PR to master: `ci` (lint, `astro check`, build; needs `SUPABASE_URL` and `SUPABASE_KEY` repository secrets) and `smoke` (local Supabase, production preview, `npm run smoke`).
+`@.github/workflows/ci.yml` runs on every push and PR to master:
+
+- `ci`: lint, `astro check`, build. Needs the `SUPABASE_URL` and `SUPABASE_KEY` repository secrets.
+- `smoke`: local Supabase, production preview, `npm run smoke`. This also proves the migrations apply to a fresh database.
+- `migrate` (push to master only): `supabase db push --linked` to production, then `migration list`. Needs the `SUPABASE_ACCESS_TOKEN` (personal access token, supabase.com/dashboard/account/tokens) and `SUPABASE_DB_PASSWORD` (production database password) repository secrets. Workers Builds deploys in parallel and does not wait for it, so migrations must stay backward compatible (add columns/tables first; drop or rename only in a later PR, once no deployed code uses them). If `migrate` fails, production code may already be running against the old schema: fix it and re-run the job.
