@@ -31,3 +31,18 @@ export interface SharedLeagueDTO {
   players: PlayerDTO[];
   fixtures: FixtureDTO[];
 }
+
+/** One leaderboard row: a player's record over the played matches of a league. */
+export interface StandingDTO {
+  /** Competition rank: players level on points, goal difference and goals for share it. */
+  rank: number;
+  player: PlayerDTO;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  points: number;
+}
