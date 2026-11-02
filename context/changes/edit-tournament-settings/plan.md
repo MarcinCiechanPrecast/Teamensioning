@@ -241,39 +241,39 @@ The migration only adds a function and replaces another with the same signature;
 #### Automated
 
 - [ ] 1.1 Migration applies cleanly on a fresh local database: `npx supabase db reset`
-- [ ] 1.2 Generated types are up to date: `npx supabase gen types typescript --local | diff - src/db/database.types.ts`
-- [ ] 1.3 Lint and type checks pass: `npm run lint` and `npx astro check`
+- [x] 1.2 Generated types are up to date: `npx supabase gen types typescript --local | diff - src/db/database.types.ts` — f82135f
+- [x] 1.3 Lint and type checks pass: `npm run lint` and `npx astro check` — f82135f
 
 #### Manual
 
-- [ ] 1.4 In SQL: rename with results returns `updated`; changed points return `points_locked` unchanged; identical points return `updated`
-- [ ] 1.5 In SQL: other user or unknown id returns `not_found`; anon is denied
-- [ ] 1.6 Existing score entry via the share link still works (`npm run smoke` passes)
+- [x] 1.4 In SQL: rename with results returns `updated`; changed points return `points_locked` unchanged; identical points return `updated` — f82135f
+- [x] 1.5 In SQL: other user or unknown id returns `not_found`; anon is denied — f82135f
+- [x] 1.6 Existing score entry via the share link still works (`npm run smoke` passes) — f82135f
 
 ### Phase 2: Validation and endpoint
 
 #### Automated
 
-- [ ] 2.1 Unit tests pass: `npm test`
-- [ ] 2.2 Lint and type checks pass: `npm run lint` and `npx astro check`
-- [ ] 2.3 Production build succeeds: `npm run build`
+- [x] 2.1 Unit tests pass: `npm test` — b02cd84
+- [x] 2.2 Lint and type checks pass: `npm run lint` and `npx astro check` — b02cd84
+- [x] 2.3 Production build succeeds: `npm run build` — b02cd84
 
 #### Manual
 
 - [ ] 2.4 Creating a league still shows the same field errors as before
-- [ ] 2.5 POST to another user's settings endpoint redirects with "league not found" and changes nothing
+- [x] 2.5 POST to another user's settings endpoint redirects with "league not found" and changes nothing — b02cd84
 
 ### Phase 3: Edit UI
 
 #### Automated
 
-- [ ] 3.1 Lint, type checks and build pass: `npm run lint`, `npx astro check`, `npm run build`
-- [ ] 3.2 UI literal guard still passes: `npm run check:ui`
+- [x] 3.1 Lint, type checks and build pass: `npm run lint`, `npx astro check`, `npm run build` — 1b67878
+- [x] 3.2 UI literal guard still passes: `npm run check:ui` — 1b67878
 
 #### Manual
 
-- [ ] 3.3 Unscored league: rename and points 2/1/0 save and show on league and shared pages
-- [ ] 3.4 After one score: points read-only with lock note; rename still saves
-- [ ] 3.5 Race in two tabs rejects the whole save with the "just entered" message
+- [x] 3.3 Unscored league: rename and points 2/1/0 save and show on league and shared pages — 1b67878
+- [x] 3.4 After one score: points read-only with lock note; rename still saves — 1b67878
+- [x] 3.5 Race in two tabs rejects the whole save with the "just entered" message — 1b67878
 - [ ] 3.6 Client-side errors for empty name and draw > win without a round-trip
-- [ ] 3.7 Another user's edit page shows "League not found"
+- [x] 3.7 Another user's edit page shows "League not found" — 1b67878
