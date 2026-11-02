@@ -95,6 +95,8 @@ Add the race-safe settings write path and make score submission participate in t
 - In SQL: calling the RPC as a different user or with an unknown id returns `not_found`; calling it as anon is denied
 - Existing score entry via the share link still works (`npm run smoke` passes against the local preview)
 
+**Plan adjustment / evidence (implementation)**: Rows 1.4 and 1.5 verified by direct SQL output (rolled-back transaction as authenticated owner, other user, unknown id and anon: `updated`, `points_locked` with the row unchanged, identical points `updated`, `not_found`, permission denied for anon). Row 1.6: `npm run smoke` passed against a local preview. Row 1.1 not run: `supabase db reset` was skipped because sibling branches share the local DB; the migration was applied with `npx supabase migration up --local` only.
+
 **Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation from the human that the manual testing was successful before proceeding to the next phase.
 
 ---
@@ -143,6 +145,8 @@ Share the settings validation between create and edit, and add the server endpoi
 
 - Creating a league still shows the same field errors as before (empty name, `draw > win`)
 - A hand-crafted POST to `/api/leagues/<other user's id>/settings` redirects to the dashboard with "league not found" and changes nothing
+
+**Plan adjustment / evidence (implementation)**: Row 2.5 verified by direct evidence: a second user POSTing to `/api/leagues/<id>/settings` was redirected to `/dashboard?error=league-not-found` and the settings were unchanged. Row 2.4 (create form field errors in a browser) was not verified; the schema tests only pin the messages. Adjustment: the generated RPC arg types are non-nullable, so `src/pages/api/leagues/[id]/settings.ts` passes null points through a commented `null as unknown as number` cast, because the plan wants `database.types.ts` left byte-identical to generator output and it was not edited.
 
 **Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation from the human that the manual testing was successful before proceeding to the next phase.
 
@@ -194,6 +198,8 @@ Give the organizer a page to edit settings, with the locked state visible.
 - Race: open the edit form on an unscored league, enter a score in another tab, then save changed points — the form returns locked with "A score was just entered — points are now locked" and the points are unchanged
 - Client-side errors show for an empty name and `draw > win` without a round-trip
 - Visiting `/leagues/<other user's id>/edit` shows "League not found"
+
+**Plan adjustment / evidence (implementation)**: Rows 3.3, 3.4 and 3.7 were verified by direct HTTP evidence against a local production preview (rendered HTML of the league page, shared `/t/` page and edit page; 404 "League not found" for a non-owner), not in a browser. Row 3.5: the race was reproduced sequentially over HTTP (score submitted after the form loaded, then a changed-points save was rejected with the "just entered" message), but true two-transaction concurrency of `FOR UPDATE` vs `FOR SHARE` was NOT exercised, so 3.5 stays pending. Row 3.6 (client-side errors without a round-trip) was not checked in a browser and stays pending.
 
 **Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation from the human that the manual testing was successful before proceeding to the next phase.
 
@@ -274,6 +280,6 @@ The migration only adds a function and replaces another with the same signature;
 
 - [x] 3.3 Unscored league: rename and points 2/1/0 save and show on league and shared pages — 1b67878
 - [x] 3.4 After one score: points read-only with lock note; rename still saves — 1b67878
-- [x] 3.5 Race in two tabs rejects the whole save with the "just entered" message — 1b67878
+- [ ] 3.5 Race in two tabs rejects the whole save with the "just entered" message
 - [ ] 3.6 Client-side errors for empty name and draw > win without a round-trip
 - [x] 3.7 Another user's edit page shows "League not found" — 1b67878
