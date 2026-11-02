@@ -9,6 +9,7 @@ import {
   toSharedLeague,
 } from "@/lib/services/shared-league";
 import { SCORE_ERROR_MESSAGES, isScoreErrorCode } from "@/lib/services/score-submission";
+import { computeStandings } from "@/lib/services/standings";
 import type { SharedLeagueDTO } from "@/types";
 
 async function loadSharedLeague(token: string | undefined): Promise<SharedLeagueDTO | null> {
@@ -41,6 +42,7 @@ const visibleFixtures = shared
   ? filterFixturesByPlayer(shared.fixtures, selectedPlayerId, playedMatchIds(shared.fixtures))
   : [];
 const playedFixtures = shared ? shared.fixtures.filter((fixture) => fixture.score !== null) : [];
+const standings = shared ? computeStandings(shared) : [];
 const token = Astro.params.token ?? "";
 // The query string only selects a fixed message: free text from a crafted link is never shown.
 const errorCode = Astro.url.searchParams.get("error");
@@ -59,6 +61,50 @@ const alreadyEntered = Astro.url.searchParams.get("notice") === "already-entered
           <p class="text-blue-100/80">
             W {shared.league.points_win} / D {shared.league.points_draw} / L {shared.league.points_loss}
           </p>
+          {playedFixtures.length === 0 ? (
+            <p class="mt-6 text-sm text-muted-foreground">No scores yet</p>
+          ) : (
+            <div class="mt-6 overflow-x-auto">
+              <table class="w-full text-sm">
+                <caption class="pb-2 text-left text-muted-foreground">Standings</caption>
+                <thead>
+                  <tr class="border-b border-border text-muted-foreground">
+                    <th scope="col" class="py-1 pr-2 text-left font-normal">
+                      Rank
+                    </th>
+                    <th scope="col" class="py-1 pr-2 text-left font-normal">
+                      Player
+                    </th>
+                    {["P", "W", "D", "L", "GF", "GA", "GD", "Pts"].map((heading) => (
+                      <th scope="col" class="px-1 py-1 text-right font-normal">
+                        {heading}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {standings.map((row) => (
+                    <tr class="border-b border-border">
+                      <td class="py-1 pr-2">{row.rank}</td>
+                      <th scope="row" class="py-1 pr-2 text-left font-normal">
+                        {row.player.name}
+                      </th>
+                      <td class="px-1 py-1 text-right">{row.played}</td>
+                      <td class="px-1 py-1 text-right">{row.won}</td>
+                      <td class="px-1 py-1 text-right">{row.drawn}</td>
+                      <td class="px-1 py-1 text-right">{row.lost}</td>
+                      <td class="px-1 py-1 text-right">{row.goalsFor}</td>
+                      <td class="px-1 py-1 text-right">{row.goalsAgainst}</td>
+                      <td class="px-1 py-1 text-right">
+                        {row.goalDifference > 0 ? `+${row.goalDifference}` : row.goalDifference}
+                      </td>
+                      <td class="px-1 py-1 text-right font-semibold">{row.points}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
           <form method="get" class="mt-6 flex items-center gap-2">
             <label for="player" class="text-sm text-blue-100/80">
               Player
