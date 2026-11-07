@@ -41,6 +41,15 @@ describe("submitScoreSchema", () => {
     expect(result.error?.issues[0]?.message).toBe("Score is required");
   });
 
+  it.each([
+    ["abc", "Score must be a number"],
+    ["1.5", "Score must be a whole number"],
+    ["-1", "Score must be at least 0"],
+    ["100", "Score must be at most 99"],
+  ])("tells the link holder why %j is refused", (value, message) => {
+    expect(submitScoreSchema.safeParse({ ...valid, scoreA: value }).error?.issues[0]?.message).toBe(message);
+  });
+
   it.each(["", "abc", "A".repeat(64), "a".repeat(63)])("rejects a malformed token (%j)", (bad) => {
     expect(submitScoreSchema.safeParse({ ...valid, token: bad }).success).toBe(false);
   });

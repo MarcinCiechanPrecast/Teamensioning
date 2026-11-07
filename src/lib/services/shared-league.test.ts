@@ -173,4 +173,12 @@ describe("isValidShareToken", () => {
     expect(isValidShareToken("g".repeat(64))).toBe(false);
     expect(isValidShareToken(undefined)).toBe(false);
   });
+
+  it.each([
+    ["junk before the token", `x${"a".repeat(64)}`],
+    ["junk after the token", `${"a".repeat(64)}x`],
+    ["one char too many", "a".repeat(65)],
+  ])("rejects a valid token with %s", (_label, token) => {
+    expect(isValidShareToken(token)).toBe(false);
+  });
 });

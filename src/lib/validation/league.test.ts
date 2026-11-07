@@ -35,6 +35,19 @@ describe("leagueSettingsSchema", () => {
     expect(messages(leagueSettingsSchema.safeParse({ ...valid, pointsDraw: "" }))).toContain("Required");
   });
 
+  it("treats a whitespace-only points field as Required, not 0", () => {
+    // Number("  ") is 0 too, so without trimming a blank-looking field would be stored as 0 points.
+    expect(messages(leagueSettingsSchema.safeParse({ ...valid, pointsLoss: "  " }))).toContain("Required");
+  });
+
+  it.each([
+    ["a draw worth as much as a win", { pointsWin: "3", pointsDraw: "3", pointsLoss: "0" }],
+    ["a loss worth as much as a draw", { pointsWin: "3", pointsDraw: "1", pointsLoss: "1" }],
+    ["every result worth the same", { pointsWin: "1", pointsDraw: "1", pointsLoss: "1" }],
+  ])("accepts %s (the rule is win ≥ draw ≥ loss, not strict)", (_label, points) => {
+    expect(leagueSettingsSchema.safeParse({ ...valid, ...points }).success).toBe(true);
+  });
+
   it("rejects points above 99 and negative points", () => {
     expect(leagueSettingsSchema.safeParse({ ...valid, pointsWin: "100" }).success).toBe(false);
     expect(leagueSettingsSchema.safeParse({ ...valid, pointsLoss: "-1" }).success).toBe(false);
@@ -75,6 +88,40 @@ describe("createLeagueSchema", () => {
     expect(messages(createLeagueSchema.safeParse({ ...valid, players: ["Ann", "ann", "Bob"] }))).toContain(
       "Duplicate player name: ann",
     );
+  });
+
+  it("accepts realistic player names and stores them without surrounding spaces", () => {
+    const result = createLeagueSchema.parse({ ...valid, players: ["  Anna ", "Bartek", "Zoë Kowalska-Nowak"] });
+    expect(result.players).toEqual(["Anna", "Bartek", "Zoë Kowalska-Nowak"]);
+  });
+
+  it.each([
+    ["an empty player name", ""],
+    ["a whitespace-only player name", "   "],
+  ])("tells the organizer %s is required", (_label, name) => {
+    expect(messages(createLeagueSchema.safeParse({ ...valid, players: ["Anna", "Bartek", name] }))).toContain(
+      "Player name is required",
+    );
+  });
+
+  it("accepts a 40-character player name and refuses 41 with a readable message", () => {
+    const players = (last: string) => ({ ...valid, players: ["Anna", "Bartek", last] });
+    expect(createLeagueSchema.safeParse(players("x".repeat(40))).success).toBe(true);
+    expect(messages(createLeagueSchema.safeParse(players("x".repeat(41))))).toContain(
+      "Player name must be at most 40 characters",
+    );
+  });
+
+  it("accepts 20 players and refuses 21 with a readable message", () => {
+    const names = (n: number) => Array.from({ length: n }, (_, i) => `Player ${i + 1}`);
+    expect(createLeagueSchema.safeParse({ ...valid, players: names(20) }).success).toBe(true);
+    expect(messages(createLeagueSchema.safeParse({ ...valid, players: names(21) }))).toContain(
+      "Add at most 20 players",
+    );
+  });
+
+  it("treats names that differ only by surrounding spaces and case as duplicates", () => {
+    expect(createLeagueSchema.safeParse({ ...valid, players: [" Ann", "ann ", "Bob"] }).success).toBe(false);
   });
 
   it("still applies the points ordering rule", () => {

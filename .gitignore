@@ -40,3 +40,7 @@ playwright-report/
 blob-report/
 playwright/.cache/
 .playwright-cli/
+
+# stryker temp files and reports
+.stryker-tmp
+reports/mutation/
