@@ -402,27 +402,27 @@ None. No schema changes. Test users stay in local `auth.users` until `npx supaba
 
 #### Automated
 
-- [x] 2.1 Integration suite passes: `npm run test:integration`
-- [x] 2.2 Unit suite still passes: `npm test`
-- [x] 2.3 Lint passes: `npm run lint`
+- [x] 2.1 Integration suite passes: `npm run test:integration` — c628b47
+- [x] 2.2 Unit suite still passes: `npm test` — c628b47
+- [x] 2.3 Lint passes: `npm run lint` — c628b47
 
 #### Manual
 
-- [x] 2.4 Mutation check: upsert in `submit_match_score` fails the write-once tests
-- [x] 2.5 Mutation check: loosened token join fails the other-tournament test
+- [x] 2.4 Mutation check: upsert in `submit_match_score` fails the write-once tests — c628b47
+- [x] 2.5 Mutation check: loosened token join fails the other-tournament test — c628b47
 
 ### Phase 3: Organizer-Only Writes (Risk #2)
 
 #### Automated
 
-- [ ] 3.1 Integration suite passes: `npm run test:integration`
-- [ ] 3.2 Unit suite still passes: `npm test`
-- [ ] 3.3 Lint passes: `npm run lint`
+- [x] 3.1 Integration suite passes: `npm run test:integration`
+- [x] 3.2 Unit suite still passes: `npm test`
+- [x] 3.3 Lint passes: `npm run lint`
 
 #### Manual
 
-- [ ] 3.4 Mutation check: permissive `results_update_own` fails the non-owner correction test
-- [ ] 3.5 Mutation check: owner predicate removed from `update_tournament_settings` fails the non-owner settings test
+- [x] 3.4 Mutation check: permissive `results_update_own` fails the non-owner correction test
+- [x] 3.5 Mutation check: owner predicate removed from `update_tournament_settings` fails the non-owner settings test
 
 ### Phase 4: Cookbook and Docs
 

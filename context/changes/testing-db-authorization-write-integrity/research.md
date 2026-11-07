@@ -133,3 +133,8 @@ For risks #1, #2 and #4 of `context/foundation/test-plan.md` §2: ground the rea
 
 - What error code does anon get when calling `update_tournament_settings`? Expected 42501 or a PostgREST permission error. Check on the first run, and assert "error present and data unchanged" rather than an exact code if it turns out to vary.
 - CI wiring (running the integration project in the `smoke` job, which already has local Supabase) is test-plan Phase 4. Phase 1 may still add a local `npm run test:integration` script.
+
+## Follow-up 2026-11-07 (implementation, Phase 3)
+
+- **Score correction is guarded by two RLS policies, not one.** In the inspected local DB, replacing only `results_update_own` with `using (true)` left the non-owner correction refused (0 rows). An `UPDATE ... WHERE match_id = ...` must also pass the table's SELECT policy, and `results_select_own` (`supabase/migrations/20261025130000_add_match_results.sql:29-36`) is owner-only. The correction test went red only when **both** policies were widened. This refines §Risk #2 above, which named only the UPDATE policy plus the column grant. The plan's mutation check 3.4 was run in the stronger, two-policy form.
+- Mutation checks were applied in place with `psql` against the local container, and the original definitions were restored from the migration files. No `supabase db reset` was run, so local dev data was kept.
