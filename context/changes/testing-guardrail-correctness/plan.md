@@ -208,53 +208,53 @@ Call `create_league` directly with input the app would never send, and prove the
 
 #### Automated
 
-- [ ] 1.1 Unit suite passes: `npm test`
-- [ ] 1.2 Lint passes: `npm run lint`
+- [x] 1.1 Unit suite passes: `npm test` — 6b86a26
+- [x] 1.2 Lint passes: `npm run lint` — 6b86a26
 
 #### Manual
 
-- [ ] 1.3 Mutation check: rank and GF tiebreak mutations fail named tests
+- [x] 1.3 Mutation check: rank and GF tiebreak mutations fail named tests — 6b86a26
 
 ### Phase 2: Stored Results → Leaderboard (Integration, Risk #3)
 
 #### Automated
 
-- [ ] 2.1 Integration suite passes: `npm run test:integration`
+- [x] 2.1 Integration suite passes: `npm run test:integration` — 22df2b3
 
 #### Manual
 
-- [ ] 2.2 Mutation check: hard-coded 3/1/0 in `get_shared_league` fails the 5/2/1 test
+- [x] 2.2 Mutation check: hard-coded 3/1/0 in `get_shared_league` fails the 5/2/1 test — 22df2b3
 
 ### Phase 3: Points Lock (Integration, Risk #5)
 
 #### Automated
 
-- [ ] 3.1 Integration suite passes: `npm run test:integration`
+- [x] 3.1 Integration suite passes: `npm run test:integration` — d55ae43
 
 #### Manual
 
-- [ ] 3.2 Mutation check: lock clause removed fails the lock tests
-- [ ] 3.3 Mutation check: tournament filter removed fails the other-tournament test
+- [x] 3.2 Mutation check: lock clause removed fails the lock tests — d55ae43
+- [x] 3.3 Mutation check: tournament filter removed fails the other-tournament test — d55ae43
 
 ### Phase 4: League Invariants and Post-Creation Freeze (Integration + Migration, Risk #6)
 
 #### Automated
 
-- [ ] 4.1 Post-creation test red before the migration
-- [ ] 4.2 Integration suite passes after the migration: `npm run test:integration`
-- [ ] 4.3 Unit suite and lint pass
+- [x] 4.1 Post-creation test red before the migration — 0adf2d2
+- [x] 4.2 Integration suite passes after the migration: `npm run test:integration` — b0956a0
+- [x] 4.3 Unit suite and lint pass — b0956a0
 
 #### Manual
 
-- [ ] 4.4 Mutation checks: name index, pair index, fixture-count check
+- [x] 4.4 Mutation checks: name index, pair index, fixture-count check — b0956a0
 
 ### Phase 5: Cookbook and Docs
 
 #### Automated
 
-- [ ] 5.1 No `TBD — see §3 Phase 2` placeholders remain in test-plan §6
-- [ ] 5.2 Prettier is clean for the edited markdown
+- [x] 5.1 No `TBD — see §3 Phase 2` placeholders remain in test-plan §6
+- [x] 5.2 Prettier is clean for the edited markdown
 
 #### Manual
 
-- [ ] 5.3 A reader can add a guardrail test from §6.4 alone
+- [x] 5.3 A reader can add a guardrail test from §6.4 alone
