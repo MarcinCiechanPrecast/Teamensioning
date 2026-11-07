@@ -32,3 +32,11 @@ pnpm-debug.log*
 
 # Supabase Studio scratch queries
 supabase/snippets/
+
+# Playwright
+playwright/.auth/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+.playwright-cli/
