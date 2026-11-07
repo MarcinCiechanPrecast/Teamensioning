@@ -88,6 +88,108 @@ describe("computeStandings", () => {
     expect(byGoals.slice(0, 2).map((r) => r.rank)).toEqual([1, 2]);
   });
 
+  // Phase 2 edge cases (test-plan risk #3). Every expectation is worked out by hand from PRD FR-008:
+  // points first, then goal difference, then goals scored; an unplayed match gives nothing.
+
+  it("ranks on points before goal difference, even when the goal difference is far worse", () => {
+    // Ann-Bob 1-0, Ann-Cid 0-5, Bob-Cid 0-0.
+    // Cid: D + W = 4 pts, GD +5. Ann: W + L = 3 pts, GD 1-5 = -4. Bob: L + D = 1 pt, GD 0-1 = -1.
+    const result = computeStandings(
+      league(
+        [ann, bob, cid],
+        [match("m1", ann, bob, [1, 0]), match("m2", ann, cid, [0, 5]), match("m3", bob, cid, [0, 0])],
+      ),
+    );
+    expect(result.map((r) => [r.player.name, r.rank, r.points, r.goalDifference])).toEqual([
+      ["Cid", 1, 4, 5],
+      ["Ann", 2, 3, -4],
+      ["Bob", 3, 1, -1],
+    ]);
+  });
+
+  it("shares a rank in the middle of the table and skips the next one (1, 2, 2, 4)", () => {
+    // Ann-Dan 3-0, Bob-Dan 1-0, Cid-Dan 1-0.
+    // Ann 3 pts GD +3; Bob and Cid 3 pts GD +1 GF 1 (level on all three); Dan 0 pts GD -5.
+    const result = computeStandings(
+      league(
+        [ann, bob, cid, dan],
+        [match("m1", ann, dan, [3, 0]), match("m2", bob, dan, [1, 0]), match("m3", cid, dan, [1, 0])],
+      ),
+    );
+    expect(result.map((r) => [r.player.name, r.rank])).toEqual([
+      ["Ann", 1],
+      ["Bob", 2],
+      ["Cid", 2],
+      ["Dan", 4],
+    ]);
+  });
+
+  it("ranks a player with no games above players level on points with a negative goal difference", () => {
+    // Ann-Bob 1-0, Ann-Cid 3-0; Dan has not played.
+    // Ann 6 pts. Then all on 0 pts: Dan GD 0, Bob GD -1, Cid GD -3.
+    const result = computeStandings(
+      league([ann, bob, cid, dan], [match("m1", ann, bob, [1, 0]), match("m2", ann, cid, [3, 0])]),
+    );
+    expect(result.map((r) => [r.player.name, r.rank, r.played, r.points, r.goalDifference])).toEqual([
+      ["Ann", 1, 2, 6, 4],
+      ["Dan", 2, 0, 0, 0],
+      ["Bob", 3, 1, 0, -1],
+      ["Cid", 4, 1, 0, -3],
+    ]);
+  });
+
+  it("breaks ties on goals scored among losers too, not only among winners", () => {
+    // Ann-Cid 3-2, Dan-Bob 1-0.
+    // Winners on 3 pts GD +1: Ann GF 3 ahead of Dan GF 1. Losers on 0 pts GD -1: Cid GF 2 ahead of Bob GF 0.
+    // Cid beating Bob goes against alphabetical order, so a missing GF tiebreak shows up in the order too.
+    const result = computeStandings(
+      league([ann, bob, cid, dan], [match("m1", ann, cid, [3, 2]), match("m2", dan, bob, [1, 0])]),
+    );
+    expect(result.map((r) => [r.player.name, r.rank, r.goalsFor])).toEqual([
+      ["Ann", 1, 3],
+      ["Dan", 2, 1],
+      ["Cid", 3, 2],
+      ["Bob", 4, 0],
+    ]);
+  });
+
+  it("handles settings where a draw is worth as much as a win (1/1/0)", () => {
+    // Ann-Bob 2-0, Cid-Dan 1-1.
+    // Ann 1 pt GD +2; Cid and Dan 1 pt GD 0 GF 1 (shared rank 2); Bob 0 pts.
+    const result = computeStandings(
+      league([ann, bob, cid, dan], [match("m1", ann, bob, [2, 0]), match("m2", cid, dan, [1, 1])], {
+        name: "L",
+        points_win: 1,
+        points_draw: 1,
+        points_loss: 0,
+      }),
+    );
+    expect(result.map((r) => [r.player.name, r.rank, r.won, r.drawn, r.lost, r.points])).toEqual([
+      ["Ann", 1, 1, 0, 0, 1],
+      ["Cid", 2, 0, 1, 0, 1],
+      ["Dan", 2, 0, 1, 0, 1],
+      ["Bob", 4, 0, 0, 1, 0],
+    ]);
+  });
+
+  it("orders purely by goal difference, then goals scored, when every result is worth 0 points (0/0/0)", () => {
+    // Ann-Bob 2-0, Cid-Dan 1-1, Dan-Bob 3-2.
+    // All 0 pts. Ann GD +2. Dan: 1-1 and 3-2 -> GF 4 GA 3 GD +1. Cid GD 0. Bob: 0-2 and 2-3 -> GD -3.
+    const result = computeStandings(
+      league(
+        [ann, bob, cid, dan],
+        [match("m1", ann, bob, [2, 0]), match("m2", cid, dan, [1, 1]), match("m3", dan, bob, [3, 2])],
+        { name: "L", points_win: 0, points_draw: 0, points_loss: 0 },
+      ),
+    );
+    expect(result.map((r) => [r.player.name, r.rank, r.points, r.goalDifference])).toEqual([
+      ["Ann", 1, 0, 2],
+      ["Dan", 2, 0, 1],
+      ["Cid", 3, 0, 0],
+      ["Bob", 4, 0, -3],
+    ]);
+  });
+
   it("gives players level on points, goal difference and goals for a shared rank and skips the next", () => {
     const result = computeStandings(
       league([bob, ann, cid, dan], [match("m1", ann, cid, [1, 0]), match("m2", bob, dan, [1, 0])]),

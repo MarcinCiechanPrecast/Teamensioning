@@ -69,12 +69,12 @@ Each row is a discrete rollout phase that will open its own change folder
 via `/10x-new`. Status moves left-to-right through the values below; the
 orchestrator updates Status as artifacts appear on disk.
 
-| #   | Phase name                             | Goal (one line)                                                                                                                     | Risks covered        | Test types                                   | Status      | Change folder                                             |
-| --- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | -------------------- | -------------------------------------------- | ----------- | --------------------------------------------------------- |
-| 1   | DB authorization and write integrity   | Prove at the Supabase boundary that anon and non-owners cannot overwrite, cross tournaments, or perform organizer writes            | #1, #2, #4           | integration (local Supabase, anon + 2 users) | complete    | context/changes/testing-db-authorization-write-integrity/ |
-| 2   | Guardrail correctness from stored data | Prove the leaderboard, points lock and DB invariants hold for persisted data, not just pure functions                               | #3, #5, #6           | unit (edge cases) + integration              | not started | —                                                         |
-| 3   | Critical flow in the browser           | One US-01 browser run (create → share → enter score → leaderboard → correction), only where it adds signal over smoke + integration | #3, #1 (cross-check) | e2e (Playwright)                             | complete    | context/archive/2026-11-07-testing-critical-flow-e2e/     |
-| 4   | Quality-gates wiring                   | Run the integration suite in CI against local Supabase, add migration-on-seeded-DB check, wire an agent post-edit hook              | #7, cross-cutting    | gates, hook                                  | complete    | context/archive/2026-11-07-testing-quality-gates/         |
+| #   | Phase name                             | Goal (one line)                                                                                                                     | Risks covered        | Test types                                   | Status   | Change folder                                                        |
+| --- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | -------------------- | -------------------------------------------- | -------- | -------------------------------------------------------------------- |
+| 1   | DB authorization and write integrity   | Prove at the Supabase boundary that anon and non-owners cannot overwrite, cross tournaments, or perform organizer writes            | #1, #2, #4           | integration (local Supabase, anon + 2 users) | complete | context/archive/2026-11-07-testing-db-authorization-write-integrity/ |
+| 2   | Guardrail correctness from stored data | Prove the leaderboard, points lock and DB invariants hold for persisted data, not just pure functions                               | #3, #5, #6           | unit (edge cases) + integration              | complete | context/archive/2026-11-07-testing-guardrail-correctness/            |
+| 3   | Critical flow in the browser           | One US-01 browser run (create → share → enter score → leaderboard → correction), only where it adds signal over smoke + integration | #3, #1 (cross-check) | e2e (Playwright)                             | complete | context/archive/2026-11-07-testing-critical-flow-e2e/                |
+| 4   | Quality-gates wiring                   | Run the integration suite in CI against local Supabase, add migration-on-seeded-DB check, wire an agent post-edit hook              | #7, cross-cutting    | gates, hook                                  | complete | context/archive/2026-11-07-testing-quality-gates/                    |
 
 ## 4. Stack
 
@@ -112,7 +112,12 @@ orchestrator updates Status as artifacts appear on disk.
 - **Location**: next to the unit under test, `src/lib/**/<module>.test.ts`.
 - **Reference test**: `src/lib/services/standings.test.ts`.
 - **Run locally**: `npm test` (the Vitest `unit` project; never needs a database).
-- Edge-case guidance for standings/points (tiebreakers, non-default points): TBD — see §3 Phase 2.
+- **Standings and points edge cases** (`computeStandings`):
+  - Work every expectation out by hand from PRD FR-008 (points, then goal difference, then goals scored; an unplayed match gives nothing) and write the arithmetic in a comment above the assertion. Never paste the function's output in as the expected value.
+  - Assert `[name, rank, …]` tuples, not just names: a missing tiebreak often keeps the alphabetical order and only shows up in the rank.
+  - Pick scores so the tiebreak under test goes **against** alphabetical order (the name fallback otherwise hides a missing tiebreak).
+  - Cover non-default points, including degenerate but valid settings (1/1/0, 0/0/0; the DB allows `win >= draw >= loss`, 0–99).
+  - Shared ranks are competition ranks (1, 2, 2, 4). The order of fully level players is a display choice, not a PRD rule; assert their shared rank.
 
 ### 6.2 Adding an RLS / authorization integration test
 
@@ -139,7 +144,13 @@ orchestrator updates Status as artifacts appear on disk.
 
 ### 6.4 Adding a guardrail test from persisted data
 
-- TBD — see §3 Phase 2 (stored results → leaderboard, points lock, DB invariants).
+- **Location**: `src/test/integration/<area>.integration.test.ts`, same project and helpers as §6.2.
+- **Reference tests**: `leaderboard-from-stored-results.integration.test.ts` (stored rows → table), `points-lock.integration.test.ts` (write-boundary lock), `league-invariants.integration.test.ts` (DB constraints and frozen rows).
+- **Store through the real write paths**: `enterScoreAsLinkHolder(league, "Ann", 2, 0, "Bob")` (anon RPC), owner `results` update for corrections. `matchBetween(league, a, b).orient(x, y)` maps "a scored x, b scored y" to the stored `score_a`/`score_b`; the fixture generator decides who is player A.
+- **Read the way the page reads**: `get_shared_league` as anon → `toSharedLeague` → `computeStandings`. Assert the full `[name, rank, P, W, D, L, GF, GA, GD, Pts]` table, hand-computed, with the arithmetic in comments.
+- **Use non-default points** (`leagues.create(owner, names, { win: 5, draw: 2, loss: 1 })`) so a hard-coded 3/1/0 anywhere on the path changes the answer; a twin league with the same scores and other points proves settings are read per tournament.
+- **Lock / invariant tests** assert the returned status or Postgres error class (23505 unique, 22023 raised by `create_league`, 23514 check, 42501 RLS) **plus** an owner read-back (`readTournamentAs`, a name lookup for "nothing stored"). Call `create_league` directly with input zod and the generator would never send.
+- **Not observable from outcomes**: a lost race between a score and a points edit leaves the same final state as the legal order, so the lock's `for share`/`for update` pairing is a review item, not a test.
 
 ### 6.5 Adding an e2e test
 
@@ -159,6 +170,7 @@ orchestrator updates Status as artifacts appear on disk.
 (Appended by each phase's final sub-phase.)
 
 - **Phase 1 (2026-11-07):** the integration suite refuses any `SUPABASE_URL` that isn't `localhost` or `127.0.0.1`, because this checkout is linked to the production project and test sign-ups can't be undone. Prove each new DB test with a mutation check. Patch the local DB in place with `psql` and restore the definition from its migration file, instead of `supabase db reset`, which wipes local data. Example: score corrections are guarded by two RLS policies, SELECT and UPDATE. Widening only one of them leaves the test green, so a mutation has to remove the real protection.
+- **Phase 2 (2026-11-07):** the post-creation tests were red on `master`: the owner could insert a player, or a bare tournament, directly through PostgREST, breaking "every pair meets exactly once". Fixed by `20261107120000_freeze_league_rows_after_creation.sql` (`create_league` is now `security definer` with an explicit `auth.uid()` check; no INSERT policy remains on `tournaments`/`players`/`matches`). Any future write path for these tables must go through an RPC that keeps the invariants. Mutation checks used: hard-coded 3/1/0 in `get_shared_league`, lock clause and its tournament filter removed from `update_tournament_settings`, name/pair indexes and the self-pair check dropped, count checks removed from `create_league` — each turned named tests red. When a `create function` migration is patched in place, run it as `create or replace` (grants are kept).
 - **Phase 3 (2026-11-07):** one US-01 browser run, `tests/e2e/us-01-league-flow.spec.ts`. It covers only what the other layers can't see:
   - the rendered standings for non-default points (W4/D2/L1);
   - a stale share tab that can't overwrite an entered score;

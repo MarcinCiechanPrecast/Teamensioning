@@ -18,7 +18,20 @@ export interface TestLeague {
   shareToken: string;
   /** Match ids in display order (by position). */
   matchIds: string[];
+  /** Matches in display order with their stored player ids (score_a belongs to playerAId). */
+  matches: { id: string; playerAId: string; playerBId: string }[];
+  /** Player id by the name passed at creation. */
+  playerIds: Record<string, string>;
 }
+
+export interface TestPoints {
+  win: number;
+  draw: number;
+  loss: number;
+}
+
+/** The PRD's prefilled defaults. */
+export const DEFAULT_POINTS: TestPoints = { win: 3, draw: 1, loss: 0 };
 
 /** Signs up a fresh user (local Supabase has email confirmation off) and returns a client holding its session. */
 export async function signUpUser(): Promise<TestUser> {
@@ -34,13 +47,17 @@ export async function signUpUser(): Promise<TestUser> {
   return { client, userId: data.user.id };
 }
 
-/** Creates a league with 3/1/0 points as `owner`, then reads its share token and match ids back as that owner. */
-export async function createLeagueAs(owner: TestUser, playerNames: string[]): Promise<TestLeague> {
+/** Creates a league (3/1/0 points unless given) as `owner`, then reads token, matches and players back as that owner. */
+export async function createLeagueAs(
+  owner: TestUser,
+  playerNames: string[],
+  points: TestPoints = DEFAULT_POINTS,
+): Promise<TestLeague> {
   const { data: tournamentId, error } = await owner.client.rpc("create_league", {
     p_name: `IT league ${randomUUID().slice(0, 8)}`,
-    p_points_win: 3,
-    p_points_draw: 1,
-    p_points_loss: 0,
+    p_points_win: points.win,
+    p_points_draw: points.draw,
+    p_points_loss: points.loss,
     p_players: playerNames,
     p_fixtures: generateFixtures(playerNames.length).map(({ a, b }) => ({ a, b })),
   });
@@ -56,12 +73,24 @@ export async function createLeagueAs(owner: TestUser, playerNames: string[]): Pr
 
   const { data: matches, error: matchesError } = await owner.client
     .from("matches")
-    .select("id")
+    .select("id, player_a_id, player_b_id")
     .eq("tournament_id", tournamentId)
     .order("position");
   if (matchesError) throw new Error(`createLeagueAs (matches): ${matchesError.message}`, { cause: matchesError });
 
-  return { tournamentId, shareToken: tournament.share_token, matchIds: matches.map((m) => m.id) };
+  const { data: players, error: playersError } = await owner.client
+    .from("players")
+    .select("id, name")
+    .eq("tournament_id", tournamentId);
+  if (playersError) throw new Error(`createLeagueAs (players): ${playersError.message}`, { cause: playersError });
+
+  return {
+    tournamentId,
+    shareToken: tournament.share_token,
+    matchIds: matches.map((m) => m.id),
+    matches: matches.map((m) => ({ id: m.id, playerAId: m.player_a_id, playerBId: m.player_b_id })),
+    playerIds: Object.fromEntries(players.map((p) => [p.name, p.id])),
+  };
 }
 
 /** The owner's view of a match result: `null` when no result is stored. */
@@ -102,8 +131,8 @@ export async function deleteLeagueAs(owner: TestUser, tournamentId: string): Pro
 export function leagueCleanup() {
   const created: { owner: TestUser; tournamentId: string }[] = [];
   return {
-    async create(owner: TestUser, playerNames: string[]): Promise<TestLeague> {
-      const league = await createLeagueAs(owner, playerNames);
+    async create(owner: TestUser, playerNames: string[], points?: TestPoints): Promise<TestLeague> {
+      const league = await createLeagueAs(owner, playerNames, points);
       created.push({ owner, tournamentId: league.tournamentId });
       return league;
     },
@@ -111,4 +140,46 @@ export function leagueCleanup() {
       await Promise.all(created.splice(0).map(({ owner, tournamentId }) => deleteLeagueAs(owner, tournamentId)));
     },
   };
+}
+
+/**
+ * The match between two named players, plus `orient`, which turns "`first` scored x, `second` scored y"
+ * into the stored (score_a, score_b) order — the fixture generator decides who is player A.
+ */
+export function matchBetween(league: TestLeague, first: string, second: string) {
+  const firstId = league.playerIds[first];
+  const secondId = league.playerIds[second];
+  const found = league.matches.find(
+    (m) =>
+      (m.playerAId === firstId && m.playerBId === secondId) || (m.playerAId === secondId && m.playerBId === firstId),
+  );
+  if (!firstId || !secondId || !found) throw new Error(`matchBetween: no match ${first} v ${second}`);
+  const firstIsA = found.playerAId === firstId;
+  return {
+    id: found.id,
+    orient: (firstGoals: number, secondGoals: number) =>
+      firstIsA ? { score_a: firstGoals, score_b: secondGoals } : { score_a: secondGoals, score_b: firstGoals },
+  };
+}
+
+/** Enters "`first` x - y `second`" through the anonymous write path, as a link holder would. Throws unless created. */
+export async function enterScoreAsLinkHolder(
+  league: TestLeague,
+  first: string,
+  firstGoals: number,
+  secondGoals: number,
+  second: string,
+): Promise<void> {
+  const target = matchBetween(league, first, second);
+  const { score_a, score_b } = target.orient(firstGoals, secondGoals);
+  const { data, error } = await anonClient().rpc("submit_match_score", {
+    p_token: league.shareToken,
+    p_match_id: target.id,
+    p_score_a: score_a,
+    p_score_b: score_b,
+  });
+  if (error) throw new Error(`enterScoreAsLinkHolder: ${error.message}`, { cause: error });
+  if ((data as { status?: string } | null)?.status !== "created") {
+    throw new Error(`enterScoreAsLinkHolder: expected created, got ${JSON.stringify(data)}`);
+  }
 }
