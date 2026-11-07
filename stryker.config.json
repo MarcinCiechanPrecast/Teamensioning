@@ -1,0 +1,22 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "_comment": "Selective mutation testing, see CLAUDE.md. Default scope = modules behind test-plan.md risks #1-#4 and #6. Narrow further with --mutate \"path/to/file.ts:start-end\".",
+  "packageManager": "npm",
+  "testRunner": "vitest",
+  "vitest": {
+    "configFile": "vitest.stryker.config.ts",
+    "related": true
+  },
+  "coverageAnalysis": "perTest",
+  "mutate": [
+    "src/lib/services/standings.ts",
+    "src/lib/services/shared-league.ts",
+    "src/lib/services/fixtures.ts",
+    "src/lib/services/score-submission.ts",
+    "src/lib/services/score-correction.ts",
+    "src/lib/validation/score.ts",
+    "src/lib/validation/league.ts"
+  ],
+  "reporters": ["html", "clear-text", "progress"],
+  "htmlReporter": { "fileName": "reports/mutation/mutation.html" }
+}
