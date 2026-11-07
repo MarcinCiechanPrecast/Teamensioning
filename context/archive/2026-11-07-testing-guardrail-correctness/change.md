@@ -1,10 +1,10 @@
 ---
 change_id: testing-guardrail-correctness
 title: Test guardrail correctness from stored data (test plan Phase 2)
-status: implemented
+status: archived
 created: 2026-11-07
 updated: 2026-11-07
-archived_at: null
+archived_at: 2026-11-07T15:43:58Z
 ---
 
 ## Notes
