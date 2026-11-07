@@ -428,9 +428,9 @@ None. No schema changes. Test users stay in local `auth.users` until `npx supaba
 
 #### Automated
 
-- [x] 4.1 No `TBD — see §3 Phase 1` placeholders remain in test-plan §6
-- [x] 4.2 Prettier is clean for the edited markdown
+- [x] 4.1 No `TBD — see §3 Phase 1` placeholders remain in test-plan §6 — 9207a45
+- [x] 4.2 Prettier is clean for the edited markdown — 9207a45
 
 #### Manual
 
-- [x] 4.3 A reader can add a new authorization test from §6.2 alone
+- [x] 4.3 A reader can add a new authorization test from §6.2 alone — 9207a45
