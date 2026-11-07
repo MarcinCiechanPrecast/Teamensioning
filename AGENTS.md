@@ -17,6 +17,8 @@ This file provides guidance to AI Agent when working with code in this repositor
 
 Pre-commit hooks: husky + lint-staged runs `eslint --fix` on `*.{ts,tsx,astro}` and `prettier --write` on `*.{json,css,md}`.
 
+Agent hooks (Claude Code, `.claude/settings.json`): after every `Write`/`Edit`, `.claude/hooks/post-edit.mjs` lints the edited file and runs its related unit tests; at end of turn, `.claude/hooks/end-of-turn.mjs` lints every changed file, runs the unit suite and `astro check`, and sends the agent back once on failure. Both report through exit 2 + stderr. Proven by `scripts/agent-hooks.test.ts` (part of `npm test`); change a hook, re-run it. Restart the session after editing hook config.
+
 ## Architecture
 
 **Astro 7 SSR app** with React 19 islands, Tailwind 4, Supabase auth, and shadcn/ui components. Deployed to Cloudflare Workers.
@@ -68,5 +70,6 @@ Full server-side rendering (`output: "server"` in astro.config.mjs). All pages a
 `@.github/workflows/ci.yml` runs on every push and PR to master:
 
 - `ci`: lint, `astro check`, build. Needs the `SUPABASE_URL` and `SUPABASE_KEY` repository secrets.
-- `smoke`: local Supabase, production preview, `npm run smoke`. This also proves the migrations apply to a fresh database.
+- `smoke`: local Supabase, `npm run test:integration`, production preview, `npm run smoke`. This also proves the migrations apply to a fresh database.
+- `migration-upgrade` (risk #7, local Supabase only): fails if a released migration was edited, renamed or deleted, or a new one sorts before the newest released one. Then starts Supabase from a worktree of the previous release (PR merge commit's first parent; `github.event.before` on push), seeds realistic data with `scripts/seed-db.mjs seed`, applies the new migrations with `supabase migration up --local`, runs `seed-db.mjs verify` (seeded rows unchanged, write path still works), the **previous release's** smoke test against the new schema, and this change's integration suite. A red run means the migration breaks existing data or the still-deployed Worker. The previous release's copy of `seed-db.mjs` is used when it has one, so keep that script compatible with the deployed schema.
 - `migrate` (push to master only): `supabase db push --linked` to production, then `migration list`. Needs the `SUPABASE_ACCESS_TOKEN` (personal access token, supabase.com/dashboard/account/tokens) and `SUPABASE_DB_PASSWORD` (production database password) repository secrets. Workers Builds deploys in parallel and does not wait for it, so migrations must stay backward compatible (add columns/tables first; drop or rename only in a later PR, once no deployed code uses them). If `migrate` fails, production code may already be running against the old schema: fix it and re-run the job.

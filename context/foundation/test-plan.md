@@ -74,7 +74,7 @@ orchestrator updates Status as artifacts appear on disk.
 | 1   | DB authorization and write integrity   | Prove at the Supabase boundary that anon and non-owners cannot overwrite, cross tournaments, or perform organizer writes            | #1, #2, #4           | integration (local Supabase, anon + 2 users) | complete    | context/changes/testing-db-authorization-write-integrity/ |
 | 2   | Guardrail correctness from stored data | Prove the leaderboard, points lock and DB invariants hold for persisted data, not just pure functions                               | #3, #5, #6           | unit (edge cases) + integration              | not started | —                                                         |
 | 3   | Critical flow in the browser           | One US-01 browser run (create → share → enter score → leaderboard → correction), only where it adds signal over smoke + integration | #3, #1 (cross-check) | e2e (Playwright)                             | complete    | context/archive/2026-11-07-testing-critical-flow-e2e/     |
-| 4   | Quality-gates wiring                   | Run the integration suite in CI against local Supabase, add migration-on-seeded-DB check, wire an agent post-edit hook              | #7, cross-cutting    | gates, hook                                  | not started | —                                                         |
+| 4   | Quality-gates wiring                   | Run the integration suite in CI against local Supabase, add migration-on-seeded-DB check, wire an agent post-edit hook              | #7, cross-cutting    | gates, hook                                  | complete    | context/archive/2026-11-07-testing-quality-gates/         |
 
 ## 4. Stack
 
@@ -95,15 +95,15 @@ orchestrator updates Status as artifacts appear on disk.
 
 ## 5. Quality Gates
 
-| Gate                                             | Where              | Required?                                             | Catches                                                 |
-| ------------------------------------------------ | ------------------ | ----------------------------------------------------- | ------------------------------------------------------- |
-| lint + typecheck (`npm run lint`, `astro check`) | local + CI         | required                                              | syntactic / type drift                                  |
-| unit (`npm test`)                                | local + CI         | required                                              | logic regressions in services/validation                |
-| smoke on production preview + local Supabase     | CI                 | required                                              | broken auth flow, migrations not applying to a fresh DB |
-| integration against local Supabase               | CI                 | required after §3 Phase 4 (runs locally from Phase 1) | RLS / write-integrity / invariant regressions           |
-| migration on seeded DB                           | CI                 | required after §3 Phase 4                             | migrations breaking existing data or old code           |
-| e2e on US-01                                     | CI on PR           | optional after §3 Phase 3                             | broken critical user path                               |
-| post-edit hook                                   | local (agent loop) | recommended after §3 Phase 4                          | regressions at edit time                                |
+| Gate                                             | Where                                     | Required?                         | Catches                                                 |
+| ------------------------------------------------ | ----------------------------------------- | --------------------------------- | ------------------------------------------------------- |
+| lint + typecheck (`npm run lint`, `astro check`) | local + CI                                | required                          | syntactic / type drift                                  |
+| unit (`npm test`)                                | local + CI                                | required                          | logic regressions in services/validation                |
+| smoke on production preview + local Supabase     | CI (`smoke`)                              | required                          | broken auth flow, migrations not applying to a fresh DB |
+| integration against local Supabase               | CI (`smoke`, `migration-upgrade`) + local | required (CI since §3 Phase 4)    | RLS / write-integrity / invariant regressions           |
+| migration on seeded DB                           | CI (`migration-upgrade`)                  | required (since §3 Phase 4)       | migrations breaking existing data or old code           |
+| e2e on US-01                                     | CI on PR                                  | optional after §3 Phase 3         | broken critical user path                               |
+| post-edit + end-of-turn hooks                    | local (agent loop, Claude Code)           | recommended (wired in §3 Phase 4) | lint / unit / type regressions at edit time             |
 
 ## 6. Cookbook Patterns
 
@@ -165,6 +165,8 @@ orchestrator updates Status as artifacts appear on disk.
   - an organizer correction showing up in the next anonymous view.
 
   Two mutation checks turned it red: the share page computing with hard-coded 3/1/0, and the correction endpoint writing a fixed score while still reporting success. The leaderboard is computed in the page, not in SQL, so §2's "one integration for stored-rows → leaderboard" is covered by this e2e run instead; Phase 2 keeps the calculation edges in unit tests. A failed run leaves its user and league in the local DB, which is harmless. CI has an optional, self-contained `e2e` job.
+
+- **Phase 4 (2026-11-07):** CI now runs the integration suite in `smoke` (fresh DB) and in `migration-upgrade` (upgraded, seeded DB). `migration-upgrade` is the risk #7 gate: Supabase starts from a worktree of the previous release, `scripts/seed-db.mjs seed` writes realistic leagues through the anon surface, `supabase migration up --local` applies the new migrations, `seed-db.mjs verify` checks the seeded rows survived (a projection, so additive columns or JSON keys pass) and the write path still works, then the previous release's smoke runs against the new schema. It also refuses edited, renamed or deleted released migrations and out-of-order new ones. Proven by a deliberate migration (ASCII-only player names) that an empty DB accepts: `smoke` stayed green, `migration-upgrade` failed at the migration step. When you add a table or a write path the deployed app uses, add it to `seed-db.mjs` (seed + verify); the next release seeds with that copy. Agent hooks: `.claude/hooks/post-edit.mjs` (per edit: ESLint on the file, related unit tests) and `end-of-turn.mjs` (changed files, unit suite, `astro check`), proven by `scripts/agent-hooks.test.ts`; on Windows they use git's view of paths, because temp paths can be 8.3 short names.
 
 ## 7. What We Deliberately Don't Test
 
