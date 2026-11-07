@@ -47,12 +47,104 @@ jobs:
           source supabase.env
           printf 'SUPABASE_URL=%s\nSUPABASE_KEY=%s\n' "$API_URL" "$ANON_KEY" > .env
           cp .env .dev.vars
+      # DB-level suite (RLS, write-once scores, organizer-only writes) against the fresh local database.
+      - run: npm run test:integration
       - run: npm run build
       - name: Run smoke test against production preview
         run: |
           npm run preview -- --port 4321 &
           for i in $(seq 1 60); do curl -sf -o /dev/null http://localhost:4321/ && break; sleep 1; done
           BASE_URL=http://localhost:4321 npm run smoke
+      - if: always()
+        run: supabase stop --no-backup
+
+  # Risk #7 (test plan): `smoke` proves the migrations apply to an EMPTY database. This job proves the
+  # PR's new migrations apply on top of data written through the previous release's schema, that the
+  # data survives, and that the previous release's app (still deployed while `migrate` runs) passes
+  # its smoke test against the new schema. Local Supabase only; never `--linked`.
+  migration-upgrade:
+    runs-on: ubuntu-latest
+    env:
+      # Outside the workspace, so the PR checkout never lints or tests it. (No `runner` context at job level.)
+      PREVIOUS_DIR: ${{ github.workspace }}/../previous-release
+      SNAPSHOT: ${{ github.workspace }}/../seed-snapshot.json
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.121.0
+      - name: Resolve previous release and new migrations
+        env:
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          # PR: HEAD is the merge commit, its first parent is the base branch tip.
+          # Push: the commit master pointed at before this push.
+          if [ "${{ github.event_name }}" = "pull_request" ]; then BASE=$(git rev-parse HEAD^1)
+          elif git cat-file -e "${PUSH_BEFORE}^{commit}" 2>/dev/null; then BASE=$PUSH_BEFORE
+          else BASE=$(git rev-parse HEAD^1); fi
+          echo "Previous release: $BASE"
+          echo "BASE=$BASE" >> "$GITHUB_ENV"
+
+          # Production never re-runs a released migration: editing, renaming or deleting one is silently ignored there.
+          CHANGED=$(git diff --name-only --diff-filter=MDR "$BASE" HEAD -- supabase/migrations/)
+          if [ -n "$CHANGED" ]; then
+            echo "::error::Released migrations were modified, renamed or deleted; add a new migration instead:"
+            echo "$CHANGED"
+            exit 1
+          fi
+
+          NEW=$(git diff --name-only --diff-filter=A "$BASE" HEAD -- supabase/migrations/ | sort)
+          LAST=$(git ls-tree --name-only "$BASE" supabase/migrations/ | sort | tail -1)
+          echo "Newest released migration: ${LAST:-none}"
+          echo "New migrations in this change:"; echo "${NEW:-  (none)}"
+          for f in $NEW; do
+            if [[ ! "$(basename "$f")" > "$(basename "$LAST")" ]]; then
+              echo "::error::$f is older than the newest released migration $LAST; production 'db push' would reject it. Rename it with a newer timestamp."
+              exit 1
+            fi
+          done
+      - name: Check out the previous release
+        run: |
+          git worktree add --detach "$PREVIOUS_DIR" "$BASE"
+          npm ci
+          cd "$PREVIOUS_DIR" && npm ci
+      - name: Start local Supabase with the previous release's migrations
+        working-directory: ${{ env.PREVIOUS_DIR }}
+        run: |
+          supabase start -x studio,imgproxy,mailpit,edge-runtime,logflare,vector,realtime,storage-api,postgres-meta,supavisor
+          supabase migration list --local
+          supabase status -o env | grep -E '^(API_URL|ANON_KEY)=' > "$RUNNER_TEMP/supabase.env"
+          source "$RUNNER_TEMP/supabase.env"
+          printf 'SUPABASE_URL=%s\nSUPABASE_KEY=%s\n' "$API_URL" "$ANON_KEY" > "$RUNNER_TEMP/app.env"
+          for dir in "$GITHUB_WORKSPACE" "$PREVIOUS_DIR"; do cp "$RUNNER_TEMP/app.env" "$dir/.env"; cp "$RUNNER_TEMP/app.env" "$dir/.dev.vars"; done
+      - name: Seed realistic data through the previous release's schema
+        run: |
+          # The previous release's seed script when it has one (its calls are the deployed app's), else this one.
+          if [ -f "$PREVIOUS_DIR/scripts/seed-db.mjs" ]; then SEED_DIR=$PREVIOUS_DIR; else SEED_DIR=$GITHUB_WORKSPACE; fi
+          echo "SEED_DIR=$SEED_DIR" >> "$GITHUB_ENV"
+          echo "Seeding with $SEED_DIR/scripts/seed-db.mjs"
+          cd "$SEED_DIR" && node scripts/seed-db.mjs seed "$SNAPSHOT"
+      - name: Apply this change's migrations on the seeded database
+        run: |
+          supabase migration up --local
+          supabase migration list --local
+      - name: Verify the seeded data survived and the write path still works
+        run: cd "$SEED_DIR" && node scripts/seed-db.mjs verify "$SNAPSHOT"
+      - name: Previous release's smoke test against the new schema
+        working-directory: ${{ env.PREVIOUS_DIR }}
+        run: |
+          npm run build
+          npm run preview -- --port 4321 &
+          for i in $(seq 1 60); do curl -sf -o /dev/null http://localhost:4321/ && break; sleep 1; done
+          BASE_URL=http://localhost:4321 node scripts/smoke.mjs
+      - name: This change's integration suite on the upgraded, seeded database
+        run: npm run test:integration
       - if: always()
         run: supabase stop --no-backup
 
@@ -77,3 +169,39 @@ jobs:
       - run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
       - run: supabase db push --linked
       - run: supabase migration list --linked
+
+  # US-01 in a real browser (test-plan §3 Phase 3). Self-contained: own local Supabase,
+  # Playwright's webServer builds and previews the app on port 4400.
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.121.0
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Start local Supabase
+        run: |
+          supabase start -x studio,imgproxy,mailpit,edge-runtime,logflare,vector,realtime,storage-api,postgres-meta,supavisor
+          supabase status -o env | grep -E '^(API_URL|ANON_KEY)=' > supabase.env
+      - name: Configure secrets for build and preview
+        run: |
+          source supabase.env
+          printf 'SUPABASE_URL=%s\nSUPABASE_KEY=%s\n' "$API_URL" "$ANON_KEY" > .env
+          cp .env .dev.vars
+      - run: npm run test:e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+      - if: always()
+        run: supabase stop --no-backup

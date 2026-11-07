@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => ({
         test: {
           // Pure tests: no database, safe for the CI `ci` job.
           name: "unit",
-          include: ["src/**/*.test.ts"],
+          include: ["src/**/*.test.ts", "scripts/**/*.test.ts"],
           exclude: [INTEGRATION_TESTS],
         },
       },

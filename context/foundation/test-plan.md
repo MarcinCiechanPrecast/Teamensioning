@@ -69,22 +69,22 @@ Each row is a discrete rollout phase that will open its own change folder
 via `/10x-new`. Status moves left-to-right through the values below; the
 orchestrator updates Status as artifacts appear on disk.
 
-| #   | Phase name                             | Goal (one line)                                                                                                                     | Risks covered        | Test types                                   | Status      | Change folder                                             |
-| --- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | -------------------- | -------------------------------------------- | ----------- | --------------------------------------------------------- |
-| 1   | DB authorization and write integrity   | Prove at the Supabase boundary that anon and non-owners cannot overwrite, cross tournaments, or perform organizer writes            | #1, #2, #4           | integration (local Supabase, anon + 2 users) | complete    | context/changes/testing-db-authorization-write-integrity/ |
-| 2   | Guardrail correctness from stored data | Prove the leaderboard, points lock and DB invariants hold for persisted data, not just pure functions                               | #3, #5, #6           | unit (edge cases) + integration              | complete    | context/archive/2026-11-07-testing-guardrail-correctness/ |
-| 3   | Critical flow in the browser           | One US-01 browser run (create → share → enter score → leaderboard → correction), only where it adds signal over smoke + integration | #3, #1 (cross-check) | e2e (Playwright)                             | not started | —                                                         |
-| 4   | Quality-gates wiring                   | Run the integration suite in CI against local Supabase, add migration-on-seeded-DB check, wire an agent post-edit hook              | #7, cross-cutting    | gates, hook                                  | not started | —                                                         |
+| #   | Phase name                             | Goal (one line)                                                                                                                     | Risks covered        | Test types                                   | Status   | Change folder                                                        |
+| --- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | -------------------- | -------------------------------------------- | -------- | -------------------------------------------------------------------- |
+| 1   | DB authorization and write integrity   | Prove at the Supabase boundary that anon and non-owners cannot overwrite, cross tournaments, or perform organizer writes            | #1, #2, #4           | integration (local Supabase, anon + 2 users) | complete | context/archive/2026-11-07-testing-db-authorization-write-integrity/ |
+| 2   | Guardrail correctness from stored data | Prove the leaderboard, points lock and DB invariants hold for persisted data, not just pure functions                               | #3, #5, #6           | unit (edge cases) + integration              | complete | context/archive/2026-11-07-testing-guardrail-correctness/            |
+| 3   | Critical flow in the browser           | One US-01 browser run (create → share → enter score → leaderboard → correction), only where it adds signal over smoke + integration | #3, #1 (cross-check) | e2e (Playwright)                             | complete | context/archive/2026-11-07-testing-critical-flow-e2e/                |
+| 4   | Quality-gates wiring                   | Run the integration suite in CI against local Supabase, add migration-on-seeded-DB check, wire an agent post-edit hook              | #7, cross-cutting    | gates, hook                                  | complete | context/archive/2026-11-07-testing-quality-gates/                    |
 
 ## 4. Stack
 
-| Layer            | Tool                   | Version | Notes                                                                                                                 |
-| ---------------- | ---------------------- | ------- | --------------------------------------------------------------------------------------------------------------------- |
-| unit             | Vitest                 | ^5.0.5  | `src/**/*.test.ts`; 8 files, all in `src/lib/{services,validation}` (test base: sparse)                               |
-| integration (DB) | none yet — see Phase 1 | —       | Local Supabase (`npx supabase start`) already used by CI smoke; research picks Vitest-against-local-Supabase vs pgTAP |
-| smoke            | `scripts/smoke.mjs`    | n/a     | Dependency-free auth-flow smoke against production preview in CI                                                      |
-| e2e              | none yet — see Phase 3 | —       | Playwright not installed; add only if Phase 3 proves signal over smoke                                                |
-| UI literal guard | `npm run check:ui`     | n/a     | Scoped to dashboard views                                                                                             |
+| Layer            | Tool                   | Version | Notes                                                                                                                                                                         |
+| ---------------- | ---------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| unit             | Vitest                 | ^5.0.5  | `src/**/*.test.ts`; 8 files, all in `src/lib/{services,validation}` (test base: sparse)                                                                                       |
+| integration (DB) | none yet — see Phase 1 | —       | Local Supabase (`npx supabase start`) already used by CI smoke; research picks Vitest-against-local-Supabase vs pgTAP                                                         |
+| smoke            | `scripts/smoke.mjs`    | n/a     | Dependency-free auth-flow smoke against production preview in CI                                                                                                              |
+| e2e              | Playwright Test        | ^1.65.0 | `tests/e2e/`; `npm run test:e2e` builds and previews the app on port 4400 against local Supabase; one US-01 spec (Phase 3). Setup facts in `context/foundation/test-stack.md` |
+| UI literal guard | `npm run check:ui`     | n/a     | Scoped to dashboard views                                                                                                                                                     |
 
 **Stack grounding tools (current session):**
 
@@ -95,15 +95,15 @@ orchestrator updates Status as artifacts appear on disk.
 
 ## 5. Quality Gates
 
-| Gate                                             | Where              | Required?                                             | Catches                                                 |
-| ------------------------------------------------ | ------------------ | ----------------------------------------------------- | ------------------------------------------------------- |
-| lint + typecheck (`npm run lint`, `astro check`) | local + CI         | required                                              | syntactic / type drift                                  |
-| unit (`npm test`)                                | local + CI         | required                                              | logic regressions in services/validation                |
-| smoke on production preview + local Supabase     | CI                 | required                                              | broken auth flow, migrations not applying to a fresh DB |
-| integration against local Supabase               | CI                 | required after §3 Phase 4 (runs locally from Phase 1) | RLS / write-integrity / invariant regressions           |
-| migration on seeded DB                           | CI                 | required after §3 Phase 4                             | migrations breaking existing data or old code           |
-| e2e on US-01                                     | CI on PR           | optional after §3 Phase 3                             | broken critical user path                               |
-| post-edit hook                                   | local (agent loop) | recommended after §3 Phase 4                          | regressions at edit time                                |
+| Gate                                             | Where                                     | Required?                         | Catches                                                 |
+| ------------------------------------------------ | ----------------------------------------- | --------------------------------- | ------------------------------------------------------- |
+| lint + typecheck (`npm run lint`, `astro check`) | local + CI                                | required                          | syntactic / type drift                                  |
+| unit (`npm test`)                                | local + CI                                | required                          | logic regressions in services/validation                |
+| smoke on production preview + local Supabase     | CI (`smoke`)                              | required                          | broken auth flow, migrations not applying to a fresh DB |
+| integration against local Supabase               | CI (`smoke`, `migration-upgrade`) + local | required (CI since §3 Phase 4)    | RLS / write-integrity / invariant regressions           |
+| migration on seeded DB                           | CI (`migration-upgrade`)                  | required (since §3 Phase 4)       | migrations breaking existing data or old code           |
+| e2e on US-01                                     | CI on PR                                  | optional after §3 Phase 3         | broken critical user path                               |
+| post-edit + end-of-turn hooks                    | local (agent loop, Claude Code)           | recommended (wired in §3 Phase 4) | lint / unit / type regressions at edit time             |
 
 ## 6. Cookbook Patterns
 
@@ -154,7 +154,16 @@ orchestrator updates Status as artifacts appear on disk.
 
 ### 6.5 Adding an e2e test
 
-- TBD — see §3 Phase 3.
+- **First ask whether it needs a browser.** Add an e2e test only for what smoke (HTTP) and the integration suite (DB) can't see: rendered values, hydration, flows with several tabs or actors. Redirects, status codes and DB rules stay in the layers that already cover them.
+- **Location**: `tests/e2e/<flow>.spec.ts`. Name the test after the risk it protects, and list the risk ids in a header comment.
+- **Reference test**: `tests/e2e/us-01-league-flow.spec.ts`.
+- **Actors**: the organizer is already signed in. The `setup` project signs up a fresh user and saves `playwright/.auth/user.json`. A link holder is `browser.newContext({ baseURL, storageState: { cookies: [], origins: [] } })`; close it in `finally`.
+- **Locators**: roles and labels only (`getByRole("table", { name: "Standings" })`, `getByLabel("Score of Anna")`). Scope a label that repeats to its fixture with `getByRole("listitem").filter({ hasText: "Anna vs Bartek" })`.
+- **React islands**: call `waitForHydration(page)` (`tests/e2e/support/hydration.ts`) before filling a form that creates data. Never retry a non-idempotent submit, and never use `waitForTimeout`.
+- **Oracle**: compute the expected leaderboard cells by hand from the PRD rules, never by copying from `computeStandings`. Use non-default points wherever a default would hide a bug: with loss > 0, a loss and an unplayed match render differently.
+- **Data**: unique names per run (`randomUUID()`), and clean up through the UI as an asserted step.
+- **Run locally**: `npx supabase start`, point `.env` and `.dev.vars` at it, then `npm run test:e2e`. The config refuses a non-local `SUPABASE_URL`. Port 4400 must be free, or set `E2E_PORT`.
+- **Prove it**: break the behaviour in app code, see the run go red, then revert.
 
 ### 6.6 Per-rollout-phase notes
 
@@ -162,6 +171,14 @@ orchestrator updates Status as artifacts appear on disk.
 
 - **Phase 1 (2026-11-07):** the integration suite refuses any `SUPABASE_URL` that isn't `localhost` or `127.0.0.1`, because this checkout is linked to the production project and test sign-ups can't be undone. Prove each new DB test with a mutation check. Patch the local DB in place with `psql` and restore the definition from its migration file, instead of `supabase db reset`, which wipes local data. Example: score corrections are guarded by two RLS policies, SELECT and UPDATE. Widening only one of them leaves the test green, so a mutation has to remove the real protection.
 - **Phase 2 (2026-11-07):** the post-creation tests were red on `master`: the owner could insert a player, or a bare tournament, directly through PostgREST, breaking "every pair meets exactly once". Fixed by `20261107120000_freeze_league_rows_after_creation.sql` (`create_league` is now `security definer` with an explicit `auth.uid()` check; no INSERT policy remains on `tournaments`/`players`/`matches`). Any future write path for these tables must go through an RPC that keeps the invariants. Mutation checks used: hard-coded 3/1/0 in `get_shared_league`, lock clause and its tournament filter removed from `update_tournament_settings`, name/pair indexes and the self-pair check dropped, count checks removed from `create_league` — each turned named tests red. When a `create function` migration is patched in place, run it as `create or replace` (grants are kept).
+- **Phase 3 (2026-11-07):** one US-01 browser run, `tests/e2e/us-01-league-flow.spec.ts`. It covers only what the other layers can't see:
+  - the rendered standings for non-default points (W4/D2/L1);
+  - a stale share tab that can't overwrite an entered score;
+  - an organizer correction showing up in the next anonymous view.
+
+  Two mutation checks turned it red: the share page computing with hard-coded 3/1/0, and the correction endpoint writing a fixed score while still reporting success. The leaderboard is computed in the page, not in SQL, so §2's "one integration for stored-rows → leaderboard" is covered by this e2e run instead; Phase 2 keeps the calculation edges in unit tests. A failed run leaves its user and league in the local DB, which is harmless. CI has an optional, self-contained `e2e` job.
+
+- **Phase 4 (2026-11-07):** CI now runs the integration suite in `smoke` (fresh DB) and in `migration-upgrade` (upgraded, seeded DB). `migration-upgrade` is the risk #7 gate: Supabase starts from a worktree of the previous release, `scripts/seed-db.mjs seed` writes realistic leagues through the anon surface, `supabase migration up --local` applies the new migrations, `seed-db.mjs verify` checks the seeded rows survived (a projection, so additive columns or JSON keys pass) and the write path still works, then the previous release's smoke runs against the new schema. It also refuses edited, renamed or deleted released migrations and out-of-order new ones. Proven by a deliberate migration (ASCII-only player names) that an empty DB accepts: `smoke` stayed green, `migration-upgrade` failed at the migration step. When you add a table or a write path the deployed app uses, add it to `seed-db.mjs` (seed + verify); the next release seeds with that copy. Agent hooks: `.claude/hooks/post-edit.mjs` (per edit: ESLint on the file, related unit tests) and `end-of-turn.mjs` (changed files, unit suite, `astro check`), proven by `scripts/agent-hooks.test.ts`; on Windows they use git's view of paths, because temp paths can be 8.3 short names.
 
 ## 7. What We Deliberately Don't Test
 
