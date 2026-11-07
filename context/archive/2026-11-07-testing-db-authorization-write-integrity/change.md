@@ -1,10 +1,10 @@
 ---
 change_id: testing-db-authorization-write-integrity
 title: Test DB authorization and anonymous write integrity (test plan Phase 1)
-status: implemented
+status: archived
 created: 2026-11-07
 updated: 2026-11-07
-archived_at: null
+archived_at: 2026-11-07T15:11:58Z
 ---
 
 ## Notes
