@@ -1,7 +1,7 @@
 # Critical Flow in the Browser (US-01) — Plan Brief
 
-> Full plan: `context/changes/testing-critical-flow-e2e/plan.md`
-> Research: `context/changes/testing-critical-flow-e2e/research.md`
+> Full plan: `context/archive/2026-11-07-testing-critical-flow-e2e/plan.md`
+> Research: `context/archive/2026-11-07-testing-critical-flow-e2e/research.md`
 
 ## What & Why
 

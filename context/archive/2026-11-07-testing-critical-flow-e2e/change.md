@@ -1,10 +1,10 @@
 ---
 change_id: testing-critical-flow-e2e
 title: Critical US-01 flow in the browser (test plan Phase 3)
-status: implemented
+status: archived
 created: 2026-11-07
 updated: 2026-11-07
-archived_at: null
+archived_at: 2026-11-07T15:34:47Z
 ---
 
 ## Notes
