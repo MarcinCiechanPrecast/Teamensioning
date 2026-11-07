@@ -103,20 +103,27 @@ See `research.md`. In short: `smoke` already has a local Supabase and a local `.
 
 ### Phase 1: Integration suite in CI
 
-- [ ] 1.1 `smoke` runs `npm run test:integration` and is green on the PR
+- [x] 1.1 `smoke` runs `npm run test:integration` and is green on the PR (3 files, 20 tests) — fc5fdf8, run 42389606736
 
 ### Phase 2: Migration on a seeded database
 
-- [ ] 2.1 Seed/verify/cleanup green locally against the shared local Supabase
-- [ ] 2.2 `migration-upgrade` green on the PR
-- [ ] 2.3 Deliberate breaking migration: `smoke` green, `migration-upgrade` red; reverted
+- [x] 2.1 Seed/verify/cleanup green locally against the shared local Supabase; verify goes red on a tampered snapshot — fc5fdf8
+- [x] 2.2 `migration-upgrade` green on the PR (seed 4 tournaments / 214 matches / 71 results, verify 20 checks, previous smoke, integration) — 3388b9c, run 42389606736
+- [x] 2.3 Deliberate breaking migration (`players_name_ascii_check`): `smoke` green, `migration-upgrade` red with SQLSTATE 23514 at the migration step; reverted — 4a044bb / 5d6f8e7, run 42389938375
 
 ### Phase 3: Agent hooks
 
-- [ ] 3.1 `npm test` green with `scripts/agent-hooks.test.ts`
-- [ ] 3.2 Real scripts block on a real broken file, pass on the clean tree
-- [ ] 3.3 Test goes red when the retry guard is removed; restored
+- [x] 3.1 `npm test` green with `scripts/agent-hooks.test.ts` (28 cases; 242 unit tests total) — f947fdd
+- [x] 3.2 Real scripts block on a real broken file (ESLint no-unused-vars per edit; ESLint + astro check ts(2322) at end of turn, exit 2), pass on the clean tree (exit 0, ~40 s) — f947fdd
+- [x] 3.3 Test goes red when the retry guard is removed (3 cases), restored — f947fdd
 
 ### Phase 4: Docs
 
-- [ ] 4.1 Test plan and AGENTS.md updated; prettier clean
+- [x] 4.1 Test plan and AGENTS.md updated; prettier clean
+
+### Deviations
+
+- Hook scripts are Node, not bash (no `jq` on the host). The hook test found that `path.relative` broke on Windows 8.3 temp paths, so paths relative to the checkout come from `git rev-parse --show-prefix`.
+- `astro check` ignores `NO_COLOR`; the hooks strip ANSI codes before reporting.
+- The `runner` context is not allowed in job-level `env` (the first run failed as a workflow-file error); the paths are derived from `github.workspace` instead.
+- The unit suite grew from ~3 s to ~12 s with the hook test; still inside the end-of-turn budget.

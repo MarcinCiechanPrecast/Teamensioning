@@ -1,7 +1,7 @@
 ---
 change_id: testing-quality-gates
 title: Wire quality gates into CI and the agent loop (test plan Phase 4)
-status: new
+status: implemented
 created: 2026-11-07
 updated: 2026-11-07
 archived_at: null
