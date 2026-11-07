@@ -1,7 +1,7 @@
 # Quality-Gates Wiring — Plan Brief
 
-> Full plan: `context/changes/testing-quality-gates/plan.md`
-> Research: `context/changes/testing-quality-gates/research.md`
+> Full plan: `context/archive/2026-11-07-testing-quality-gates/plan.md`
+> Research: `context/archive/2026-11-07-testing-quality-gates/research.md`
 
 ## What & Why
 
