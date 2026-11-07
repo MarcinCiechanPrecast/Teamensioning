@@ -111,16 +111,31 @@ orchestrator updates Status as artifacts appear on disk.
 
 - **Location**: next to the unit under test, `src/lib/**/<module>.test.ts`.
 - **Reference test**: `src/lib/services/standings.test.ts`.
-- **Run locally**: `npm test`.
+- **Run locally**: `npm test` (the Vitest `unit` project; never needs a database).
 - Edge-case guidance for standings/points (tiebreakers, non-default points): TBD — see §3 Phase 2.
 
 ### 6.2 Adding an RLS / authorization integration test
 
-- TBD — see §3 Phase 1 (non-owner and anon write refusal, data unchanged afterwards).
+- **Location**: `src/test/integration/<area>.integration.test.ts`. The `.integration.test.ts` suffix puts it in the Vitest `integration` project and keeps it out of `npm test`.
+- **Reference test**: `src/test/integration/organizer-authorization.integration.test.ts`.
+- **Actors**: `signUpUser()` for the owner and a second user, `anonClient()` for anon. Each gets its own client. Never use a service-role key: it bypasses the rules under test.
+- **Data**: `leagueCleanup().create(owner, names)` for a fresh league per test, then `afterAll(() => leagues.run())`.
+- **A refusal is three assertions**:
+  1. the attacker's call returns an error or 0 rows (`data ?? []` has length 0);
+  2. the owner's read-back (`readResultAs`, `readTournamentAs`) shows the data unchanged;
+  3. an owner control proves the same write succeeds when allowed.
+
+  `error === null` alone proves nothing, because an RLS-refused UPDATE or DELETE succeeds with 0 rows.
+
+- **Oracle**: expected outcomes come from the PRD's Access Control section, not from reading the SQL.
+- **Run locally**: `npx supabase start`, then `npm run test:integration`.
 
 ### 6.3 Adding an anonymous-write integrity test
 
-- TBD — see §3 Phase 1 (score-once, concurrent submissions, cross-tournament match id).
+- **Reference test**: `src/test/integration/anon-score-write.integration.test.ts`.
+- **Call the database directly** (`anonClient().rpc(...)` / `.from(...)`) with the public anon key. That's what a link holder can do without the UI, the endpoint or zod. Endpoint-level behavior belongs to `scripts/smoke.mjs`.
+- **Simultaneous writes**: one `anonClient()` per call, fired with `Promise.all`, repeated over several matches. Assert the set of statuses, then check the stored value against whichever call reported `created`. Never assume call order.
+- **Bounds and bad input**: send values zod would block (out of range, `null`) straight to the RPC, and assert an error plus an owner read-back of "nothing stored". Include both edges of the valid range as controls.
 
 ### 6.4 Adding a guardrail test from persisted data
 
@@ -133,6 +148,8 @@ orchestrator updates Status as artifacts appear on disk.
 ### 6.6 Per-rollout-phase notes
 
 (Appended by each phase's final sub-phase.)
+
+- **Phase 1 (2026-11-07):** the integration suite refuses any `SUPABASE_URL` that isn't `localhost` or `127.0.0.1`, because this checkout is linked to the production project and test sign-ups can't be undone. Prove each new DB test with a mutation check. Patch the local DB in place with `psql` and restore the definition from its migration file, instead of `supabase db reset`, which wipes local data. Example: score corrections are guarded by two RLS policies, SELECT and UPDATE. Widening only one of them leaves the test green, so a mutation has to remove the real protection.
 
 ## 7. What We Deliberately Don't Test
 

@@ -415,22 +415,22 @@ None. No schema changes. Test users stay in local `auth.users` until `npx supaba
 
 #### Automated
 
-- [x] 3.1 Integration suite passes: `npm run test:integration`
-- [x] 3.2 Unit suite still passes: `npm test`
-- [x] 3.3 Lint passes: `npm run lint`
+- [x] 3.1 Integration suite passes: `npm run test:integration` — 9ab115d
+- [x] 3.2 Unit suite still passes: `npm test` — 9ab115d
+- [x] 3.3 Lint passes: `npm run lint` — 9ab115d
 
 #### Manual
 
-- [x] 3.4 Mutation check: permissive `results_update_own` fails the non-owner correction test
-- [x] 3.5 Mutation check: owner predicate removed from `update_tournament_settings` fails the non-owner settings test
+- [x] 3.4 Mutation check: permissive `results_update_own` fails the non-owner correction test — 9ab115d
+- [x] 3.5 Mutation check: owner predicate removed from `update_tournament_settings` fails the non-owner settings test — 9ab115d
 
 ### Phase 4: Cookbook and Docs
 
 #### Automated
 
-- [ ] 4.1 No `TBD — see §3 Phase 1` placeholders remain in test-plan §6
-- [ ] 4.2 Prettier is clean for the edited markdown
+- [x] 4.1 No `TBD — see §3 Phase 1` placeholders remain in test-plan §6
+- [x] 4.2 Prettier is clean for the edited markdown
 
 #### Manual
 
-- [ ] 4.3 A reader can add a new authorization test from §6.2 alone
+- [x] 4.3 A reader can add a new authorization test from §6.2 alone

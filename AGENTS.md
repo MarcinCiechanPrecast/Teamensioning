@@ -10,7 +10,8 @@ This file provides guidance to AI Agent when working with code in this repositor
 - `npm run lint` — ESLint with type-checked rules
 - `npm run lint:fix` — auto-fix lint issues
 - `npm run format` — Prettier (includes prettier-plugin-astro + prettier-plugin-tailwindcss)
-- `npm test` — Vitest unit tests
+- `npm test` — Vitest unit tests (no DB)
+- `npm run test:integration` — DB-level suite (`src/**/*.integration.test.ts`) against local Supabase; run `npx supabase start` first. Refuses any non-local `SUPABASE_URL`. Patterns: `context/foundation/test-plan.md` §6.2–6.3
 - `npm run smoke` — dependency-free auth-flow smoke test (`scripts/smoke.mjs`) against a running server, `BASE_URL` env (default `http://localhost:4321`). Run after dependency upgrades; CI runs it against the production preview with a local Supabase.
 
 Pre-commit hooks: husky + lint-staged runs `eslint --fix` on `*.{ts,tsx,astro}` and `prettier --write` on `*.{json,css,md}`.
