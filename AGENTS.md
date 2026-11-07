@@ -12,6 +12,7 @@ This file provides guidance to AI Agent when working with code in this repositor
 - `npm run format` — Prettier (includes prettier-plugin-astro + prettier-plugin-tailwindcss)
 - `npm test` — Vitest unit tests (no DB)
 - `npm run test:integration` — DB-level suite (`src/**/*.integration.test.ts`) against local Supabase; run `npx supabase start` first. Refuses any non-local `SUPABASE_URL`. Patterns: `context/foundation/test-plan.md` §6.2–6.3
+- `npm run test:e2e` — Playwright US-01 browser run (`tests/e2e/`). Builds and previews the app on port 4400 (`E2E_PORT` overrides) against local Supabase (`.env` + `.dev.vars`); signs up a fresh organizer each run and refuses a non-local `SUPABASE_URL`. Patterns: `context/foundation/test-plan.md` §6.5
 - `npm run smoke` — dependency-free auth-flow smoke test (`scripts/smoke.mjs`) against a running server, `BASE_URL` env (default `http://localhost:4321`). Run after dependency upgrades; CI runs it against the production preview with a local Supabase.
 
 Pre-commit hooks: husky + lint-staged runs `eslint --fix` on `*.{ts,tsx,astro}` and `prettier --write` on `*.{json,css,md}`.

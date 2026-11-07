@@ -73,18 +73,18 @@ orchestrator updates Status as artifacts appear on disk.
 | --- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | -------------------- | -------------------------------------------- | ----------- | --------------------------------------------------------- |
 | 1   | DB authorization and write integrity   | Prove at the Supabase boundary that anon and non-owners cannot overwrite, cross tournaments, or perform organizer writes            | #1, #2, #4           | integration (local Supabase, anon + 2 users) | complete    | context/changes/testing-db-authorization-write-integrity/ |
 | 2   | Guardrail correctness from stored data | Prove the leaderboard, points lock and DB invariants hold for persisted data, not just pure functions                               | #3, #5, #6           | unit (edge cases) + integration              | not started | —                                                         |
-| 3   | Critical flow in the browser           | One US-01 browser run (create → share → enter score → leaderboard → correction), only where it adds signal over smoke + integration | #3, #1 (cross-check) | e2e (Playwright)                             | not started | —                                                         |
+| 3   | Critical flow in the browser           | One US-01 browser run (create → share → enter score → leaderboard → correction), only where it adds signal over smoke + integration | #3, #1 (cross-check) | e2e (Playwright)                             | complete    | context/archive/2026-11-07-testing-critical-flow-e2e/     |
 | 4   | Quality-gates wiring                   | Run the integration suite in CI against local Supabase, add migration-on-seeded-DB check, wire an agent post-edit hook              | #7, cross-cutting    | gates, hook                                  | not started | —                                                         |
 
 ## 4. Stack
 
-| Layer            | Tool                   | Version | Notes                                                                                                                 |
-| ---------------- | ---------------------- | ------- | --------------------------------------------------------------------------------------------------------------------- |
-| unit             | Vitest                 | ^5.0.5  | `src/**/*.test.ts`; 8 files, all in `src/lib/{services,validation}` (test base: sparse)                               |
-| integration (DB) | none yet — see Phase 1 | —       | Local Supabase (`npx supabase start`) already used by CI smoke; research picks Vitest-against-local-Supabase vs pgTAP |
-| smoke            | `scripts/smoke.mjs`    | n/a     | Dependency-free auth-flow smoke against production preview in CI                                                      |
-| e2e              | none yet — see Phase 3 | —       | Playwright not installed; add only if Phase 3 proves signal over smoke                                                |
-| UI literal guard | `npm run check:ui`     | n/a     | Scoped to dashboard views                                                                                             |
+| Layer            | Tool                   | Version | Notes                                                                                                                                                                         |
+| ---------------- | ---------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| unit             | Vitest                 | ^5.0.5  | `src/**/*.test.ts`; 8 files, all in `src/lib/{services,validation}` (test base: sparse)                                                                                       |
+| integration (DB) | none yet — see Phase 1 | —       | Local Supabase (`npx supabase start`) already used by CI smoke; research picks Vitest-against-local-Supabase vs pgTAP                                                         |
+| smoke            | `scripts/smoke.mjs`    | n/a     | Dependency-free auth-flow smoke against production preview in CI                                                                                                              |
+| e2e              | Playwright Test        | ^1.65.0 | `tests/e2e/`; `npm run test:e2e` builds and previews the app on port 4400 against local Supabase; one US-01 spec (Phase 3). Setup facts in `context/foundation/test-stack.md` |
+| UI literal guard | `npm run check:ui`     | n/a     | Scoped to dashboard views                                                                                                                                                     |
 
 **Stack grounding tools (current session):**
 
@@ -143,13 +143,28 @@ orchestrator updates Status as artifacts appear on disk.
 
 ### 6.5 Adding an e2e test
 
-- TBD — see §3 Phase 3.
+- **First ask whether it needs a browser.** Add an e2e test only for what smoke (HTTP) and the integration suite (DB) can't see: rendered values, hydration, flows with several tabs or actors. Redirects, status codes and DB rules stay in the layers that already cover them.
+- **Location**: `tests/e2e/<flow>.spec.ts`. Name the test after the risk it protects, and list the risk ids in a header comment.
+- **Reference test**: `tests/e2e/us-01-league-flow.spec.ts`.
+- **Actors**: the organizer is already signed in. The `setup` project signs up a fresh user and saves `playwright/.auth/user.json`. A link holder is `browser.newContext({ baseURL, storageState: { cookies: [], origins: [] } })`; close it in `finally`.
+- **Locators**: roles and labels only (`getByRole("table", { name: "Standings" })`, `getByLabel("Score of Anna")`). Scope a label that repeats to its fixture with `getByRole("listitem").filter({ hasText: "Anna vs Bartek" })`.
+- **React islands**: call `waitForHydration(page)` (`tests/e2e/support/hydration.ts`) before filling a form that creates data. Never retry a non-idempotent submit, and never use `waitForTimeout`.
+- **Oracle**: compute the expected leaderboard cells by hand from the PRD rules, never by copying from `computeStandings`. Use non-default points wherever a default would hide a bug: with loss > 0, a loss and an unplayed match render differently.
+- **Data**: unique names per run (`randomUUID()`), and clean up through the UI as an asserted step.
+- **Run locally**: `npx supabase start`, point `.env` and `.dev.vars` at it, then `npm run test:e2e`. The config refuses a non-local `SUPABASE_URL`. Port 4400 must be free, or set `E2E_PORT`.
+- **Prove it**: break the behaviour in app code, see the run go red, then revert.
 
 ### 6.6 Per-rollout-phase notes
 
 (Appended by each phase's final sub-phase.)
 
 - **Phase 1 (2026-11-07):** the integration suite refuses any `SUPABASE_URL` that isn't `localhost` or `127.0.0.1`, because this checkout is linked to the production project and test sign-ups can't be undone. Prove each new DB test with a mutation check. Patch the local DB in place with `psql` and restore the definition from its migration file, instead of `supabase db reset`, which wipes local data. Example: score corrections are guarded by two RLS policies, SELECT and UPDATE. Widening only one of them leaves the test green, so a mutation has to remove the real protection.
+- **Phase 3 (2026-11-07):** one US-01 browser run, `tests/e2e/us-01-league-flow.spec.ts`. It covers only what the other layers can't see:
+  - the rendered standings for non-default points (W4/D2/L1);
+  - a stale share tab that can't overwrite an entered score;
+  - an organizer correction showing up in the next anonymous view.
+
+  Two mutation checks turned it red: the share page computing with hard-coded 3/1/0, and the correction endpoint writing a fixed score while still reporting success. The leaderboard is computed in the page, not in SQL, so §2's "one integration for stored-rows → leaderboard" is covered by this e2e run instead; Phase 2 keeps the calculation edges in unit tests. A failed run leaves its user and league in the local DB, which is harmless. CI has an optional, self-contained `e2e` job.
 
 ## 7. What We Deliberately Don't Test
 
