@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "smoke": "node scripts/smoke.mjs",
     "check:ui": "node scripts/check-ui-literals.mjs",
-    "test": "vitest run",
+    "test": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
     "prepare": "husky"
   },
   "dependencies": {
