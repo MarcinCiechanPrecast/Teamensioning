@@ -388,28 +388,28 @@ None. No schema changes. Test users stay in local `auth.users` until `npx supaba
 
 #### Automated
 
-- [x] 1.1 Unit suite passes without a database: `npm test`
-- [x] 1.2 `npm test` does not run any `*.integration.test.ts` file
-- [x] 1.3 Integration sanity test passes against local Supabase: `npm run test:integration`
-- [x] 1.4 Lint passes: `npm run lint`
-- [x] 1.5 Type check passes: `npx astro check`
+- [x] 1.1 Unit suite passes without a database: `npm test` — 17ad858
+- [x] 1.2 `npm test` does not run any `*.integration.test.ts` file — 17ad858
+- [x] 1.3 Integration sanity test passes against local Supabase: `npm run test:integration` — 17ad858
+- [x] 1.4 Lint passes: `npm run lint` — 17ad858
+- [x] 1.5 Type check passes: `npx astro check` — 17ad858
 
 #### Manual
 
-- [x] 1.6 Non-local `SUPABASE_URL` makes the integration run fail immediately with the guard message
+- [x] 1.6 Non-local `SUPABASE_URL` makes the integration run fail immediately with the guard message — 17ad858
 
 ### Phase 2: Anonymous Write Path (Risks #1, #4)
 
 #### Automated
 
-- [ ] 2.1 Integration suite passes: `npm run test:integration`
-- [ ] 2.2 Unit suite still passes: `npm test`
-- [ ] 2.3 Lint passes: `npm run lint`
+- [x] 2.1 Integration suite passes: `npm run test:integration`
+- [x] 2.2 Unit suite still passes: `npm test`
+- [x] 2.3 Lint passes: `npm run lint`
 
 #### Manual
 
-- [ ] 2.4 Mutation check: upsert in `submit_match_score` fails the write-once tests
-- [ ] 2.5 Mutation check: loosened token join fails the other-tournament test
+- [x] 2.4 Mutation check: upsert in `submit_match_score` fails the write-once tests
+- [x] 2.5 Mutation check: loosened token join fails the other-tournament test
 
 ### Phase 3: Organizer-Only Writes (Risk #2)
 
