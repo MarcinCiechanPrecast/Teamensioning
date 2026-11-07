@@ -65,8 +65,9 @@ jobs:
   migration-upgrade:
     runs-on: ubuntu-latest
     env:
-      PREVIOUS_DIR: ${{ runner.temp }}/previous
-      SNAPSHOT: ${{ runner.temp }}/seed-snapshot.json
+      # Outside the workspace, so the PR checkout never lints or tests it. (No `runner` context at job level.)
+      PREVIOUS_DIR: ${{ github.workspace }}/../previous-release
+      SNAPSHOT: ${{ github.workspace }}/../seed-snapshot.json
     steps:
       - uses: actions/checkout@v4
         with:
@@ -112,7 +113,7 @@ jobs:
         run: |
           git worktree add --detach "$PREVIOUS_DIR" "$BASE"
           npm ci
-          npm ci --prefix "$PREVIOUS_DIR"
+          cd "$PREVIOUS_DIR" && npm ci
       - name: Start local Supabase with the previous release's migrations
         working-directory: ${{ env.PREVIOUS_DIR }}
         run: |
