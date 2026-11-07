@@ -51,7 +51,8 @@ describe("league invariants at the database (risk #6)", () => {
       p_points_draw: 1,
       p_points_loss: 0,
       p_players: players,
-      p_fixtures: fixtures,
+      // Plain object literals: an interface is not assignable to the RPC's Json type.
+      p_fixtures: fixtures.map(({ a, b }) => ({ a, b })),
     });
     if (typeof result.data === "string") stray.push(result.data);
     return { ...result, name };
