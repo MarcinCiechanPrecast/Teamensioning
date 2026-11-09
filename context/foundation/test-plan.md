@@ -95,15 +95,17 @@ orchestrator updates Status as artifacts appear on disk.
 
 ## 5. Quality Gates
 
-| Gate                                             | Where                                     | Required?                         | Catches                                                 |
-| ------------------------------------------------ | ----------------------------------------- | --------------------------------- | ------------------------------------------------------- |
-| lint + typecheck (`npm run lint`, `astro check`) | local + CI                                | required                          | syntactic / type drift                                  |
-| unit (`npm test`)                                | local + CI                                | required                          | logic regressions in services/validation                |
-| smoke on production preview + local Supabase     | CI (`smoke`)                              | required                          | broken auth flow, migrations not applying to a fresh DB |
-| integration against local Supabase               | CI (`smoke`, `migration-upgrade`) + local | required (CI since §3 Phase 4)    | RLS / write-integrity / invariant regressions           |
-| migration on seeded DB                           | CI (`migration-upgrade`)                  | required (since §3 Phase 4)       | migrations breaking existing data or old code           |
-| e2e on US-01                                     | CI on PR                                  | optional after §3 Phase 3         | broken critical user path                               |
-| post-edit + end-of-turn hooks                    | local (agent loop, Claude Code)           | recommended (wired in §3 Phase 4) | lint / unit / type regressions at edit time             |
+| Gate                                             | Where                                              | Required?                         | Catches                                                 |
+| ------------------------------------------------ | -------------------------------------------------- | --------------------------------- | ------------------------------------------------------- |
+| lint + typecheck (`npm run lint`, `astro check`) | local + CI (`pr.yml` `ci`)                         | required                          | syntactic / type drift                                  |
+| unit (`npm test`)                                | local + CI (`pr.yml` `ci`)                         | required                          | logic regressions in services/validation                |
+| smoke on production preview + local Supabase     | CI (`pr.yml` `smoke`)                              | required                          | broken auth flow, migrations not applying to a fresh DB |
+| integration against local Supabase               | CI (`pr.yml` `smoke`, `migration-upgrade`) + local | required (CI since §3 Phase 4)    | RLS / write-integrity / invariant regressions           |
+| migration on seeded DB                           | CI (`pr.yml` `migration-upgrade`)                  | required (since §3 Phase 4)       | migrations breaking existing data or old code           |
+| e2e on US-01                                     | CI (`pr.yml` `e2e`)                                | optional after §3 Phase 3         | broken critical user path                               |
+| post-edit + end-of-turn hooks                    | local (agent loop, Claude Code)                    | recommended (wired in §3 Phase 4) | lint / unit / type regressions at edit time             |
+
+The required CI gates are enforced by branch protection on `master`: the `ci`, `smoke` and `migration-upgrade` checks must pass and the branch must be up to date. They run on pull requests only, not again after the merge.
 
 ## 6. Cookbook Patterns
 
@@ -179,6 +181,7 @@ orchestrator updates Status as artifacts appear on disk.
   Two mutation checks turned it red: the share page computing with hard-coded 3/1/0, and the correction endpoint writing a fixed score while still reporting success. The leaderboard is computed in the page, not in SQL, so §2's "one integration for stored-rows → leaderboard" is covered by this e2e run instead; Phase 2 keeps the calculation edges in unit tests. A failed run leaves its user and league in the local DB, which is harmless. CI has an optional, self-contained `e2e` job.
 
 - **Phase 4 (2026-11-07):** CI now runs the integration suite in `smoke` (fresh DB) and in `migration-upgrade` (upgraded, seeded DB). `migration-upgrade` is the risk #7 gate: Supabase starts from a worktree of the previous release, `scripts/seed-db.mjs seed` writes realistic leagues through the anon surface, `supabase migration up --local` applies the new migrations, `seed-db.mjs verify` checks the seeded rows survived (a projection, so additive columns or JSON keys pass) and the write path still works, then the previous release's smoke runs against the new schema. It also refuses edited, renamed or deleted released migrations and out-of-order new ones. Proven by a deliberate migration (ASCII-only player names) that an empty DB accepts: `smoke` stayed green, `migration-upgrade` failed at the migration step. When you add a table or a write path the deployed app uses, add it to `seed-db.mjs` (seed + verify); the next release seeds with that copy. Agent hooks: `.claude/hooks/post-edit.mjs` (per edit: ESLint on the file, related unit tests) and `end-of-turn.mjs` (changed files, unit suite, `astro check`), proven by `scripts/agent-hooks.test.ts`; on Windows they use git's view of paths, because temp paths can be 8.3 short names.
+- **CI split (2026-11-09, change `new-pr-ci-cd-workflow`):** `ci.yml` was split into `pr.yml` (pull requests: `ci`, `smoke`, `migration-upgrade`, `e2e`; a new push cancels the superseded run) and `migrate.yml` (push to `master`: `migrate` only). Both use a read-only token, job timeouts and Node from `.nvmrc`. The post-merge re-run of the gates was dropped because it never gated the deploy. Instead, branch protection requires the branch to be up to date.
 
 ## 7. What We Deliberately Don't Test
 

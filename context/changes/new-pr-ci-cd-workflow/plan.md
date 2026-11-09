@@ -242,25 +242,25 @@ The rename means the Actions UI shows run history for `CI` up to this change, an
 
 #### Automated
 
-- [x] 1.1 actionlint passes on both files
-- [x] 1.2 ci.yml gone and migrate.yml keeps its history
-- [x] 1.3 No workflow uses hard-coded node-version
-- [x] 1.4 npm run lint and npm test still pass
+- [x] 1.1 actionlint passes on both files — 796887a
+- [x] 1.2 ci.yml gone and migrate.yml keeps its history — 796887a
+- [x] 1.3 No workflow uses hard-coded node-version — 796887a
+- [x] 1.4 npm run lint and npm test still pass — 796887a
 
 #### Manual
 
-- [x] 1.5 Reviewer confirms job steps unchanged outside listed edits
+- [x] 1.5 Reviewer confirms job steps unchanged outside listed edits — 796887a
 
 ### Phase 2: Documentation
 
 #### Automated
 
-- [ ] 2.1 No doc references workflows/ci.yml
-- [ ] 2.2 Prettier check passes on edited docs
+- [x] 2.1 No doc references workflows/ci.yml
+- [x] 2.2 Prettier check passes on edited docs
 
 #### Manual
 
-- [ ] 2.3 AGENTS.md CI section reads correctly
+- [x] 2.3 AGENTS.md CI section reads correctly
 
 ### Phase 3: Required checks and live verification
 
