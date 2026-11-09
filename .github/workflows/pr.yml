@@ -1,19 +1,28 @@
-name: CI
+name: PR
 
+# Validation for pull requests into master. Required checks (branch protection): ci, smoke,
+# migration-upgrade. e2e is optional (test-plan §5). Production migrations run in migrate.yml.
 on:
-  push:
-    branches: [master]
   pull_request:
     branches: [master]
+
+permissions:
+  contents: read
+
+# A new push to the same PR cancels the superseded run; the new run reports the required checks.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   ci:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npx astro sync
@@ -28,11 +37,12 @@ jobs:
 
   smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
       - uses: supabase/setup-cli@v1
         with:
@@ -53,7 +63,7 @@ jobs:
       - name: Run smoke test against production preview
         run: |
           npm run preview -- --port 4321 &
-          for i in $(seq 1 60); do curl -sf -o /dev/null http://localhost:4321/ && break; sleep 1; done
+          for _ in $(seq 1 60); do curl -sf -o /dev/null http://localhost:4321/ && break; sleep 1; done
           BASE_URL=http://localhost:4321 npm run smoke
       - if: always()
         run: supabase stop --no-backup
@@ -64,6 +74,7 @@ jobs:
   # its smoke test against the new schema. Local Supabase only; never `--linked`.
   migration-upgrade:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
       # Outside the workspace, so the PR checkout never lints or tests it. (No `runner` context at job level.)
       PREVIOUS_DIR: ${{ github.workspace }}/../previous-release
@@ -74,20 +85,15 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
       - uses: supabase/setup-cli@v1
         with:
           version: 2.121.0
       - name: Resolve previous release and new migrations
-        env:
-          PUSH_BEFORE: ${{ github.event.before }}
         run: |
-          # PR: HEAD is the merge commit, its first parent is the base branch tip.
-          # Push: the commit master pointed at before this push.
-          if [ "${{ github.event_name }}" = "pull_request" ]; then BASE=$(git rev-parse HEAD^1)
-          elif git cat-file -e "${PUSH_BEFORE}^{commit}" 2>/dev/null; then BASE=$PUSH_BEFORE
-          else BASE=$(git rev-parse HEAD^1); fi
+          # HEAD is the PR merge commit; its first parent is the master tip the PR merges into.
+          BASE=$(git rev-parse HEAD^1)
           echo "Previous release: $BASE"
           echo "BASE=$BASE" >> "$GITHUB_ENV"
 
@@ -141,44 +147,23 @@ jobs:
         run: |
           npm run build
           npm run preview -- --port 4321 &
-          for i in $(seq 1 60); do curl -sf -o /dev/null http://localhost:4321/ && break; sleep 1; done
+          for _ in $(seq 1 60); do curl -sf -o /dev/null http://localhost:4321/ && break; sleep 1; done
           BASE_URL=http://localhost:4321 node scripts/smoke.mjs
       - name: This change's integration suite on the upgraded, seeded database
         run: npm run test:integration
       - if: always()
         run: supabase stop --no-backup
 
-  # Workers Builds deploys master on its own, outside Actions, so this job
-  # cannot gate the deploy. It runs straight away (no `needs`) to keep the
-  # window where new code meets the old schema short. `smoke` already proved
-  # on the PR that the migrations apply to a fresh database.
-  # Never add `supabase config push` here: it would reset production auth.
-  migrate:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    concurrency: { group: production-migrate, cancel-in-progress: false }
-    env:
-      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-      SUPABASE_PROJECT_REF: eortunvxkvspuuousnff
-    steps:
-      - uses: actions/checkout@v4
-      - uses: supabase/setup-cli@v1
-        with:
-          version: 2.121.0
-      - run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
-      - run: supabase db push --linked
-      - run: supabase migration list --linked
-
   # US-01 in a real browser (test-plan §3 Phase 3). Self-contained: own local Supabase,
   # Playwright's webServer builds and previews the app on port 4400.
   e2e:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
       - uses: supabase/setup-cli@v1
         with:
