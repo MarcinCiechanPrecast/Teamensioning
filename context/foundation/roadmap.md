@@ -39,16 +39,16 @@ Office league organizers track matches in spreadsheets and chat, which wastes ti
 
 ## At a glance
 
-| ID   | Change ID                   | Outcome (user can …)                                                                                         | Prerequisites | PRD refs                                       | Status      |
-| ---- | --------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------- | ---------------------------------------------- | ----------- |
-| S-01 | create-league-with-fixtures | organizer can create a league with players and see all its fixtures                                          | —             | US-01, FR-001, FR-002, FR-003, FR-007          | done        |
-| S-02 | my-tournaments-list         | organizer can find their tournaments and delete one after confirming                                         | S-01          | FR-004, FR-012                                 | done        |
-| S-03 | shared-league-link          | anyone with the link can view fixtures and filter a player's unplayed matches                                | S-01          | US-01, FR-005, FR-010                          | done        |
-| S-04 | link-score-entry            | a link holder can enter a match score once                                                                   | S-03          | US-01, FR-009                                  | done        |
-| S-05 | live-leaderboard            | a link holder can view a leaderboard that reflects every entered score                                       | S-04          | US-01, FR-008, FR-011                          | done        |
-| S-06 | organizer-score-correction  | organizer can correct an already-entered score                                                               | S-04          | US-01, FR-006                                  | done        |
-| S-07 | edit-tournament-settings    | organizer can rename a tournament and change points before the first score                                   | S-01, S-04    | FR-013                                         | done        |
-| S-08 | add-cup-format              | organizer can create a single-elimination cup; link holders enter scores and watch the bracket to a champion | S-01 – S-07   | FR-002, FR-014, FR-015, FR-016, FR-017, FR-018 | in-progress |
+| ID   | Change ID                   | Outcome (user can …)                                                                                         | Prerequisites | PRD refs                                       | Status |
+| ---- | --------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------- | ---------------------------------------------- | ------ |
+| S-01 | create-league-with-fixtures | organizer can create a league with players and see all its fixtures                                          | —             | US-01, FR-001, FR-002, FR-003, FR-007          | done   |
+| S-02 | my-tournaments-list         | organizer can find their tournaments and delete one after confirming                                         | S-01          | FR-004, FR-012                                 | done   |
+| S-03 | shared-league-link          | anyone with the link can view fixtures and filter a player's unplayed matches                                | S-01          | US-01, FR-005, FR-010                          | done   |
+| S-04 | link-score-entry            | a link holder can enter a match score once                                                                   | S-03          | US-01, FR-009                                  | done   |
+| S-05 | live-leaderboard            | a link holder can view a leaderboard that reflects every entered score                                       | S-04          | US-01, FR-008, FR-011                          | done   |
+| S-06 | organizer-score-correction  | organizer can correct an already-entered score                                                               | S-04          | US-01, FR-006                                  | done   |
+| S-07 | edit-tournament-settings    | organizer can rename a tournament and change points before the first score                                   | S-01, S-04    | FR-013                                         | done   |
+| S-08 | add-cup-format              | organizer can create a single-elimination cup; link holders enter scores and watch the bracket to a champion | S-01 – S-07   | FR-002, FR-014, FR-015, FR-016, FR-017, FR-018 | done   |
 
 ## Streams
 
@@ -175,7 +175,7 @@ None in this milestone. Auth and deploy are present per the Baseline. The absent
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** The additive migration must not break the deployed league path (Workers Builds deploys in parallel with `migrate`; the `migration-upgrade` gate runs the previous release's smoke against the new schema).
-- **Status:** in-progress
+- **Status:** done
 
 ## Backlog Handoff
 
@@ -189,7 +189,7 @@ None in this milestone. Auth and deploy are present per the Baseline. The absent
 | S-06       | organizer-score-correction  | #12   | Organizer corrects an entered score               | done                  | Archived 2026-11-02                                          |
 | S-07       | edit-tournament-settings    | #13   | Organizer edits tournament name and points        | done                  | Archived 2026-11-02                                          |
 | —          | dashboard-ui-tokens         | —     | Dashboard on the Jamaica design tokens            | done                  | Archived 2026-10-27; not a slice (cross-cutting UI contract) |
-| S-08       | add-cup-format              | —     | Single-elimination cup format                     | in-progress           | M-2; plan in `context/changes/add-cup-format/`               |
+| S-08       | add-cup-format              | —     | Single-elimination cup format                     | done                  | Archived 2026-11-12                                          |
 
 Issues live in GitHub milestones `M-1: First playable league` and `M-2: Cup format` with labels `roadmap:slice`, `status:*` and `stream:*`. This file stays canonical; issue labels are a view.
 
@@ -226,3 +226,4 @@ None open. The three PRD v1 questions were resolved on 2026-10-16 and moved to `
 - **S-05: a link holder can view a leaderboard with played, won/drawn/lost, goals for/against, goal difference and points, ordered by points, then goal difference, then goals scored, reflecting every entered score on the next view.** — Archived 2026-11-02 → `context/archive/2026-10-25-live-leaderboard/`. Lesson: —.
 - **S-06: organizer can change an already-entered match score, and the leaderboard reflects the correction on the next view.** — Archived 2026-11-02 → `context/archive/2026-11-02-organizer-score-correction/`. Lesson: —.
 - **S-07: organizer can rename a tournament at any time, and change its win/draw/loss points only while no score has been entered.** — Archived 2026-11-02 → `context/archive/2026-11-02-edit-tournament-settings/`. Lesson: —.
+- **S-08: organizer can create a single-elimination cup, link holders enter scores and watch the bracket to a champion.** — Archived 2026-11-12 → `context/archive/2026-10-25-add-cup-format/`. Lesson: —.
