@@ -255,12 +255,12 @@ The rename means the Actions UI shows run history for `CI` up to this change, an
 
 #### Automated
 
-- [x] 2.1 No doc references workflows/ci.yml
-- [x] 2.2 Prettier check passes on edited docs
+- [x] 2.1 No doc references workflows/ci.yml — 374f262
+- [x] 2.2 Prettier check passes on edited docs — 374f262
 
 #### Manual
 
-- [x] 2.3 AGENTS.md CI section reads correctly
+- [x] 2.3 AGENTS.md CI section reads correctly — 374f262
 
 ### Phase 3: Required checks and live verification
 
