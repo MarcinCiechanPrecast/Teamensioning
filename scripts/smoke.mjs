@@ -64,6 +64,9 @@ let sharedToken = "";
 let foreignLeagueLocation = "";
 let foreignSharePath = "";
 let foreignMatchId = "";
+let cupLocation = "";
+let cupSharePath = "";
+let cupMatchId = "";
 
 // Takes only the path from the rendered share URL: its origin is the server's own view, not BASE_URL.
 function extractSharePath(html) {
@@ -79,6 +82,15 @@ function extractMatchId(html) {
 
 function scoreForm(overrides = {}) {
   return { token: sharedToken, matchId, scoreA: "2", scoreB: "1", ...overrides };
+}
+
+// Cup form: format=cup, name and players only (a cup has no points settings).
+function cupForm(players) {
+  return [["format", "cup"], ["name", "Smoke Cup"], ...players.map((player) => ["players", player])];
+}
+
+function cupScoreForm(scoreA, scoreB) {
+  return { token: cupSharePath.slice("/t/".length), matchId: cupMatchId, scoreA, scoreB };
 }
 
 const steps = [
@@ -340,6 +352,103 @@ const steps = [
     () => request(`/api/leagues/${leagueId()}/delete`, { method: "POST" }),
     { status: 302, locationIncludes: "/dashboard?error=" },
   ],
+  [
+    // 5 players: S = 8, byes for Ann, Bob and Cid, so round 1 is the single match Dan vs Eve (4 matches in total).
+    "create cup redirects to the bracket",
+    async () => {
+      const result = await request("/api/leagues", {
+        method: "POST",
+        form: cupForm(["Ann", "Bob", "Cid", "Dan", "Eve"]),
+      });
+      cupLocation = result.location;
+      return result;
+    },
+    { status: 302, location: "/leagues/" },
+  ],
+  [
+    "cup organizer page shows the bracket with byes and open slots",
+    async () => {
+      const result = await request(cupLocation);
+      cupSharePath = extractSharePath(result.body);
+      const shown = ["Round 1", "Round 2", "Round 3", "Dan vs Eve", "Bye: Ann", "TBD"].every((text) =>
+        result.body.includes(text),
+      );
+      return { ...result, status: shown && /^\/t\/[0-9a-f]{64}$/.test(cupSharePath) ? result.status : 0 };
+    },
+    { status: 200 },
+  ],
+  [
+    "cup share link renders Round 1 without cookies and exposes the ready match",
+    async () => {
+      const result = await request(cupSharePath, { anonymous: true });
+      cupMatchId = extractMatchId(result.body);
+      return { ...result, status: cupMatchId && result.body.includes("Round 1") ? result.status : 0 };
+    },
+    { status: 200 },
+  ],
+  [
+    "cup draw is rejected",
+    () => request("/api/scores", { method: "POST", form: cupScoreForm("1", "1"), anonymous: true }),
+    { status: 302, locationIncludes: "error=draw-not-allowed" },
+  ],
+  [
+    "cup draw stored nothing",
+    async () => {
+      const result = await request(cupSharePath, { anonymous: true });
+      return {
+        ...result,
+        status: result.body.includes("Result 1–1") || !result.body.includes("Dan vs Eve") ? 0 : result.status,
+      };
+    },
+    { status: 200 },
+  ],
+  [
+    "cup share page shows a fixed message for the draw error code",
+    async () => {
+      const result = await request(`${cupSharePath}?error=draw-not-allowed`, { anonymous: true });
+      return { ...result, status: result.body.includes("cannot end in a draw") ? result.status : 0 };
+    },
+    { status: 200 },
+  ],
+  [
+    "cup score redirects to the share page",
+    () => request("/api/scores", { method: "POST", form: cupScoreForm("2", "1"), anonymous: true }),
+    { status: 302, location: cupSharePath },
+  ],
+  [
+    "cup winner advances into round 2",
+    async () => {
+      const result = await request(cupSharePath, { anonymous: true });
+      return {
+        ...result,
+        status: result.body.includes("Result 2–1") && result.body.includes("Ann vs Dan") ? result.status : 0,
+      };
+    },
+    { status: 200 },
+  ],
+  [
+    "cup second submit reports already entered",
+    () => request("/api/scores", { method: "POST", form: cupScoreForm("0", "5"), anonymous: true }),
+    { status: 302, locationIncludes: "notice=already-entered" },
+  ],
+  [
+    "cup share page does not expose owner or tournament identifiers",
+    async () => {
+      const result = await request(cupSharePath, { anonymous: true });
+      const leaks = /owner_id|tournament_id|share_token/.test(result.body);
+      return { ...result, status: leaks ? 0 : result.status };
+    },
+    { status: 200 },
+  ],
+  [
+    "owner deletes the cup",
+    async () => {
+      const result = await request(`/api/leagues/${cupLocation.slice("/leagues/".length)}/delete`, { method: "POST" });
+      return { ...result, status: result.location === "/dashboard" ? result.status : 0 };
+    },
+    { status: 302, location: "/dashboard" },
+  ],
+  ["deleted cup's share link is not found", () => request(cupSharePath, { anonymous: true }), { status: 404 }],
   ["signout clears session", () => request("/api/auth/signout", { method: "POST" }), { status: 302, location: "/" }],
   ["dashboard redirects after signout", () => request("/dashboard"), { status: 302, location: "/auth/signin" }],
 ];

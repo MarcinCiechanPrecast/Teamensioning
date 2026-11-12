@@ -1,4 +1,4 @@
-// Seed / verify a LOCAL Supabase with realistic league data through the public surface the app uses
+// Seed / verify a LOCAL Supabase with realistic league (and, when the schema has them, cup) data through the public surface the app uses
 // (anon key, sign-up, RPCs, owner RLS reads). Used by the CI `migration-upgrade` job (test-plan risk #7):
 //   1. seed against the previous release's schema,
 //   2. apply the PR's new migrations,
@@ -8,7 +8,8 @@
 // Reads SUPABASE_* from the environment, falling back to .env in the current directory.
 //
 // Keep it compatible with the deployed schema: the job runs the PREVIOUS release's copy of this file
-// when one exists, so a change here takes effect for seeding one release later.
+// when one exists, so a change here takes effect for seeding one release later. Cup steps are skipped
+// (with a logged line) when the schema has no create_cup.
 
 import { createClient } from "@supabase/supabase-js";
 import { randomUUID } from "node:crypto";
@@ -63,6 +64,53 @@ function roundRobin(n) {
   return pairs;
 }
 
+/**
+ * Single-elimination bracket for n players (3-20), entry order = seed. Plain-JS twin of generateBracket
+ * (src/lib/services/bracket.ts), kept inline because this script has no build step. Returns the
+ * snake_case shape create_cup takes: {round, position, a, b, next_position, next_slot}.
+ */
+function cupBracket(n) {
+  let size = 1;
+  while (size < n) size *= 2;
+  let order = [1];
+  while (order.length < size) {
+    const total = order.length * 2 + 1;
+    order = order.flatMap((seed) => [seed, total - seed]);
+  }
+  const matches = [];
+  const create = (round, a, b) => {
+    const match = { round, position: matches.length + 1, a, b, next_position: null, next_slot: null };
+    matches.push(match);
+    return match;
+  };
+  let current = [];
+  for (let i = 0; i < size; i += 2) {
+    const a = order[i] - 1;
+    const b = order[i + 1] - 1;
+    current.push(b >= n ? { player: a } : { match: create(1, a, b) });
+  }
+  for (let round = 2; current.length > 1; round++) {
+    const next = [];
+    for (let i = 0; i < current.length; i += 2) {
+      const left = current[i];
+      const right = current[i + 1];
+      const match = create(round, "player" in left ? left.player : null, "player" in right ? right.player : null);
+      if ("match" in left) Object.assign(left.match, { next_position: match.position, next_slot: "a" });
+      if ("match" in right) Object.assign(right.match, { next_position: match.position, next_slot: "b" });
+      next.push({ match });
+    }
+    current = next;
+  }
+  return matches;
+}
+
+/** True when the schema has create_cup. Probed as anon with empty input: PGRST202/404 = no such function. */
+async function supportsCups() {
+  const { error, status } = await client().rpc("create_cup", { p_name: "probe", p_players: [], p_bracket: [] });
+  if (!error) throw new Error("create_cup probe succeeded as anon, which must be refused");
+  return !(error.code === "PGRST202" || status === 404);
+}
+
 async function signUp(label) {
   const c = client();
   const email = `seed-${label}-${randomUUID().slice(0, 8)}@example.test`;
@@ -96,6 +144,28 @@ async function createLeague(c, { name, points, players }) {
   return { id, token: share_token, matchIds: matches.map((m) => m.id) };
 }
 
+async function createCup(c, { name, players }) {
+  const id = must(
+    `create_cup ${name}`,
+    await c.rpc("create_cup", { p_name: name, p_players: players, p_bracket: cupBracket(players.length) }),
+  );
+  const { share_token } = must("read token", await c.from("tournaments").select("share_token").eq("id", id).single());
+  const matches = must("read matches", await c.from("matches").select("id").eq("tournament_id", id).order("position"));
+  // matchIds[position - 1], like a league.
+  return { id, token: share_token, matchIds: matches.map((m) => m.id), format: "cup" };
+}
+
+/** The cup's slots as player names by position (index 0 = position 1); null = TBD. */
+async function cupSlots(c, cup) {
+  const players = must("read players", await c.from("players").select("id, name").eq("tournament_id", cup.id));
+  const name = (id) => (id ? players.find((p) => p.id === id).name : null);
+  const matches = must(
+    "read matches",
+    await c.from("matches").select("player_a_id, player_b_id").eq("tournament_id", cup.id).order("position"),
+  );
+  return matches.map((m) => [name(m.player_a_id), name(m.player_b_id)]);
+}
+
 async function submit(token, matchId, a, b) {
   const result = must(
     "submit_match_score",
@@ -113,15 +183,24 @@ async function submit(token, matchId, a, b) {
 const scoreFor = (i) => [(i * 7) % 5, (i * 3) % 4];
 
 /** Everything an owner can read, as plain sorted rows, plus the anon view of each share link. */
-async function readOwnerData(c, tokens) {
+async function readOwnerData(c, tokens, cupColumns) {
+  // Cup columns only exist once the schema has them; an older schema must not be asked for them.
   const tournaments = must(
     "read tournaments",
-    await c.from("tournaments").select("id, name, points_win, points_draw, points_loss, share_token").order("id"),
+    await c
+      .from("tournaments")
+      .select(`id, name, points_win, points_draw, points_loss, share_token${cupColumns ? ", format" : ""}`)
+      .order("id"),
   );
   const players = must("read players", await c.from("players").select("id, tournament_id, name").order("id"));
   const matches = must(
     "read matches",
-    await c.from("matches").select("id, tournament_id, position, player_a_id, player_b_id").order("id"),
+    await c
+      .from("matches")
+      .select(
+        `id, tournament_id, position, player_a_id, player_b_id${cupColumns ? ", round, next_match_id, next_slot" : ""}`,
+      )
+      .order("id"),
   );
   const results = must("read results", await c.from("results").select("match_id, score_a, score_b").order("match_id"));
   const shared = {};
@@ -209,6 +288,49 @@ async function seed() {
   for (const [i, m] of big.matchIds.slice(0, 60).entries()) await submit(big.token, m, ...scoreFor(i));
   owners.push({ ...o3.owner, leagues: [big] });
 
+  // Owner 4: cups (5 players = 3 byes, S = 8). Skipped when the schema predates the cup format.
+  const cupSupported = await supportsCups();
+  if (cupSupported) {
+    const o4 = await signUp("o4");
+    // Partial: Dan 2-1 Eve, corrected to 1-2 before round 2 is played, so Eve sits in position 2.
+    const partial = await createCup(o4.c, { name: "Spring Cup", players: ["Ann", "Bob", "Cid", "Dan", "Eve"] });
+    check("seed: first cup score is created", (await submit(partial.token, partial.matchIds[0], 2, 1)) === "created");
+    const flipped = must(
+      "cup correction",
+      await o4.c.from("results").update({ score_a: 1, score_b: 2 }).eq("match_id", partial.matchIds[0]).select(),
+    );
+    check("seed: cup correction before round 2 is accepted", flipped.length === 1);
+    check("seed: cup draw is refused", (await submit(partial.token, partial.matchIds[2], 1, 1)) === "draw_not_allowed");
+    check(
+      "seed: partial cup has Eve in position 2",
+      isDeepStrictEqual((await cupSlots(o4.c, partial))[1], ["Ann", "Eve"]),
+    );
+
+    // Finished: Wes 2-1 Xan, Tom 0-1 Wes, Uma 3-0 Vic, final Wes 2-4 Uma -> Uma is the champion.
+    const done = await createCup(o4.c, { name: "Autumn Cup", players: ["Tom", "Uma", "Vic", "Wes", "Xan"] });
+    const finished = [
+      [0, 2, 1],
+      [1, 0, 1],
+      [2, 3, 0],
+      [3, 2, 4],
+    ];
+    for (const [i, a, b] of finished) {
+      check(
+        `seed: finished cup match ${i + 1} is created`,
+        (await submit(done.token, done.matchIds[i], a, b)) === "created",
+      );
+    }
+    const refused = await o4.c
+      .from("results")
+      .update({ score_a: 1, score_b: 2 })
+      .eq("match_id", done.matchIds[0])
+      .select();
+    check("seed: flipping a winner after round 2 was played is refused", refused.error?.code === "55000");
+    owners.push({ ...o4.owner, leagues: [partial, done] });
+  } else {
+    console.log("seed-db: schema has no create_cup, skipping cup seeding");
+  }
+
   const snapshot = [];
   for (const o of owners) {
     const c = await signIn(o);
@@ -217,6 +339,7 @@ async function seed() {
       data: await readOwnerData(
         c,
         o.leagues.map((l) => l.token),
+        cupSupported,
       ),
     });
   }
@@ -231,11 +354,15 @@ async function seed() {
 async function verify() {
   const snapshot = JSON.parse(readFileSync(snapshotPath, "utf8"));
   console.log("seed-db: verifying seeded data after the upgrade");
+  // The snapshot only holds cup columns when it was seeded on a cup-capable schema.
+  const cupColumns = snapshot.some((o) => o.data.tournaments.some((t) => "format" in t));
+  const cupSupported = await supportsCups();
   for (const o of snapshot) {
     const c = await signIn(o);
     const now = await readOwnerData(
       c,
       o.leagues.map((l) => l.token),
+      cupColumns,
     );
     for (const k of ["tournaments", "players", "matches", "results", "shared"]) {
       check(`${o.email}: ${k} unchanged`, isSubset(o.data[k], now[k]), `expected ${o.data[k].length ?? ""} rows/keys`);
@@ -273,6 +400,62 @@ async function verify() {
     }),
   );
   check("points stay locked on a seeded scored league", locked.status === "points_locked");
+
+  // Leagues seeded before the cup format backfill to format = 'league'.
+  if (cupSupported && !cupColumns) {
+    const formats = must("read formats", await c3.from("tournaments").select("format"));
+    check(
+      "seeded leagues backfill to format league",
+      formats.every((t) => t.format === "league"),
+    );
+  }
+
+  const o4 = snapshot.find((o) => o.leagues.some((l) => l.format === "cup"));
+  if (!o4) {
+    console.log("seed-db: no seeded cups in the snapshot (schema had no create_cup when seeded), skipping cup checks");
+  } else {
+    const [partial, done] = o4.leagues;
+    const c4 = await signIn(o4);
+    // Partial cup: the final is not ready, a draw is refused, then the rest is played out.
+    check("partial cup: final is not ready", (await submit(partial.token, partial.matchIds[3], 1, 0)) === "not_ready");
+    check(
+      "partial cup: a draw is refused",
+      (await submit(partial.token, partial.matchIds[1], 2, 2)) === "draw_not_allowed",
+    );
+    check(
+      "partial cup: Ann 3-0 Eve is created",
+      (await submit(partial.token, partial.matchIds[1], 3, 0)) === "created",
+    );
+    check(
+      "partial cup: Bob 2-1 Cid is created",
+      (await submit(partial.token, partial.matchIds[2], 2, 1)) === "created",
+    );
+    check(
+      "partial cup: Ann meets Bob in the final",
+      isDeepStrictEqual((await cupSlots(c4, partial))[3], ["Ann", "Bob"]),
+    );
+    // Finished cup: the stored bracket is intact and a played next round still locks the winner.
+    check(
+      "finished cup: slots unchanged",
+      isDeepStrictEqual(await cupSlots(c4, done), [
+        ["Wes", "Xan"],
+        ["Tom", "Wes"],
+        ["Uma", "Vic"],
+        ["Wes", "Uma"],
+      ]),
+    );
+    const refused = await c4
+      .from("results")
+      .update({ score_a: 1, score_b: 2 })
+      .eq("match_id", done.matchIds[0])
+      .select();
+    check("finished cup: flipping a played winner is refused", refused.error?.code === "55000");
+    const kept = must(
+      "read result",
+      await c4.from("results").select("score_a, score_b").eq("match_id", done.matchIds[0]),
+    );
+    check("finished cup: refused correction left the score unchanged", kept[0].score_a === 2 && kept[0].score_b === 1);
+  }
   console.log("seed-db: verify passed");
 }
 
@@ -282,7 +465,7 @@ async function cleanup() {
     const c = await signIn(o);
     for (const l of o.leagues) must(`delete ${l.id}`, await c.from("tournaments").delete().eq("id", l.id));
   }
-  console.log("seed-db: seeded leagues deleted (users remain; they go away on the next local db reset)");
+  console.log("seed-db: seeded leagues and cups deleted (users remain; they go away on the next local db reset)");
 }
 
 try {

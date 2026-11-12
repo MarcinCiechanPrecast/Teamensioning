@@ -408,11 +408,11 @@ Additive only; existing rows backfill to `format = 'league'`. Cups can exist onl
 
 #### Automated
 
-- [x] 4.1 Unit tests pass (validation union, `toSharedLeague` cup and unchanged league payload, `toScoreOutcome` statuses): `npm test`
-- [x] 4.2 Linting passes: `npm run lint`
-- [x] 4.3 UI guard passes: `npm run check:ui`
-- [x] 4.4 Types pass: `npx astro check`
-- [x] 4.5 Build succeeds: `npm run build`
+- [x] 4.1 Unit tests pass (validation union, `toSharedLeague` cup and unchanged league payload, `toScoreOutcome` statuses): `npm test` — d8389aa
+- [x] 4.2 Linting passes: `npm run lint` — d8389aa
+- [x] 4.3 UI guard passes: `npm run check:ui` — d8389aa
+- [x] 4.4 Types pass: `npx astro check` — d8389aa
+- [x] 4.5 Build succeeds: `npm run build` — d8389aa
 
 #### Manual
 
@@ -425,11 +425,11 @@ Additive only; existing rows backfill to `format = 'league'`. Cups can exist onl
 
 #### Automated
 
-- [ ] 5.1 Integration suite passes (new cup file and existing): `npm run test:integration`
-- [ ] 5.2 Unit suite passes: `npm test`
-- [ ] 5.3 Smoke passes against a running preview: `npm run smoke`
-- [ ] 5.4 E2E passes: `npm run test:e2e`
-- [ ] 5.5 Seed script parses: `node --check scripts/seed-db.mjs`
+- [x] 5.1 Integration suite passes (new cup file and existing): `npm run test:integration`
+- [x] 5.2 Unit suite passes: `npm test`
+- [x] 5.3 Smoke passes against a running preview: `npm run smoke`
+- [x] 5.4 E2E passes: `npm run test:e2e`
+- [x] 5.5 Seed script parses: `node --check scripts/seed-db.mjs`
 
 #### Manual
 
