@@ -375,13 +375,14 @@ describe("cup bracket at the database (risks #8, #9)", () => {
       expect(await slots(cup, 2)).toMatchObject({ a: "Ann", b: "Dan" });
     });
 
-    it("correcting to a draw is refused (23514) and the stored score is unchanged", async () => {
+    it("correcting to a draw is refused (P0001, hint cup_draw_not_allowed) and the stored score is unchanged", async () => {
       const cup = await freshCup();
       await enterCupScore(cup, 1, 3, 1);
 
       const refused = await correct(owner.client, cup, 1, 2, 2);
 
-      expect(refused.error?.code).toBe("23514");
+      expect(refused.error?.code).toBe("P0001");
+      expect(refused.error?.hint).toBe("cup_draw_not_allowed");
       expect(await storedResult(cup, 1)).toEqual({ score_a: 3, score_b: 1 });
       expect(await slots(cup, 2)).toMatchObject({ b: "Dan" });
       // Control: a decisive correction of the same match works.

@@ -425,11 +425,11 @@ Additive only; existing rows backfill to `format = 'league'`. Cups can exist onl
 
 #### Automated
 
-- [x] 5.1 Integration suite passes (new cup file and existing): `npm run test:integration`
-- [x] 5.2 Unit suite passes: `npm test`
-- [x] 5.3 Smoke passes against a running preview: `npm run smoke`
-- [x] 5.4 E2E passes: `npm run test:e2e`
-- [x] 5.5 Seed script parses: `node --check scripts/seed-db.mjs`
+- [x] 5.1 Integration suite passes (new cup file and existing): `npm run test:integration` — a8d7cc0
+- [x] 5.2 Unit suite passes: `npm test` — a8d7cc0
+- [x] 5.3 Smoke passes against a running preview: `npm run smoke` — a8d7cc0
+- [x] 5.4 E2E passes: `npm run test:e2e` — a8d7cc0
+- [x] 5.5 Seed script parses: `node --check scripts/seed-db.mjs` — a8d7cc0
 
 #### Manual
 

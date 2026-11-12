@@ -67,11 +67,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "matches_next_match_id_fkey"
-            columns: ["next_match_id"]
+            foreignKeyName: "matches_next_match_fkey"
+            columns: ["tournament_id", "next_match_id"]
             isOneToOne: false
             referencedRelation: "matches"
-            referencedColumns: ["id"]
+            referencedColumns: ["tournament_id", "id"]
           },
           {
             foreignKeyName: "matches_player_a_fkey"

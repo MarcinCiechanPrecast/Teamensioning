@@ -38,10 +38,23 @@ describe("toCorrectionOutcome", () => {
   it("maps a cup draw to draw-not-allowed but a range violation stays invalid-score", () => {
     expect(
       toCorrectionOutcome({
-        error: { code: "23514", message: "a cup match cannot end in a draw" },
+        error: { code: "P0001", message: "a cup match cannot end in a draw", hint: "cup_draw_not_allowed" },
         rowCount: 0,
       }),
     ).toEqual({ kind: "error", code: "draw-not-allowed" });
+    expect(toCorrectionOutcome({ error: { code: "P0001", hint: "cup_draw_not_allowed" }, rowCount: 0 })).toEqual({
+      kind: "error",
+      code: "draw-not-allowed",
+    });
+    // A draw message under the check-violation code is no longer a draw refusal.
+    expect(
+      toCorrectionOutcome({ error: { code: "23514", message: "a cup match cannot end in a draw" }, rowCount: 0 }),
+    ).toEqual({ kind: "error", code: "invalid-score" });
+    // An unrelated P0001 is a server error.
+    expect(toCorrectionOutcome({ error: { code: "P0001", message: "boom" }, rowCount: 0 })).toEqual({
+      kind: "error",
+      code: "server",
+    });
     expect(
       toCorrectionOutcome({
         error: {

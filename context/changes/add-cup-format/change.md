@@ -1,7 +1,7 @@
 ---
 change_id: add-cup-format
 title: Add cup (knockout) format
-status: implementing
+status: impl_reviewed
 created: 2026-10-25
 updated: 2026-11-12
 archived_at: null

@@ -189,7 +189,7 @@ None in this milestone. Auth and deploy are present per the Baseline. The absent
 | S-06       | organizer-score-correction  | #12   | Organizer corrects an entered score               | done                  | Archived 2026-11-02                                          |
 | S-07       | edit-tournament-settings    | #13   | Organizer edits tournament name and points        | done                  | Archived 2026-11-02                                          |
 | —          | dashboard-ui-tokens         | —     | Dashboard on the Jamaica design tokens            | done                  | Archived 2026-10-27; not a slice (cross-cutting UI contract) |
-| S-08       | add-cup-format              | —     | Single-elimination cup format                     | planning              | M-2; plan in `context/changes/add-cup-format/`               |
+| S-08       | add-cup-format              | —     | Single-elimination cup format                     | in-progress           | M-2; plan in `context/changes/add-cup-format/`               |
 
 Issues live in GitHub milestones `M-1: First playable league` and `M-2: Cup format` with labels `roadmap:slice`, `status:*` and `stream:*`. This file stays canonical; issue labels are a view.
 

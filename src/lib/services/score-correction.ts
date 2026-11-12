@@ -25,7 +25,9 @@ const INVALID_TEXT_REPRESENTATION = "22P02";
 /** The cup trigger refuses a change of winner once the next match has a result (errcode 55000). */
 const OBJECT_NOT_IN_PREREQUISITE_STATE = "55000";
 const NEXT_ROUND_PLAYED_MESSAGE = "cup_next_round_played";
-/** The cup trigger refuses a draw with the same 23514 as a score range check; only the message tells them apart. */
+/** The cup trigger refuses a draw with errcode P0001 and this hint (23514 stays the score range check). */
+const RAISE_EXCEPTION = "P0001";
+const DRAW_HINT = "cup_draw_not_allowed";
 const DRAW_MESSAGE = "a cup match cannot end in a draw";
 
 /**
@@ -34,7 +36,7 @@ const DRAW_MESSAGE = "a cup match cannot end in a draw";
  * a result all return 0 rows and are one outcome.
  */
 export function toCorrectionOutcome(result: {
-  error: { code?: string; message?: string } | null;
+  error: { code?: string; message?: string; hint?: string } | null;
   rowCount: number;
   /** False when the match is not part of the tournament named in the URL; defaults to true. */
   inTournament?: boolean;
@@ -43,7 +45,10 @@ export function toCorrectionOutcome(result: {
     if (result.error.code === OBJECT_NOT_IN_PREREQUISITE_STATE || result.error.message === NEXT_ROUND_PLAYED_MESSAGE) {
       return { kind: "error", code: "next-round-played" };
     }
-    if (result.error.code === CHECK_VIOLATION && result.error.message?.includes(DRAW_MESSAGE)) {
+    if (
+      result.error.code === RAISE_EXCEPTION &&
+      (result.error.hint === DRAW_HINT || result.error.message === DRAW_MESSAGE)
+    ) {
       return { kind: "error", code: "draw-not-allowed" };
     }
     if (result.error.code === CHECK_VIOLATION) return { kind: "error", code: "invalid-score" };

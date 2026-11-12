@@ -24,7 +24,7 @@ alter table public.tournaments
 -- ---------------------------------------------------------------------------
 alter table public.matches
   add column round int,
-  add column next_match_id uuid references public.matches (id) on delete cascade,
+  add column next_match_id uuid,
   add column next_slot text,
   add constraint matches_round_check check (round is null or round > 0),
   add constraint matches_next_slot_check check (next_slot in ('a', 'b')),
@@ -32,7 +32,20 @@ alter table public.matches
   alter column player_b_id drop not null,
   add constraint matches_league_players_check check (
     round is not null or (player_a_id is not null and player_b_id is not null)
-  );
+  ),
+  add constraint matches_next_link_check check ((next_match_id is null) = (next_slot is null));
+
+-- The next match must belong to the same tournament: composite FK onto (tournament_id, id). A null next_match_id
+-- skips the FK (MATCH SIMPLE). Deleting a tournament still cascades through tournament_id and through this link.
+alter table public.matches
+  add constraint matches_tournament_id_id_key unique (tournament_id, id);
+
+alter table public.matches
+  add constraint matches_next_match_fkey foreign key (tournament_id, next_match_id)
+    references public.matches (tournament_id, id) on delete cascade;
+
+-- Supports the cascade/lookup on the self-reference (every deleted match scans for the matches that point at it).
+create index matches_next_match_id_idx on public.matches (next_match_id) where next_match_id is not null;
 
 -- ---------------------------------------------------------------------------
 -- create_cup: writes a whole cup in one transaction (security definer, caller becomes the owner).
@@ -211,6 +224,7 @@ security definer
 set search_path = ''
 as $$
 declare
+  v_tournament_id uuid;
   v_match_id uuid;
   v_format text;
   v_player_a uuid;
@@ -218,12 +232,22 @@ declare
   v_next_match_id uuid;
   v_next_slot text;
 begin
-  select m.id, t.format, m.player_a_id, m.player_b_id, m.next_match_id, m.next_slot
-  into v_match_id, v_format, v_player_a, v_player_b, v_next_match_id, v_next_slot
+  -- Lock the tournament row in its own statement first, so the match and slot values below are read after the
+  -- lock (a concurrent owner correction that rewrites a slot has committed or is waiting on us).
+  select t.id, t.format
+  into v_tournament_id, v_format
   from public.tournaments t
-  join public.matches m on m.tournament_id = t.id
-  where t.share_token = p_token and m.id = p_match_id
-  for share of t;
+  where t.share_token = p_token
+  for share;
+
+  if not found then
+    return jsonb_build_object('status', 'not_found');
+  end if;
+
+  select m.id, m.player_a_id, m.player_b_id, m.next_match_id, m.next_slot
+  into v_match_id, v_player_a, v_player_b, v_next_match_id, v_next_slot
+  from public.matches m
+  where m.id = p_match_id and m.tournament_id = v_tournament_id;
 
   if not found then
     return jsonb_build_object('status', 'not_found');
@@ -267,7 +291,7 @@ grant execute on function public.submit_match_score(text, uuid, int, int) to ano
 
 -- ---------------------------------------------------------------------------
 -- Cup correction guard: BEFORE UPDATE on results (the owner correction path, direct UPDATE through RLS).
--- League results pass untouched. For a cup: a draw is refused (23514); an unchanged winner is allowed;
+-- League results pass untouched. For a cup: a draw is refused (P0001, hint cup_draw_not_allowed); an unchanged winner is allowed;
 -- a changed winner is refused with 55000 'cup_next_round_played' once the next match has a result,
 -- otherwise the next match's slot is rewritten with the new winner.
 -- security definer because the owner has no UPDATE policy on matches.
@@ -278,6 +302,7 @@ security definer
 set search_path = ''
 as $$
 declare
+  v_tournament_id uuid;
   v_format text;
   v_player_a uuid;
   v_player_b uuid;
@@ -285,21 +310,30 @@ declare
   v_next_slot text;
   v_new_winner uuid;
 begin
-  -- Same lock as submit_match_score (FOR SHARE) and update_tournament_settings (FOR UPDATE): a correction is
-  -- strictly ordered against a concurrent score for the next match.
-  select t.format, m.player_a_id, m.player_b_id, m.next_match_id, m.next_slot
-  into v_format, v_player_a, v_player_b, v_next_match_id, v_next_slot
+  -- The format never changes after creation, so read it without a lock: a league correction takes no lock at all.
+  select t.id, t.format
+  into v_tournament_id, v_format
   from public.matches m
   join public.tournaments t on t.id = m.tournament_id
-  where m.id = new.match_id
-  for update of t;
+  where m.id = new.match_id;
 
   if not found or v_format <> 'cup' then
     return new;
   end if;
 
+  -- Cup only. Same lock as submit_match_score (FOR SHARE) and update_tournament_settings (FOR UPDATE): a correction
+  -- is strictly ordered against a concurrent score for the next match. Taken in its own statement, before the
+  -- match/slot values are read.
+  perform 1 from public.tournaments t where t.id = v_tournament_id for update;
+
+  select m.player_a_id, m.player_b_id, m.next_match_id, m.next_slot
+  into v_player_a, v_player_b, v_next_match_id, v_next_slot
+  from public.matches m
+  where m.id = new.match_id;
+
   if new.score_a = new.score_b then
-    raise exception 'a cup match cannot end in a draw' using errcode = '23514';
+    -- P0001 with its own hint, so callers never have to tell a draw from a range check (23514) by message text.
+    raise exception 'a cup match cannot end in a draw' using errcode = 'P0001', hint = 'cup_draw_not_allowed';
   end if;
 
   -- The old result was never a draw (same rule on insert), so the winner flips only when the order flips.
