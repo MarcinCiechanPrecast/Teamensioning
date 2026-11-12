@@ -269,5 +269,5 @@ The rename means the Actions UI shows run history for `CI` up to this change, an
 - [x] 3.1 Each PR job runs once per push, all green
 - [x] 3.2 Second push cancels the in-progress run
 - [x] 3.3 setup-node resolves 22.23.3 from .nvmrc
-- [ ] 3.4 Branch protection requires ci, smoke, migration-upgrade and up-to-date branches
-- [ ] 3.5 Merge to master runs only Migrate / migrate
+- [x] 3.4 Branch protection requires ci, smoke, migration-upgrade and up-to-date branches
+- [x] 3.5 Merge to master runs only Migrate / migrate
