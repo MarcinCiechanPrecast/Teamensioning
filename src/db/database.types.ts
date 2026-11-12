@@ -37,26 +37,42 @@ export type Database = {
       matches: {
         Row: {
           id: string
-          player_a_id: string
-          player_b_id: string
+          next_match_id: string | null
+          next_slot: string | null
+          player_a_id: string | null
+          player_b_id: string | null
           position: number
+          round: number | null
           tournament_id: string
         }
         Insert: {
           id?: string
-          player_a_id: string
-          player_b_id: string
+          next_match_id?: string | null
+          next_slot?: string | null
+          player_a_id?: string | null
+          player_b_id?: string | null
           position: number
+          round?: number | null
           tournament_id: string
         }
         Update: {
           id?: string
-          player_a_id?: string
-          player_b_id?: string
+          next_match_id?: string | null
+          next_slot?: string | null
+          player_a_id?: string | null
+          player_b_id?: string | null
           position?: number
+          round?: number | null
           tournament_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "matches_next_match_id_fkey"
+            columns: ["next_match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "matches_player_a_fkey"
             columns: ["tournament_id", "player_a_id"]
@@ -138,6 +154,7 @@ export type Database = {
       tournaments: {
         Row: {
           created_at: string
+          format: string
           id: string
           name: string
           owner_id: string
@@ -148,6 +165,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          format?: string
           id?: string
           name: string
           owner_id?: string
@@ -158,6 +176,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          format?: string
           id?: string
           name?: string
           owner_id?: string
@@ -173,6 +192,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_cup: {
+        Args: { p_bracket: Json; p_name: string; p_players: string[] }
+        Returns: string
+      }
       create_league: {
         Args: {
           p_fixtures: Json

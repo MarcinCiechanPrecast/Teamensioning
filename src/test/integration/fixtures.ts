@@ -88,7 +88,11 @@ export async function createLeagueAs(
     tournamentId,
     shareToken: tournament.share_token,
     matchIds: matches.map((m) => m.id),
-    matches: matches.map((m) => ({ id: m.id, playerAId: m.player_a_id, playerBId: m.player_b_id })),
+    matches: matches.map((m) => {
+      // A league match always has both players (DB check); only cup matches can have an open slot.
+      if (!m.player_a_id || !m.player_b_id) throw new Error(`createLeagueAs: match ${m.id} has an open slot`);
+      return { id: m.id, playerAId: m.player_a_id, playerBId: m.player_b_id };
+    }),
     playerIds: Object.fromEntries(players.map((p) => [p.name, p.id])),
   };
 }

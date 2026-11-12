@@ -55,8 +55,9 @@ async function loadLeague(id: string | undefined): Promise<LoadedLeague | null> 
   const playersById = new Map<string, PlayerDTO>(playersResult.data.map((player) => [player.id, player]));
 
   const fixtures = matchesResult.data.flatMap((match): FixtureDTO[] => {
-    const playerA = playersById.get(match.player_a_id);
-    const playerB = playersById.get(match.player_b_id);
+    // Cup matches can have an open slot (null); the bracket view is added in a later phase.
+    const playerA = match.player_a_id ? playersById.get(match.player_a_id) : undefined;
+    const playerB = match.player_b_id ? playersById.get(match.player_b_id) : undefined;
     if (!playerA || !playerB) return [];
     // results is one-to-one with matches: an object once played, null before.
     const score = match.results ? { a: match.results.score_a, b: match.results.score_b } : null;

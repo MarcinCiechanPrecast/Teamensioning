@@ -380,10 +380,10 @@ Additive only; existing rows backfill to `format = 'league'`. Cups can exist onl
 
 #### Automated
 
-- [x] 2.1 Generator tests pass: `npx vitest run --project unit src/lib/services/bracket.test.ts`
-- [x] 2.2 Whole unit suite passes: `npm test`
-- [x] 2.3 Linting passes: `npm run lint`
-- [x] 2.4 Narrow mutation run completes: `npx stryker run --mutate "src/lib/services/bracket.ts"`
+- [x] 2.1 Generator tests pass: `npx vitest run --project unit src/lib/services/bracket.test.ts` — 232a3af
+- [x] 2.2 Whole unit suite passes: `npm test` — 232a3af
+- [x] 2.3 Linting passes: `npm run lint` — 232a3af
+- [x] 2.4 Narrow mutation run completes: `npx stryker run --mutate "src/lib/services/bracket.ts"` — 232a3af
 
 #### Manual
 
@@ -394,10 +394,10 @@ Additive only; existing rows backfill to `format = 'league'`. Cups can exist onl
 
 #### Automated
 
-- [ ] 3.1 Migration applies on a running local database: `npx supabase migration up --local`
-- [ ] 3.2 New file sorts after the newest released one: `ls supabase/migrations | sort | tail -2`
-- [ ] 3.3 League behaviour unchanged, existing integration suite green: `npm run test:integration`
-- [ ] 3.4 Types in sync: `npx astro check`
+- [x] 3.1 Migration applies on a running local database: `npx supabase migration up --local`
+- [x] 3.2 New file sorts after the newest released one: `ls supabase/migrations | sort | tail -2`
+- [x] 3.3 League behaviour unchanged, existing integration suite green: `npm run test:integration`
+- [x] 3.4 Types in sync: `npx astro check`
 
 #### Manual
 
