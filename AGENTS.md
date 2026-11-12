@@ -67,9 +67,15 @@ Full server-side rendering (`output: "server"` in astro.config.mjs). All pages a
 
 ## CI
 
-`@.github/workflows/ci.yml` runs on every push and PR to master:
+Two workflows. Both use a read-only `GITHUB_TOKEN` (`permissions: contents: read`), set `timeout-minutes` on every job and take Node from `.nvmrc`.
 
-- `ci`: lint, `astro check`, build. Needs the `SUPABASE_URL` and `SUPABASE_KEY` repository secrets.
+`@.github/workflows/pr.yml` runs on every PR to master. A new push to the same PR cancels the superseded run. Branch protection on `master` requires `ci`, `smoke` and `migration-upgrade` to pass and the branch to be up to date before merging. `e2e` is optional. These checks do not run again after the merge.
+
+- `ci`: lint, `check:ui`, unit tests, `astro check`, build. Needs the `SUPABASE_URL` and `SUPABASE_KEY` repository secrets.
 - `smoke`: local Supabase, `npm run test:integration`, production preview, `npm run smoke`. This also proves the migrations apply to a fresh database.
-- `migration-upgrade` (risk #7, local Supabase only): fails if a released migration was edited, renamed or deleted, or a new one sorts before the newest released one. Then starts Supabase from a worktree of the previous release (PR merge commit's first parent; `github.event.before` on push), seeds realistic data with `scripts/seed-db.mjs seed`, applies the new migrations with `supabase migration up --local`, runs `seed-db.mjs verify` (seeded rows unchanged, write path still works), the **previous release's** smoke test against the new schema, and this change's integration suite. A red run means the migration breaks existing data or the still-deployed Worker. The previous release's copy of `seed-db.mjs` is used when it has one, so keep that script compatible with the deployed schema.
-- `migrate` (push to master only): `supabase db push --linked` to production, then `migration list`. Needs the `SUPABASE_ACCESS_TOKEN` (personal access token, supabase.com/dashboard/account/tokens) and `SUPABASE_DB_PASSWORD` (production database password) repository secrets. Workers Builds deploys in parallel and does not wait for it, so migrations must stay backward compatible (add columns/tables first; drop or rename only in a later PR, once no deployed code uses them). If `migrate` fails, production code may already be running against the old schema: fix it and re-run the job.
+- `migration-upgrade` (risk #7, local Supabase only): fails if a released migration was edited, renamed or deleted, or a new one sorts before the newest released one. Then starts Supabase from a worktree of the previous release (the PR merge commit's first parent, i.e. the `master` tip), seeds realistic data with `scripts/seed-db.mjs seed`, applies the new migrations with `supabase migration up --local`, runs `seed-db.mjs verify` (seeded rows unchanged, write path still works), the **previous release's** smoke test against the new schema, and this change's integration suite. A red run means the migration breaks existing data or the still-deployed Worker. The previous release's copy of `seed-db.mjs` is used when it has one, so keep that script compatible with the deployed schema.
+- `e2e` (optional): Playwright US-01 run against its own local Supabase; uploads the report on failure.
+
+`@.github/workflows/migrate.yml` runs on every push to master:
+
+- `migrate`: `supabase db push --linked` to production, then `migration list`. Needs the `SUPABASE_ACCESS_TOKEN` (personal access token, supabase.com/dashboard/account/tokens) and `SUPABASE_DB_PASSWORD` (production database password) repository secrets. Workers Builds deploys in parallel and does not wait for it, so migrations must stay backward compatible (add columns/tables first; drop or rename only in a later PR, once no deployed code uses them). If `migrate` fails, production code may already be running against the old schema: fix it and re-run the job.
