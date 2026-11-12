@@ -1,7 +1,8 @@
 // UI literal guard: fails when a cleaned dashboard view reintroduces hex/rgb/hsl/oklch colours,
 // arbitrary lengths, inline styles or palette colour classes instead of design tokens.
 // Zero dependencies on purpose. Usage: node scripts/check-ui-literals.mjs [files...]
-// With no arguments it scans src/pages/dashboard.astro and every *.astro under src/components/dashboard/.
+// With no arguments it scans src/pages/dashboard.astro and every *.astro under src/components/dashboard/
+// and src/components/cup/.
 // It fails (exit 1) when it ends up scanning nothing, so a renamed view cannot make the guard pass silently.
 // Known limits: bare named colours (`color: red`) and colour functions inside comments are not told apart.
 
@@ -21,15 +22,16 @@ const PATTERNS = [
 ];
 
 const DEFAULT_PAGE = "src/pages/dashboard.astro";
-const DEFAULT_DIR = "src/components/dashboard";
+const DEFAULT_DIRS = ["src/components/dashboard", "src/components/cup"];
 
 const normalise = (path) => path.replaceAll("\\", "/");
 
 function defaultFiles() {
   const files = existsSync(DEFAULT_PAGE) ? [DEFAULT_PAGE] : [];
-  if (existsSync(DEFAULT_DIR)) {
-    for (const name of readdirSync(DEFAULT_DIR).sort()) {
-      if (name.endsWith(".astro")) files.push(join(DEFAULT_DIR, name));
+  for (const dir of DEFAULT_DIRS) {
+    if (!existsSync(dir)) continue;
+    for (const name of readdirSync(dir).sort()) {
+      if (name.endsWith(".astro")) files.push(join(dir, name));
     }
   }
   return files;
@@ -39,7 +41,9 @@ const args = process.argv.slice(2);
 const files = args.length > 0 ? args : defaultFiles();
 
 if (files.length === 0) {
-  console.error(`No files to scan: expected ${DEFAULT_PAGE} and *.astro under ${DEFAULT_DIR}/. Was a view renamed?`);
+  console.error(
+    `No files to scan: expected ${DEFAULT_PAGE} and *.astro under ${DEFAULT_DIRS.join(", ")}. Was a view renamed?`,
+  );
   process.exit(1);
 }
 

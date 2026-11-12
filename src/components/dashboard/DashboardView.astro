@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   email: string;
-  tournaments: { id: string; name: string }[];
+  tournaments: { id: string; name: string; format?: string }[];
   errorCode?: DashboardErrorCode;
 }
 
@@ -31,12 +31,13 @@ const { email, tournaments, errorCode } = Astro.props;
           <a
             href={`/leagues/${tournament.id}`}
             class:list={cn(
-              "border-border bg-card text-card-foreground block rounded-lg border px-4 py-2 transition-colors",
+              "border-border bg-card text-card-foreground flex items-center justify-between gap-2 rounded-lg border px-4 py-2 transition-colors",
               "hover:bg-accent hover:text-accent-foreground",
               "focus-visible:ring-ring outline-hidden focus-visible:ring-2",
             )}
           >
-            {tournament.name}
+            <span class="min-w-0 break-words">{tournament.name}</span>
+            <span class="text-muted-foreground shrink-0 text-xs">{tournament.format === "cup" ? "Cup" : "League"}</span>
           </a>
         </li>
       ))}

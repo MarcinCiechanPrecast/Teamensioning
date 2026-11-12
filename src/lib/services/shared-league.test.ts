@@ -98,9 +98,26 @@ describe("toSharedLeague", () => {
   it("maps a valid payload and drops matches with missing players", () => {
     expect(toSharedLeague(payload)).toEqual({
       league: { name: "Cup", points_win: 3, points_draw: 1, points_loss: 0 },
+      format: "league",
       players: [ann, bob],
       fixtures: [{ id: "m1", position: 1, playerA: ann, playerB: bob, score: null }],
     });
+  });
+
+  it("treats a payload without the new cup keys as a league", () => {
+    const result = toSharedLeague(payload);
+    expect(result?.format).toBe("league");
+    expect(result).not.toHaveProperty("cupMatches");
+  });
+
+  it("returns null for a league match with an open slot", () => {
+    expect(
+      toSharedLeague({
+        league: { name: "L", points_win: 3, points_draw: 1, points_loss: 0, format: "league" },
+        players: [{ id: "p1", name: "Ann" }],
+        matches: [{ id: "m1", position: 1, player_a_id: "p1", player_b_id: null, score_a: null, score_b: null }],
+      }),
+    ).toBeNull();
   });
 
   it("reads scores for played fixtures and null for unplayed ones", () => {
@@ -162,6 +179,81 @@ describe("toSharedLeague", () => {
     ],
   ])("returns null for a malformed payload (%s)", (_label, bad) => {
     expect(toSharedLeague(bad)).toBeNull();
+  });
+});
+
+describe("toSharedLeague for a cup", () => {
+  const cup: Json = {
+    league: { name: "Cup", format: "cup", points_win: 0, points_draw: 0, points_loss: 0 },
+    players: [
+      { id: "p1", name: "Ann" },
+      { id: "p2", name: "Bob" },
+      { id: "p3", name: "Cid" },
+    ],
+    matches: [
+      {
+        id: "m1",
+        position: 1,
+        round: 1,
+        next_match_id: "m2",
+        player_a_id: "p2",
+        player_b_id: "p3",
+        score_a: 2,
+        score_b: 1,
+      },
+      {
+        id: "m2",
+        position: 2,
+        round: 2,
+        next_match_id: null,
+        player_a_id: "p1",
+        player_b_id: null,
+        score_a: null,
+        score_b: null,
+      },
+    ],
+  };
+
+  it("reads the format, rounds, links and open slots", () => {
+    const result = toSharedLeague(cup);
+    expect(result?.format).toBe("cup");
+    expect(result?.cupMatches).toEqual([
+      { id: "m1", position: 1, round: 1, nextMatchId: "m2", playerA: bob, playerB: cid, score: { a: 2, b: 1 } },
+      { id: "m2", position: 2, round: 2, nextMatchId: null, playerA: ann, playerB: null, score: null },
+    ]);
+  });
+
+  it("keeps only fully known matches in fixtures", () => {
+    expect(toSharedLeague(cup)?.fixtures.map((f) => f.id)).toEqual(["m1"]);
+  });
+
+  it("returns null when a cup match has no round", () => {
+    expect(
+      toSharedLeague({
+        ...(cup as Record<string, Json>),
+        matches: [{ id: "m1", position: 1, player_a_id: "p1", player_b_id: null, score_a: null, score_b: null }],
+      }),
+    ).toBeNull();
+  });
+
+  it("returns null when a cup match names a player that is not in the list", () => {
+    expect(
+      toSharedLeague({
+        ...(cup as Record<string, Json>),
+        matches: [
+          {
+            id: "m1",
+            position: 1,
+            round: 1,
+            next_match_id: null,
+            player_a_id: "ghost",
+            player_b_id: null,
+            score_a: null,
+            score_b: null,
+          },
+        ],
+      }),
+    ).toBeNull();
   });
 });
 

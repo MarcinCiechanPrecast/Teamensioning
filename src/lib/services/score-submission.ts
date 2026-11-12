@@ -5,6 +5,8 @@
 export const SCORE_ERROR_MESSAGES = {
   "invalid-score": "Enter a whole number from 0 to 99 for both scores.",
   "match-not-found": "That match could not be found.",
+  "match-not-ready": "That match cannot be played yet: both players must be known first.",
+  "draw-not-allowed": "A cup match cannot end in a draw. Enter a winner.",
   server: "The score could not be saved. Try again.",
 } as const;
 
@@ -28,6 +30,10 @@ export function toScoreOutcome(data: unknown): ScoreOutcome {
       return { kind: "already-entered" };
     case "not_found":
       return { kind: "error", code: "match-not-found" };
+    case "not_ready":
+      return { kind: "error", code: "match-not-ready" };
+    case "draw_not_allowed":
+      return { kind: "error", code: "draw-not-allowed" };
     default:
       return { kind: "error", code: "server" };
   }
@@ -41,6 +47,8 @@ export function rpcErrorCode(error: { code?: string }): ScoreErrorCode {
 }
 
 /** A bad match id means no such match; every other validation problem is a bad score. */
-export function validationErrorCode(issues: readonly { path: readonly PropertyKey[] }[]): ScoreErrorCode {
+export function validationErrorCode(
+  issues: readonly { path: readonly PropertyKey[] }[],
+): "match-not-found" | "invalid-score" {
   return issues[0]?.path[0] === "matchId" ? "match-not-found" : "invalid-score";
 }

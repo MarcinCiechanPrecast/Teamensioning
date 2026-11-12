@@ -13,6 +13,8 @@ describe("toScoreOutcome", () => {
     expect(toScoreOutcome({ status: "created" })).toEqual({ kind: "created" });
     expect(toScoreOutcome({ status: "already_entered" })).toEqual({ kind: "already-entered" });
     expect(toScoreOutcome({ status: "not_found" })).toEqual({ kind: "error", code: "match-not-found" });
+    expect(toScoreOutcome({ status: "not_ready" })).toEqual({ kind: "error", code: "match-not-ready" });
+    expect(toScoreOutcome({ status: "draw_not_allowed" })).toEqual({ kind: "error", code: "draw-not-allowed" });
   });
 
   it.each([
@@ -24,6 +26,15 @@ describe("toScoreOutcome", () => {
     ["an unknown status", { status: "weird" }],
   ])("treats %s as a server error", (_label, payload) => {
     expect(toScoreOutcome(payload)).toEqual({ kind: "error", code: "server" });
+  });
+});
+
+describe("cup score error messages", () => {
+  it("has a fixed, readable message for the cup refusals", () => {
+    expect(SCORE_ERROR_MESSAGES["draw-not-allowed"]).toBe("A cup match cannot end in a draw. Enter a winner.");
+    expect(SCORE_ERROR_MESSAGES["match-not-ready"]).toContain("both players");
+    expect(isScoreErrorCode("draw-not-allowed")).toBe(true);
+    expect(isScoreErrorCode("match-not-ready")).toBe(true);
   });
 });
 

@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { createLeagueSchema, leagueNameSchema, leagueSettingsSchema } from "./league";
+import {
+  createCupSchema,
+  createLeagueSchema,
+  createTournamentSchema,
+  leagueNameSchema,
+  leagueSettingsSchema,
+} from "./league";
 
 const valid = { name: "Friday FIFA", pointsWin: "3", pointsDraw: "1", pointsLoss: "0" };
 const ORDERING = "Points must satisfy win ≥ draw ≥ loss";
@@ -128,5 +134,65 @@ describe("createLeagueSchema", () => {
     expect(
       messages(createLeagueSchema.safeParse({ ...valid, pointsWin: "0", pointsDraw: "1", players: ["A", "B", "C"] })),
     ).toContain(ORDERING);
+  });
+});
+
+describe("createCupSchema", () => {
+  const names = (n: number) => Array.from({ length: n }, (_, i) => `Player ${i + 1}`);
+
+  it("accepts a name and 3 players without points", () => {
+    expect(createCupSchema.safeParse({ name: "Cup", players: ["A", "B", "C"] }).success).toBe(true);
+  });
+
+  it("refuses 2 players and 21 players with the league messages, accepts 20", () => {
+    expect(messages(createCupSchema.safeParse({ name: "Cup", players: names(2) }))).toContain("Add at least 3 players");
+    expect(messages(createCupSchema.safeParse({ name: "Cup", players: names(21) }))).toContain(
+      "Add at most 20 players",
+    );
+    expect(createCupSchema.safeParse({ name: "Cup", players: names(20) }).success).toBe(true);
+  });
+
+  it("rejects duplicate players case-insensitively", () => {
+    expect(messages(createCupSchema.safeParse({ name: "Cup", players: ["Ann", "ann", "Bob"] }))).toContain(
+      "Duplicate player name: ann",
+    );
+  });
+
+  it("requires a name", () => {
+    expect(messages(createCupSchema.safeParse({ name: " ", players: names(3) }))).toContain("League name is required");
+  });
+});
+
+describe("createTournamentSchema", () => {
+  const players = ["A", "B", "C"];
+
+  it("validates a league and keeps the points rules", () => {
+    const ok = createTournamentSchema.safeParse({ ...valid, format: "league", players });
+    expect(ok.success).toBe(true);
+    expect(ok.data).toMatchObject({ format: "league", pointsWin: 3, pointsDraw: 1, pointsLoss: 0 });
+    expect(
+      messages(
+        createTournamentSchema.safeParse({ ...valid, format: "league", pointsWin: "0", pointsDraw: "1", players }),
+      ),
+    ).toContain(ORDERING);
+    expect(
+      messages(createTournamentSchema.safeParse({ ...valid, format: "league", pointsDraw: "", players })),
+    ).toContain("Required");
+  });
+
+  it("validates a cup without points", () => {
+    const result = createTournamentSchema.safeParse({ format: "cup", name: "Cup", players });
+    expect(result.success).toBe(true);
+    expect(result.data).toEqual({ format: "cup", name: "Cup", players });
+  });
+
+  it("applies the player rules to a cup", () => {
+    expect(messages(createTournamentSchema.safeParse({ format: "cup", name: "Cup", players: ["A", "B"] }))).toContain(
+      "Add at least 3 players",
+    );
+  });
+
+  it("rejects an unknown format", () => {
+    expect(createTournamentSchema.safeParse({ format: "swiss", name: "X", players }).success).toBe(false);
   });
 });

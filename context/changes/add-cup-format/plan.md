@@ -394,10 +394,10 @@ Additive only; existing rows backfill to `format = 'league'`. Cups can exist onl
 
 #### Automated
 
-- [x] 3.1 Migration applies on a running local database: `npx supabase migration up --local`
-- [x] 3.2 New file sorts after the newest released one: `ls supabase/migrations | sort | tail -2`
-- [x] 3.3 League behaviour unchanged, existing integration suite green: `npm run test:integration`
-- [x] 3.4 Types in sync: `npx astro check`
+- [x] 3.1 Migration applies on a running local database: `npx supabase migration up --local` — 657c356
+- [x] 3.2 New file sorts after the newest released one: `ls supabase/migrations | sort | tail -2` — 657c356
+- [x] 3.3 League behaviour unchanged, existing integration suite green: `npm run test:integration` — 657c356
+- [x] 3.4 Types in sync: `npx astro check` — 657c356
 
 #### Manual
 
@@ -408,11 +408,11 @@ Additive only; existing rows backfill to `format = 'league'`. Cups can exist onl
 
 #### Automated
 
-- [ ] 4.1 Unit tests pass (validation union, `toSharedLeague` cup and unchanged league payload, `toScoreOutcome` statuses): `npm test`
-- [ ] 4.2 Linting passes: `npm run lint`
-- [ ] 4.3 UI guard passes: `npm run check:ui`
-- [ ] 4.4 Types pass: `npx astro check`
-- [ ] 4.5 Build succeeds: `npm run build`
+- [x] 4.1 Unit tests pass (validation union, `toSharedLeague` cup and unchanged league payload, `toScoreOutcome` statuses): `npm test`
+- [x] 4.2 Linting passes: `npm run lint`
+- [x] 4.3 UI guard passes: `npm run check:ui`
+- [x] 4.4 Types pass: `npx astro check`
+- [x] 4.5 Build succeeds: `npm run build`
 
 #### Manual
 

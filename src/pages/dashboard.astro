@@ -5,7 +5,7 @@ import { isDashboardErrorCode } from "@/lib/services/dashboard-errors";
 import { createClient } from "@/lib/supabase";
 import type { TournamentDTO } from "@/types";
 
-type TournamentListItem = Pick<TournamentDTO, "id" | "name" | "created_at">;
+type TournamentListItem = Pick<TournamentDTO, "id" | "name" | "created_at"> & { format: string };
 
 const { user } = Astro.locals;
 
@@ -16,7 +16,7 @@ async function loadTournaments(): Promise<TournamentListItem[]> {
   // RLS only returns the organizer's own tournaments.
   const { data, error } = await supabase
     .from("tournaments")
-    .select("id, name, created_at")
+    .select("id, name, format, created_at")
     .order("created_at", { ascending: false })
     .order("id", { ascending: false });
   if (error) throw new Error(error.message);

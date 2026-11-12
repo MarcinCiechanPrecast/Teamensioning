@@ -40,11 +40,35 @@ export interface FixtureDTO {
   score: { a: number; b: number } | null;
 }
 
+/** The two tournament formats. */
+export type TournamentFormat = "league" | "cup";
+
+/**
+ * One cup match as stored: either slot can be null (TBD) until the winner of the feeding match
+ * moves in. `round` is 1-based; `position` is global (round 1 first, final last).
+ */
+export interface CupMatchDTO {
+  id: Tables<"matches">["id"];
+  position: Tables<"matches">["position"];
+  round: number;
+  playerA: PlayerDTO | null;
+  playerB: PlayerDTO | null;
+  /** The stored result, or null while the match is unplayed. */
+  score: { a: number; b: number } | null;
+  /** The match the winner advances to, null for the final. */
+  nextMatchId: string | null;
+}
+
 /** A league as shown to anyone holding its share link: no owner, no ids, no token. */
 export interface SharedLeagueDTO {
   league: Pick<Tables<"tournaments">, "name" | "points_win" | "points_draw" | "points_loss">;
+  /** Payloads without a format are leagues. */
+  format: TournamentFormat;
   players: PlayerDTO[];
+  /** Matches with both players known. For a cup, use `cupMatches` instead: it keeps open slots. */
   fixtures: FixtureDTO[];
+  /** Cup only: every match of the bracket, open slots included. */
+  cupMatches?: CupMatchDTO[];
 }
 
 /** One leaderboard row: a player's record over the played matches of a league. */

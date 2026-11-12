@@ -13,6 +13,8 @@ interface Props {
   pointsDraw: number;
   pointsLoss: number;
   pointsLocked: boolean;
+  /** A cup has no points settings: the form shows the name only. */
+  isCup?: boolean;
   serverError?: string | null;
 }
 
@@ -31,6 +33,7 @@ export default function EditLeagueSettingsForm({
   pointsDraw: initialDraw,
   pointsLoss: initialLoss,
   pointsLocked,
+  isCup = false,
   serverError,
 }: Props) {
   const [name, setName] = useState(initialName);
@@ -40,9 +43,10 @@ export default function EditLeagueSettingsForm({
   const [errors, setErrors] = useState<Partial<Record<FieldName, string>>>({});
 
   function validate() {
-    const result = pointsLocked
-      ? leagueNameSchema.safeParse({ name })
-      : leagueSettingsSchema.safeParse({ name, pointsWin, pointsDraw, pointsLoss });
+    const result =
+      pointsLocked || isCup
+        ? leagueNameSchema.safeParse({ name })
+        : leagueSettingsSchema.safeParse({ name, pointsWin, pointsDraw, pointsLoss });
 
     if (result.success) {
       setErrors({});
@@ -82,7 +86,7 @@ export default function EditLeagueSettingsForm({
     >
       <FormField
         id="name"
-        label="League name"
+        label={isCup ? "Cup name" : "League name"}
         value={name}
         onChange={(v) => {
           setName(v);
@@ -93,7 +97,7 @@ export default function EditLeagueSettingsForm({
         icon={<Trophy className="size-4" />}
       />
 
-      {pointsLocked ? (
+      {isCup ? null : pointsLocked ? (
         <div className="space-y-3">
           {/* Plain text, not inputs: nothing here is submitted, which the endpoint reads as "points unchanged". */}
           <p className="text-muted-foreground text-sm">

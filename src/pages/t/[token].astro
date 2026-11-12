@@ -1,5 +1,6 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import Bracket from "@/components/cup/Bracket.astro";
 import { createClient } from "@/lib/supabase";
 import {
   filterFixturesByPlayer,
@@ -8,6 +9,7 @@ import {
   resolvePlayerFilter,
   toSharedLeague,
 } from "@/lib/services/shared-league";
+import { buildBracketView } from "@/lib/services/bracket-view";
 import { SCORE_ERROR_MESSAGES, isScoreErrorCode } from "@/lib/services/score-submission";
 import { computeStandings } from "@/lib/services/standings";
 import type { SharedLeagueDTO } from "@/types";
@@ -43,6 +45,8 @@ const visibleFixtures = shared
   : [];
 const playedFixtures = shared ? shared.fixtures.filter((fixture) => fixture.score !== null) : [];
 const standings = shared ? computeStandings(shared) : [];
+const isCup = shared?.format === "cup";
+const bracketView = shared?.cupMatches ? buildBracketView(shared.cupMatches) : null;
 const token = Astro.params.token ?? "";
 // The query string only selects a fixed message: free text from a crafted link is never shown.
 const errorCode = Astro.url.searchParams.get("error");
@@ -53,7 +57,27 @@ const alreadyEntered = Astro.url.searchParams.get("notice") === "already-entered
 <Layout title={shared ? shared.league.name : "League not found"}>
   <div class="bg-cosmic flex min-h-screen items-center justify-center p-4">
     <div class="w-full max-w-lg rounded-2xl border border-white/10 bg-white/10 p-8 text-white backdrop-blur-xl">
-      {shared ? (
+      {shared && isCup && bracketView ? (
+        <>
+          <h1 class="mb-2 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
+            {shared.league.name}
+          </h1>
+          <p class="text-blue-100/80">Cup</p>
+          {errorMessage && (
+            <p role="alert" class="mt-4 rounded-lg border border-red-400/30 bg-red-500/10 px-4 py-2 text-red-200">
+              {errorMessage}
+            </p>
+          )}
+          {alreadyEntered && (
+            <p role="status" class="mt-4 rounded-lg border border-blue-300/30 bg-blue-500/10 px-4 py-2 text-blue-100">
+              A score was already entered for that match. It is shown below.
+            </p>
+          )}
+          <div class="mt-6">
+            <Bracket view={bracketView} mode="enter" action="/api/scores" token={token} />
+          </div>
+        </>
+      ) : shared ? (
         <>
           <h1 class="mb-2 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
             {shared.league.name}

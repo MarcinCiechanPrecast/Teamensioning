@@ -1,7 +1,8 @@
 import type { APIRoute } from "astro";
 import { createClient } from "@/lib/supabase";
+import { generateBracket } from "@/lib/services/bracket";
 import { generateFixtures } from "@/lib/services/fixtures";
-import { createLeagueSchema } from "@/lib/validation/league";
+import { createTournamentSchema } from "@/lib/validation/league";
 
 function formString(value: FormDataEntryValue | null): string {
   return typeof value === "string" ? value : "";
@@ -15,7 +16,10 @@ export const POST: APIRoute = async (context) => {
   }
 
   const form = await context.request.formData();
-  const parsed = createLeagueSchema.safeParse({
+  // A missing or unknown format means league, so a post from an old form keeps working.
+  const format = formString(form.get("format")) === "cup" ? "cup" : "league";
+  const parsed = createTournamentSchema.safeParse({
+    format,
     name: formString(form.get("name")),
     pointsWin: formString(form.get("pointsWin")),
     pointsDraw: formString(form.get("pointsDraw")),
@@ -35,7 +39,33 @@ export const POST: APIRoute = async (context) => {
     return failWith("Supabase is not configured");
   }
 
-  const { name, pointsWin, pointsDraw, pointsLoss, players } = parsed.data;
+  const input = parsed.data;
+
+  if (input.format === "cup") {
+    // Re-map to the snake_case plain objects the RPC reads; BracketMatch is not assignable to the Json type.
+    const bracket = generateBracket(input.players.length).map((match) => ({
+      round: match.round,
+      position: match.position,
+      a: match.a,
+      b: match.b,
+      next_position: match.nextPosition,
+      next_slot: match.nextSlot,
+    }));
+
+    const { data: cupId, error: cupError } = await supabase.rpc("create_cup", {
+      p_name: input.name,
+      p_players: input.players,
+      p_bracket: bracket,
+    });
+
+    if (cupError) {
+      return failWith(cupError.code === "23505" ? "Player names must be unique" : cupError.message);
+    }
+
+    return context.redirect(`/leagues/${cupId}`);
+  }
+
+  const { name, pointsWin, pointsDraw, pointsLoss, players } = input;
   // Re-map to plain object literals: the FixturePair interface is not assignable to the RPC's Json type.
   const fixtures = generateFixtures(players.length).map(({ a, b }) => ({ a, b }));
 

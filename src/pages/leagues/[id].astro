@@ -1,10 +1,12 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import Bracket from "@/components/cup/Bracket.astro";
 import CopyLinkField from "@/components/leagues/CopyLinkField";
 import OrganizerFixtureList from "@/components/leagues/OrganizerFixtureList.astro";
+import { buildBracketView } from "@/lib/services/bracket-view";
 import { createClient } from "@/lib/supabase";
 import { CORRECTION_ERROR_MESSAGES, isCorrectionErrorCode } from "@/lib/services/score-correction";
-import type { FixtureDTO, PlayerDTO, TournamentDTO } from "@/types";
+import type { CupMatchDTO, FixtureDTO, PlayerDTO, TournamentDTO, TournamentFormat } from "@/types";
 
 // PostgREST answers a malformed uuid with 22P02; to the organizer that is simply "not found".
 const INVALID_TEXT_REPRESENTATION = "22P02";
@@ -12,7 +14,10 @@ const INVALID_TEXT_REPRESENTATION = "22P02";
 interface LoadedLeague {
   league: TournamentDTO;
   shareToken: string;
+  format: TournamentFormat;
   fixtures: FixtureDTO[];
+  /** Cup only: every match, open slots included. */
+  cupMatches: CupMatchDTO[];
 }
 
 async function loadLeague(id: string | undefined): Promise<LoadedLeague | null> {
@@ -22,7 +27,7 @@ async function loadLeague(id: string | undefined): Promise<LoadedLeague | null> 
   // RLS only returns the organizer's own tournaments, so "not the owner" also lands here as null.
   const { data: league, error: leagueError } = await supabase
     .from("tournaments")
-    .select("id, name, points_win, points_draw, points_loss, created_at")
+    .select("id, name, format, points_win, points_draw, points_loss, created_at")
     .eq("id", id)
     .maybeSingle();
 
@@ -44,7 +49,7 @@ async function loadLeague(id: string | undefined): Promise<LoadedLeague | null> 
     supabase.from("players").select("id, name").eq("tournament_id", league.id),
     supabase
       .from("matches")
-      .select("id, position, player_a_id, player_b_id, results(score_a, score_b)")
+      .select("id, position, round, next_match_id, player_a_id, player_b_id, results(score_a, score_b)")
       .eq("tournament_id", league.id)
       .order("position", { ascending: true }),
   ]);
@@ -54,8 +59,24 @@ async function loadLeague(id: string | undefined): Promise<LoadedLeague | null> 
 
   const playersById = new Map<string, PlayerDTO>(playersResult.data.map((player) => [player.id, player]));
 
+  const format: TournamentFormat = league.format === "cup" ? "cup" : "league";
+
+  const cupMatches: CupMatchDTO[] =
+    format === "cup"
+      ? matchesResult.data.map((match) => ({
+          id: match.id,
+          position: match.position,
+          round: match.round ?? 1,
+          playerA: match.player_a_id ? (playersById.get(match.player_a_id) ?? null) : null,
+          playerB: match.player_b_id ? (playersById.get(match.player_b_id) ?? null) : null,
+          // results is one-to-one with matches: an object once played, null before.
+          score: match.results ? { a: match.results.score_a, b: match.results.score_b } : null,
+          nextMatchId: match.next_match_id,
+        }))
+      : [];
+
   const fixtures = matchesResult.data.flatMap((match): FixtureDTO[] => {
-    // Cup matches can have an open slot (null); the bracket view is added in a later phase.
+    // League matches always have both players; a cup is rendered from cupMatches (open slots are null).
     const playerA = match.player_a_id ? playersById.get(match.player_a_id) : undefined;
     const playerB = match.player_b_id ? playersById.get(match.player_b_id) : undefined;
     if (!playerA || !playerB) return [];
@@ -64,10 +85,12 @@ async function loadLeague(id: string | undefined): Promise<LoadedLeague | null> 
     return [{ id: match.id, position: match.position, playerA, playerB, score }];
   });
 
-  return { league, shareToken: tokenRow.share_token, fixtures };
+  return { league, shareToken: tokenRow.share_token, format, fixtures, cupMatches };
 }
 
 const result = await loadLeague(Astro.params.id);
+const isCup = result?.format === "cup";
+const bracketView = result && isCup ? buildBracketView(result.cupMatches) : null;
 if (!result) {
   Astro.response.status = 404;
 }
@@ -86,20 +109,50 @@ const notice = Astro.url.searchParams.get("notice") === "score-updated" ? "Score
           <h1 class="mb-2 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
             {result.league.name}
           </h1>
-          <p class="text-blue-100/80">
-            W {result.league.points_win} / D {result.league.points_draw} / L {result.league.points_loss}
-          </p>
-          <p class="mt-1 text-sm text-blue-100/50">{result.fixtures.length} matches</p>
+          {isCup ? (
+            <>
+              <p class="text-blue-100/80">Cup</p>
+              <p class="mt-1 text-sm text-blue-100/50">{result.cupMatches.length} matches</p>
+            </>
+          ) : (
+            <>
+              <p class="text-blue-100/80">
+                W {result.league.points_win} / D {result.league.points_draw} / L {result.league.points_loss}
+              </p>
+              <p class="mt-1 text-sm text-blue-100/50">{result.fixtures.length} matches</p>
+            </>
+          )}
           <div class="mt-6">
             <p class="mb-2 text-sm text-blue-100/80">Share link</p>
             <CopyLinkField url={`${Astro.url.origin}/t/${result.shareToken}`} client:load />
           </div>
-          <OrganizerFixtureList
-            leagueId={result.league.id}
-            fixtures={result.fixtures}
-            errorMessage={errorMessage}
-            notice={notice}
-          />
+          {bracketView ? (
+            <>
+              {errorMessage && (
+                <p role="alert" class="mt-4 rounded-lg border border-red-400/30 bg-red-500/10 px-4 py-2 text-red-200">
+                  {errorMessage}
+                </p>
+              )}
+              {notice && (
+                <p
+                  role="status"
+                  class="mt-4 rounded-lg border border-blue-300/30 bg-blue-500/10 px-4 py-2 text-blue-100"
+                >
+                  {notice}
+                </p>
+              )}
+              <div class="mt-6">
+                <Bracket view={bracketView} mode="correct" action={`/api/leagues/${result.league.id}/scores`} />
+              </div>
+            </>
+          ) : (
+            <OrganizerFixtureList
+              leagueId={result.league.id}
+              fixtures={result.fixtures}
+              errorMessage={errorMessage}
+              notice={notice}
+            />
+          )}
           <p class="mt-6 flex items-center justify-between text-sm">
             <a href="/dashboard" class="text-purple-300 hover:underline">
               Back to dashboard
