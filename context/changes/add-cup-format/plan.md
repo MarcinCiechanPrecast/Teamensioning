@@ -367,8 +367,8 @@ Additive only; existing rows backfill to `format = 'league'`. Cups can exist onl
 
 #### Automated
 
-- [x] 1.1 Docs formatted: `npx prettier --check context/foundation/prd.md context/foundation/roadmap.md context/foundation/test-plan.md`
-- [x] 1.2 Old Non-Goal gone: `grep -n "No formats other than league" context/foundation/prd.md` prints nothing
+- [x] 1.1 Docs formatted: `npx prettier --check context/foundation/prd.md context/foundation/roadmap.md context/foundation/test-plan.md` — efd2690
+- [x] 1.2 Old Non-Goal gone: `grep -n "No formats other than league" context/foundation/prd.md` prints nothing — efd2690
 
 #### Manual
 
@@ -380,10 +380,10 @@ Additive only; existing rows backfill to `format = 'league'`. Cups can exist onl
 
 #### Automated
 
-- [ ] 2.1 Generator tests pass: `npx vitest run --project unit src/lib/services/bracket.test.ts`
-- [ ] 2.2 Whole unit suite passes: `npm test`
-- [ ] 2.3 Linting passes: `npm run lint`
-- [ ] 2.4 Narrow mutation run completes: `npx stryker run --mutate "src/lib/services/bracket.ts"`
+- [x] 2.1 Generator tests pass: `npx vitest run --project unit src/lib/services/bracket.test.ts`
+- [x] 2.2 Whole unit suite passes: `npm test`
+- [x] 2.3 Linting passes: `npm run lint`
+- [x] 2.4 Narrow mutation run completes: `npx stryker run --mutate "src/lib/services/bracket.ts"`
 
 #### Manual
 

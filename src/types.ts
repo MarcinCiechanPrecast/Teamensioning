@@ -6,6 +6,21 @@ export interface FixturePair {
   b: number;
 }
 
+/**
+ * One cup match. `a`/`b` are 0-based player indexes in entry order (index 0 = seed 1), null when the
+ * slot is filled later by the winner of the match that links to it. `position` is global and 1-based
+ * (round 1 first, final last). `nextPosition`/`nextSlot` name the later slot the winner moves into
+ * (null for the final).
+ */
+export interface BracketMatch {
+  round: number;
+  position: number;
+  a: number | null;
+  b: number | null;
+  nextPosition: number | null;
+  nextSlot: "a" | "b" | null;
+}
+
 /** A league as shown to its owner. */
 export type TournamentDTO = Pick<
   Tables<"tournaments">,
