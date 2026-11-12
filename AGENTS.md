@@ -15,7 +15,7 @@ This file provides guidance to AI Agent when working with code in this repositor
 - `npm run test:e2e` — Playwright US-01 browser run (`tests/e2e/`). Builds and previews the app on port 4400 (`E2E_PORT` overrides) against local Supabase (`.env` + `.dev.vars`); signs up a fresh organizer each run and refuses a non-local `SUPABASE_URL`. Patterns: `context/foundation/test-plan.md` §6.5
 - `npm run smoke` — dependency-free auth-flow smoke test (`scripts/smoke.mjs`) against a running server, `BASE_URL` env (default `http://localhost:4321`). Run after dependency upgrades; CI runs it against the production preview with a local Supabase.
 
-Pre-commit hooks: husky + lint-staged runs `eslint --fix` on `*.{ts,tsx,astro}` and `prettier --write` on `*.{json,css,md}`.
+Pre-commit hooks: husky + lint-staged runs `eslint --fix` on `*.{ts,tsx,astro}` and `prettier --write` on `*.{json,css,md}`. Pre-push (`.husky/pre-push`): `npm test` + `npx astro check` (~30 s); a red run blocks the push.
 
 Agent hooks (Claude Code, `.claude/settings.json`): after every `Write`/`Edit`, `.claude/hooks/post-edit.mjs` lints the edited file and runs its related unit tests; at end of turn, `.claude/hooks/end-of-turn.mjs` lints every changed file, runs the unit suite and `astro check`, and sends the agent back once on failure. Both report through exit 2 + stderr. Proven by `scripts/agent-hooks.test.ts` (part of `npm test`); change a hook, re-run it. Restart the session after editing hook config.
 
