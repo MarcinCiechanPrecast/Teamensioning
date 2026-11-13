@@ -162,24 +162,24 @@ None — no schema change.
 
 #### Automated
 
-- [x] 1.1 Guard fails before the cleanup and passes after
-- [x] 1.2 Unit suite passes
-- [x] 1.3 Lint and UI guard pass
-- [x] 1.4 Types pass
+- [x] 1.1 Guard fails before the cleanup and passes after — 37438a8
+- [x] 1.2 Unit suite passes — 37438a8
+- [x] 1.3 Lint and UI guard pass — 37438a8
+- [x] 1.4 Types pass — 37438a8
 
 #### Manual
 
-- [x] 1.5 `/` renders the branded page anonymous and signed in
+- [x] 1.5 `/` renders the branded page anonymous and signed in — 37438a8
 
 ### Phase 2: Repo identity cleanup
 
 #### Automated
 
-- [ ] 2.1 Guard and unit suite pass
-- [ ] 2.2 Lint passes
-- [ ] 2.3 Build passes
-- [ ] 2.4 Smoke passes against the production preview with local Supabase
+- [x] 2.1 Guard and unit suite pass
+- [x] 2.2 Lint passes
+- [x] 2.3 Build passes
+- [x] 2.4 Smoke passes against the production preview with local Supabase
 
 #### Manual
 
-- [ ] 2.5 README renders sensibly on GitHub
+- [x] 2.5 README renders sensibly on GitHub
