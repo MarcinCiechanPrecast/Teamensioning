@@ -399,8 +399,8 @@ None. No schema or data changes.
 
 #### Automated
 
-- [x] 3.1 Guard passes on every Phase 3 file
-- [x] 3.2 `npm run lint`, `npm test` and `npx astro check` pass
+- [x] 3.1 Guard passes on every Phase 3 file — 1bfa0ba
+- [x] 3.2 `npm run lint`, `npm test` and `npx astro check` pass — 1bfa0ba
 
 #### Manual
 
@@ -410,8 +410,8 @@ None. No schema or data changes.
 
 #### Automated
 
-- [ ] 4.1 Guard passes on every Phase 4 file
-- [ ] 4.2 `npm run lint`, `npm test` and `npx astro check` pass
+- [x] 4.1 Guard passes on every Phase 4 file
+- [x] 4.2 `npm run lint`, `npm test` and `npx astro check` pass
 
 #### Manual
 

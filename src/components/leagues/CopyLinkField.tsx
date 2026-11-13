@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface Props {
   url: string;
@@ -34,7 +35,7 @@ export default function CopyLinkField({ url }: Props) {
 
   return (
     <div className="flex items-center gap-2">
-      <input
+      <Input
         ref={inputRef}
         type="text"
         readOnly
@@ -44,14 +45,9 @@ export default function CopyLinkField({ url }: Props) {
         onFocus={(e) => {
           e.currentTarget.select();
         }}
-        className="min-w-0 flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
+        className="flex-1"
       />
-      <Button
-        type="button"
-        variant="ghost"
-        onClick={() => void handleCopy()}
-        className="rounded-lg border border-white/10 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-      >
+      <Button type="button" variant="outline" onClick={() => void handleCopy()}>
         {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
         {copied ? "Copied" : "Copy"}
       </Button>

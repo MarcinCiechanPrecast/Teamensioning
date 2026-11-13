@@ -1,6 +1,9 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import Bracket from "@/components/cup/Bracket.astro";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { buttonVariants } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase";
 import {
   filterFixturesByPlayer,
@@ -12,6 +15,7 @@ import {
 import { buildBracketView } from "@/lib/services/bracket-view";
 import { SCORE_ERROR_MESSAGES, isScoreErrorCode } from "@/lib/services/score-submission";
 import { computeStandings } from "@/lib/services/standings";
+import { cn } from "@/lib/utils";
 import type { SharedLeagueDTO } from "@/types";
 
 async function loadSharedLeague(token: string | undefined): Promise<SharedLeagueDTO | null> {
@@ -52,26 +56,31 @@ const token = Astro.params.token ?? "";
 const errorCode = Astro.url.searchParams.get("error");
 const errorMessage = isScoreErrorCode(errorCode) ? SCORE_ERROR_MESSAGES[errorCode] : null;
 const alreadyEntered = Astro.url.searchParams.get("notice") === "already-entered";
+
+const fieldClass = cn(
+  "border-input bg-background text-foreground rounded-lg border",
+  "focus-visible:ring-ring outline-hidden focus-visible:ring-2",
+);
+const scoreInputClass = cn(fieldClass, "w-16 px-2 py-1");
+const rowClass = "border-border bg-card text-card-foreground rounded-lg border px-4 py-2";
 ---
 
 <Layout title={shared ? shared.league.name : "League not found"}>
   <div class="bg-cosmic flex min-h-screen items-center justify-center p-4">
-    <div class="w-full max-w-lg rounded-2xl border border-white/10 bg-white/10 p-8 text-white backdrop-blur-xl">
+    <Card className="w-full max-w-lg gap-0 p-8">
       {shared && isCup && bracketView ? (
         <>
-          <h1 class="mb-2 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
-            {shared.league.name}
-          </h1>
-          <p class="text-blue-100/80">Cup</p>
+          <h1 class="text-foreground mb-2 text-3xl font-bold break-words">{shared.league.name}</h1>
+          <p class="text-muted-foreground">Cup</p>
           {errorMessage && (
-            <p role="alert" class="mt-4 rounded-lg border border-red-400/30 bg-red-500/10 px-4 py-2 text-red-200">
-              {errorMessage}
-            </p>
+            <Alert variant="destructive" className="mt-4">
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
           )}
           {alreadyEntered && (
-            <p role="status" class="mt-4 rounded-lg border border-blue-300/30 bg-blue-500/10 px-4 py-2 text-blue-100">
-              A score was already entered for that match. It is shown below.
-            </p>
+            <Alert variant="success" role="status" className="mt-4">
+              <AlertDescription>A score was already entered for that match. It is shown below.</AlertDescription>
+            </Alert>
           )}
           <div class="mt-6">
             <Bracket view={bracketView} mode="enter" action="/api/scores" token={token} />
@@ -79,10 +88,8 @@ const alreadyEntered = Astro.url.searchParams.get("notice") === "already-entered
         </>
       ) : shared ? (
         <>
-          <h1 class="mb-2 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
-            {shared.league.name}
-          </h1>
-          <p class="text-blue-100/80">
+          <h1 class="text-foreground mb-2 text-3xl font-bold break-words">{shared.league.name}</h1>
+          <p class="text-muted-foreground">
             W {shared.league.points_win} / D {shared.league.points_draw} / L {shared.league.points_loss}
           </p>
           {playedFixtures.length === 0 ? (
@@ -130,41 +137,41 @@ const alreadyEntered = Astro.url.searchParams.get("notice") === "already-entered
             </div>
           )}
           <form method="get" class="mt-6 flex items-center gap-2">
-            <label for="player" class="text-sm text-blue-100/80">
+            <label for="player" class="text-muted-foreground text-sm">
               Player
             </label>
-            <select
-              id="player"
-              name="player"
-              class="min-w-0 flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
-            >
-              <option value="" class="text-black" selected={selectedPlayerId === null}>
+            <select id="player" name="player" class:list={cn(fieldClass, "min-w-0 flex-1 px-3 py-2")}>
+              <option value="" class="bg-background text-foreground" selected={selectedPlayerId === null}>
                 All players
               </option>
               {shared.players.map((player) => (
-                <option value={player.id} class="text-black" selected={player.id === selectedPlayerId}>
+                <option
+                  value={player.id}
+                  class="bg-background text-foreground"
+                  selected={player.id === selectedPlayerId}
+                >
                   {player.name}
                 </option>
               ))}
             </select>
-            <button type="submit" class="rounded-lg border border-white/10 bg-white/10 px-4 py-2 hover:bg-white/20">
+            <button type="submit" class:list={buttonVariants({ variant: "outline" })}>
               Filter
             </button>
           </form>
           {errorMessage && (
-            <p role="alert" class="mt-4 rounded-lg border border-red-400/30 bg-red-500/10 px-4 py-2 text-red-200">
-              {errorMessage}
-            </p>
+            <Alert variant="destructive" className="mt-4">
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
           )}
           {alreadyEntered && (
-            <p role="status" class="mt-4 rounded-lg border border-blue-300/30 bg-blue-500/10 px-4 py-2 text-blue-100">
-              A score was already entered for that match. It is shown below.
-            </p>
+            <Alert variant="success" role="status" className="mt-4">
+              <AlertDescription>A score was already entered for that match. It is shown below.</AlertDescription>
+            </Alert>
           )}
-          <p class="mt-4 text-sm text-blue-100/50">{visibleFixtures.length} to play</p>
+          <p class="text-muted-foreground mt-4 text-sm">{visibleFixtures.length} to play</p>
           <ol class="mt-2 space-y-2">
             {visibleFixtures.map((fixture) => (
-              <li class="rounded-lg border border-white/10 bg-white/5 px-4 py-2">
+              <li class:list={rowClass}>
                 <form method="POST" action="/api/scores" class="flex flex-wrap items-center gap-2">
                   <input type="hidden" name="token" value={token} />
                   <input type="hidden" name="matchId" value={fixture.id} />
@@ -180,7 +187,7 @@ const alreadyEntered = Astro.url.searchParams.get("notice") === "already-entered
                     step="1"
                     inputmode="numeric"
                     aria-label={`Score of ${fixture.playerA.name}`}
-                    class="w-16 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white"
+                    class:list={scoreInputClass}
                   />
                   <span aria-hidden="true">–</span>
                   <input
@@ -192,12 +199,9 @@ const alreadyEntered = Astro.url.searchParams.get("notice") === "already-entered
                     step="1"
                     inputmode="numeric"
                     aria-label={`Score of ${fixture.playerB.name}`}
-                    class="w-16 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white"
+                    class:list={scoreInputClass}
                   />
-                  <button
-                    type="submit"
-                    class="rounded-lg border border-white/10 bg-white/10 px-3 py-1 hover:bg-white/20"
-                  >
+                  <button type="submit" class:list={buttonVariants({ variant: "outline", size: "sm" })}>
                     Save
                   </button>
                 </form>
@@ -206,10 +210,10 @@ const alreadyEntered = Astro.url.searchParams.get("notice") === "already-entered
           </ol>
           {playedFixtures.length > 0 && (
             <>
-              <h2 class="mt-6 text-sm text-blue-100/50">Played ({playedFixtures.length})</h2>
+              <h2 class="text-muted-foreground mt-6 text-sm">Played ({playedFixtures.length})</h2>
               <ol class="mt-2 space-y-2">
                 {playedFixtures.map((fixture) => (
-                  <li class="rounded-lg border border-white/10 bg-white/5 px-4 py-2">
+                  <li class:list={rowClass}>
                     {fixture.playerA.name} {fixture.score?.a}–{fixture.score?.b} {fixture.playerB.name}
                   </li>
                 ))}
@@ -219,10 +223,10 @@ const alreadyEntered = Astro.url.searchParams.get("notice") === "already-entered
         </>
       ) : (
         <>
-          <h1 class="mb-2 text-2xl font-bold">League not found</h1>
-          <p class="text-blue-100/80">This link is not valid.</p>
+          <h1 class="text-foreground mb-2 text-2xl font-bold">League not found</h1>
+          <p class="text-muted-foreground">This link is not valid.</p>
         </>
       )}
-    </div>
+    </Card>
   </div>
 </Layout>

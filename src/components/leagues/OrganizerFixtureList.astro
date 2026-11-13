@@ -1,4 +1,7 @@
 ---
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { FixtureDTO } from "@/types";
 
 interface Props {
@@ -9,21 +12,26 @@ interface Props {
 }
 
 const { leagueId, fixtures, errorMessage, notice } = Astro.props;
+
+const inputClass = cn(
+  "border-input bg-background text-foreground w-16 rounded-lg border px-2 py-1",
+  "focus-visible:ring-ring outline-hidden focus-visible:ring-2",
+);
 ---
 
 {errorMessage && (
-  <p role="alert" class="mt-4 rounded-lg border border-red-400/30 bg-red-500/10 px-4 py-2 text-red-200">
-    {errorMessage}
-  </p>
+  <Alert variant="destructive" className="mt-4">
+    <AlertDescription>{errorMessage}</AlertDescription>
+  </Alert>
 )}
 {notice && (
-  <p role="status" class="mt-4 rounded-lg border border-blue-300/30 bg-blue-500/10 px-4 py-2 text-blue-100">
-    {notice}
-  </p>
+  <Alert variant="success" role="status" className="mt-4">
+    <AlertDescription>{notice}</AlertDescription>
+  </Alert>
 )}
 <ol class="mt-6 space-y-2">
   {fixtures.map((fixture) => (
-    <li class="rounded-lg border border-white/10 bg-white/5 px-4 py-2">
+    <li class="border-border bg-card text-card-foreground rounded-lg border px-4 py-2">
       {fixture.score ? (
         <form method="POST" action={`/api/leagues/${leagueId}/scores`} class="flex flex-wrap items-center gap-2">
           <input type="hidden" name="matchId" value={fixture.id} />
@@ -40,7 +48,7 @@ const { leagueId, fixtures, errorMessage, notice } = Astro.props;
             inputmode="numeric"
             value={fixture.score.a}
             aria-label={`Score of ${fixture.playerA.name}`}
-            class="w-16 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white"
+            class:list={inputClass}
           />
           <span aria-hidden="true">–</span>
           <input
@@ -53,9 +61,9 @@ const { leagueId, fixtures, errorMessage, notice } = Astro.props;
             inputmode="numeric"
             value={fixture.score.b}
             aria-label={`Score of ${fixture.playerB.name}`}
-            class="w-16 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white"
+            class:list={inputClass}
           />
-          <button type="submit" class="rounded-lg border border-white/10 bg-white/10 px-3 py-1 hover:bg-white/20">
+          <button type="submit" class:list={buttonVariants({ variant: "outline", size: "sm" })}>
             Save
           </button>
         </form>
