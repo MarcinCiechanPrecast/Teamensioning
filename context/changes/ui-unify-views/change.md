@@ -1,7 +1,7 @@
 ---
 change_id: ui-unify-views
 title: Apply the Dashboard UI style to every remaining view
-status: implementing
+status: implemented
 created: 2026-11-13
 updated: 2026-11-13
 archived_at: null

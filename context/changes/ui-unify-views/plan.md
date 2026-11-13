@@ -438,9 +438,9 @@ None. No schema or data changes.
 
 #### Automated
 
-- [x] 6.1 Prettier check passes on the edited docs
-- [x] 6.2 AGENTS.md no longer says other views are not migrated
+- [x] 6.1 Prettier check passes on the edited docs — 823708d
+- [x] 6.2 AGENTS.md no longer says other views are not migrated — 823708d
 
 #### Manual
 
-- [x] 6.3 AGENTS.md UI section reads correctly for a new agent
+- [x] 6.3 AGENTS.md UI section reads correctly for a new agent — 823708d
