@@ -94,7 +94,17 @@ function cupScoreForm(scoreA, scoreB) {
 }
 
 const steps = [
-  ["home renders", () => request("/"), { status: 200 }],
+  [
+    "home renders the Teamensioning landing",
+    async () => {
+      const result = await request("/");
+      // The <title> carries the brand on every page; only the landing view renders this heading.
+      const landing =
+        /<h1[^>]*>\s*Teamensioning\s*<\/h1>/.test(result.body) && result.body.includes("From sketch to standings");
+      return { ...result, status: landing ? result.status : 0 };
+    },
+    { status: 200 },
+  ],
   ["dashboard redirects anonymous user", () => request("/dashboard"), { status: 302, location: "/auth/signin" }],
   ["new league redirects anonymous user", () => request("/leagues/new"), { status: 302, location: "/auth/signin" }],
   [

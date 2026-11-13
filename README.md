@@ -1,8 +1,10 @@
-# 10x Astro Starter
+# Teamensioning
 
-![](./public/template.png)
+**Team + Dimensioning.** Teamensioning runs a casual office league the way an engineering drawing specifies a part: every size and tolerance written down, so nobody has to ask.
 
-A modern, opinionated starter template for building fast, accessible web applications.
+- **Draft the league** — pick league or cup, set points for win/draw/loss (3/1/0 by default), add players; fixtures are generated so every player meets every other exactly once.
+- **Share the blueprint** — one link lets players see who they play next and enter their own scores, no account needed.
+- **Read the measurements** — standings recalculate as scores land and always match the entered results; a cup bracket never stores a draw and never rewrites a played match.
 
 ## Tech Stack
 
@@ -23,8 +25,8 @@ A modern, opinionated starter template for building fast, accessible web applica
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/przeprogramowani/10x-astro-starter.git
-cd 10x-astro-starter
+git clone https://github.com/MarcinCiechanPrecast/Teamensioning.git
+cd Teamensioning
 ```
 
 2. Install dependencies:
@@ -178,7 +180,7 @@ BASE_URL=http://localhost:4321 npm run smoke
 
 It needs a reachable Supabase instance (local or cloud) with email confirmation disabled.
 
-> **Note:** this script exists primarily to guard the development of the starter itself — it is a fast sanity check that dependency upgrades did not break the build, the Cloudflare adapter or the Supabase auth flow. It is **not** a substitute for a real test suite. Once you build your own product on top of this starter, add proper tests (unit, integration, end-to-end) suited to your application.
+> **Note:** the smoke test is a fast HTTP sanity check that dependency upgrades did not break the build, the Cloudflare adapter, the auth flow or the league/score write paths. It complements, and does not replace, the unit (`npm test`), integration (`npm run test:integration`) and E2E (`npm run test:e2e`) suites.
 
 ## CI
 

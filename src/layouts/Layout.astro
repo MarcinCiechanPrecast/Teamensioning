@@ -8,7 +8,10 @@ interface Props {
   title?: string;
 }
 
-const { title = "10x Astro Starter" } = Astro.props;
+const { title } = Astro.props;
+const pageTitle = title ? `${title} · Teamensioning` : "Teamensioning — dimension your office league";
+const description =
+  "Teamensioning runs your office league: fixtures drawn up for you, scores reported through one shared link, standings that always match the results.";
 ---
 
 <!doctype html>
@@ -18,7 +21,8 @@ const { title = "10x Astro Starter" } = Astro.props;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/png" href="/favicon.png" />
-    <title>{title}</title>
+    <meta name="description" content={description} />
+    <title>{pageTitle}</title>
   </head>
   <body>
     {missingConfigs.map((cfg) => (

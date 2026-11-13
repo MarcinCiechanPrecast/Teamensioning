@@ -1,0 +1,29 @@
+---
+/**
+ * A dimension line from an engineering drawing: extension ticks at both ends, arrowheads pointing
+ * outwards and a measurement label in the middle. Decorative, so hidden from assistive tech.
+ * Colour follows `currentColor`; set it with a token class (`text-primary`, `text-muted-foreground`).
+ */
+import { cn } from "@/lib/utils";
+
+interface Props {
+  label: string;
+  class?: string;
+}
+
+const { label, class: className } = Astro.props;
+---
+
+<div aria-hidden="true" class:list={cn("flex w-full items-center gap-0 font-mono text-xs", className)}>
+  <span class="h-4 w-px bg-current"></span>
+  <svg viewBox="0 0 8 8" class="size-2 shrink-0 fill-current">
+    <polygon points="0,4 8,0 8,8"></polygon>
+  </svg>
+  <span class="h-px flex-1 bg-current opacity-60"></span>
+  <span class="px-3 tracking-widest whitespace-nowrap uppercase">{label}</span>
+  <span class="h-px flex-1 bg-current opacity-60"></span>
+  <svg viewBox="0 0 8 8" class="size-2 shrink-0 fill-current">
+    <polygon points="8,4 0,0 0,8"></polygon>
+  </svg>
+  <span class="h-4 w-px bg-current"></span>
+</div>

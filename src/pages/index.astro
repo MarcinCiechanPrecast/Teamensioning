@@ -1,8 +1,10 @@
 ---
-import Welcome from "@/components/Welcome.astro";
+import HomeView from "@/components/home/HomeView.astro";
 import Layout from "@/layouts/Layout.astro";
+
+const signedIn = Boolean(Astro.locals.user);
 ---
 
 <Layout>
-  <Welcome />
+  <HomeView signedIn={signedIn} />
 </Layout>
