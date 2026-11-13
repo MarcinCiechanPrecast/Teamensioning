@@ -26,6 +26,8 @@
   --accent: oklch(0.9562 0.0383 157.8236);
   --accent-foreground: oklch(0.5457 0.1464 149.3783);
   --destructive: oklch(0.6356 0.2082 25.3782);
+  /* Not in Jamaica: confirmation text. Reuses Jamaica's --accent-foreground green, 4.63:1 on --card (white). */
+  --success: oklch(0.5457 0.1464 149.3783);
   --border: oklch(0.9297 0.0128 164.7776);
   --input: oklch(0.9297 0.0128 164.7776);
   --ring: oklch(0.623 0.1688 149.1777);
@@ -62,6 +64,9 @@
   /* Departs from Jamaica (oklch(0.5875 0.2303 28.2622)): that value gives error text 3.42:1 on --card, below AA.
      This is the original shadcn dark value, 5.43:1. */
   --destructive: oklch(0.704 0.191 22.216);
+  /* Not in Jamaica: confirmation text. Reuses the dark --primary green, 9.98:1 on --card
+     (WCAG ratio, OKLab converted to linear sRGB). */
+  --success: oklch(0.7763 0.2066 149.5172);
   --border: oklch(0.2843 0.0249 162.5796);
   --input: oklch(0.2843 0.0249 162.5796);
   --ring: oklch(0.7763 0.2066 149.5172);
@@ -101,6 +106,7 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
