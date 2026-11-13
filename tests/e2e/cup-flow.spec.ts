@@ -67,6 +67,9 @@ test("cup: a link holder's winner advances, and a correction is refused once the
   await expect(match(page, 1, `${DAN} vs ${EVE}`)).toHaveCount(1);
   await expect(round(page, 2).getByRole("listitem")).toHaveCount(2);
   await expect(match(page, 2, `${ANN} vs TBD`)).toContainText(`Bye: ${ANN}`);
+  // The bye label is styled (ml-2 = 8px), not run into the pairing text: a `class:list="…"` string once
+  // rendered an empty class and "Ann vs TBDBye: Ann" shipped unnoticed because only text was asserted.
+  await expect(match(page, 2, `${ANN} vs TBD`).getByText(`Bye: ${ANN}`)).toHaveCSS("margin-left", "8px");
   await expect(match(page, 2, `${BOB} vs ${CID}`)).toContainText(`Bye: ${BOB}`);
   await expect(match(page, 2, `${BOB} vs ${CID}`)).toContainText(`Bye: ${CID}`);
   await expect(match(page, 3, "TBD vs TBD")).toHaveCount(1);

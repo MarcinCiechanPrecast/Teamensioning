@@ -74,12 +74,12 @@ const inputClass = cn(
               </span>
             )}
             {match.score && mode === "enter" && (
-              <span class:list="text-muted-foreground ml-2 text-sm">
+              <span class="text-muted-foreground ml-2 text-sm">
                 Result {match.score.a}–{match.score.b}
               </span>
             )}
             {byes(match).map((slot) => (
-              <span class:list="text-muted-foreground ml-2 text-sm">Bye: {slot.player?.name}</span>
+              <span class="text-muted-foreground ml-2 text-sm">Bye: {slot.player?.name}</span>
             ))}
           </li>
         ))}
