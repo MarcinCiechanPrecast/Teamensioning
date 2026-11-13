@@ -1,5 +1,7 @@
 import type { APIRoute } from "astro";
 import { createClient } from "@/lib/supabase";
+import { errorFields, logServerEvent } from "@/lib/observability";
+import { isUserCausedAuthError } from "@/lib/services/auth-session";
 
 export const POST: APIRoute = async (context) => {
   const form = await context.request.formData();
@@ -13,6 +15,8 @@ export const POST: APIRoute = async (context) => {
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
+    // A wrong password is not a fault; an Auth outage looks the same to the user, so it must be logged.
+    if (!isUserCausedAuthError(error)) logServerEvent("error", "auth.signin", errorFields(error));
     return context.redirect(`/auth/signin?error=${encodeURIComponent(error.message)}`);
   }
 

@@ -1,4 +1,4 @@
-import { isAuthRetryableFetchError, isAuthSessionMissingError, type User } from "@supabase/supabase-js";
+import { isAuthError, isAuthRetryableFetchError, isAuthSessionMissingError, type User } from "@supabase/supabase-js";
 
 const PROTECTED_ROUTES = ["/dashboard", "/leagues", "/api/leagues"];
 
@@ -23,4 +23,12 @@ export function classifyAuthResult(user: User | null, error: unknown): AuthOutco
   // Network failure or an Auth 5xx/52x: the user may well be signed in, we just cannot tell right now.
   if (isAuthRetryableFetchError(error)) return { kind: "auth-unavailable", error };
   return { kind: "auth-rejected", error };
+}
+
+/**
+ * A sign-in/sign-up error that is the user's own doing (wrong password, weak password, existing account):
+ * an Auth error with a 4xx status. Network failures (status 0), Auth 5xx and non-Auth errors are not.
+ */
+export function isUserCausedAuthError(error: unknown): boolean {
+  return isAuthError(error) && typeof error.status === "number" && error.status >= 400 && error.status < 500;
 }

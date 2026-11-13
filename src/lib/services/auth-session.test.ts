@@ -1,7 +1,32 @@
 import { describe, expect, it } from "vitest";
-import { AuthApiError, AuthRetryableFetchError, AuthSessionMissingError, type User } from "@supabase/supabase-js";
+import {
+  AuthApiError,
+  AuthRetryableFetchError,
+  AuthSessionMissingError,
+  AuthWeakPasswordError,
+  type User,
+} from "@supabase/supabase-js";
 
-import { classifyAuthResult, isProtectedPath } from "@/lib/services/auth-session";
+import { classifyAuthResult, isProtectedPath, isUserCausedAuthError } from "@/lib/services/auth-session";
+
+describe("isUserCausedAuthError", () => {
+  it.each([
+    ["wrong password", new AuthApiError("Invalid login credentials", 400, "invalid_credentials")],
+    ["weak password", new AuthWeakPasswordError("Password too weak", 422, ["length"])],
+    ["rate limit", new AuthApiError("Too many requests", 429, "over_request_rate_limit")],
+  ])("treats %s as the user's doing (not logged)", (_label, error) => {
+    expect(isUserCausedAuthError(error)).toBe(true);
+  });
+
+  it.each([
+    ["network failure", new AuthRetryableFetchError("fetch failed", 0)],
+    ["Auth 503", new AuthRetryableFetchError("Service Unavailable", 503)],
+    ["Auth 500 API error", new AuthApiError("Database error saving new user", 500, "unexpected_failure")],
+    ["non-Auth error", new Error("boom")],
+  ])("treats %s as a server-side failure (logged)", (_label, error) => {
+    expect(isUserCausedAuthError(error)).toBe(false);
+  });
+});
 
 const user = { id: "00000000-0000-0000-0000-000000000001" } as User;
 

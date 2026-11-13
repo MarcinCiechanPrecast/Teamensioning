@@ -4,7 +4,7 @@
  */
 export type LogLevel = "error" | "warn";
 
-export function logServerEvent(level: LogLevel, op: string, fields: Record<string, unknown> = {}): void {
+export function logServerEvent(level: LogLevel, op: string, fields: object = {}): void {
   // eslint-disable-next-line no-console -- the app's single logging sink (Workers Logs collects console output)
   console[level]({ level, op, ...fields });
 }

@@ -221,10 +221,10 @@ None. No schema change.
 
 #### Automated
 
-- [x] 1.1 The new classifier test fails before `auth-session.ts` exists (red), proving the outage case
-- [x] 1.2 Unit suite passes
-- [x] 1.3 Lint passes with no new warnings in changed files
-- [x] 1.4 Types check
+- [x] 1.1 The new classifier test fails before `auth-session.ts` exists (red), proving the outage case — fa38d15
+- [x] 1.2 Unit suite passes — fa38d15
+- [x] 1.3 Lint passes with no new warnings in changed files — fa38d15
+- [x] 1.4 Types check — fa38d15
 
 #### Manual
 
@@ -234,11 +234,11 @@ None. No schema change.
 
 #### Automated
 
-- [ ] 2.1 No raw `console.` calls remain in `src/pages` and `src/middleware.ts`
-- [ ] 2.2 Unit suite passes
-- [ ] 2.3 Lint passes
-- [ ] 2.4 Types check
-- [ ] 2.5 Build passes
+- [x] 2.1 No raw `console.` calls remain in `src/pages` and `src/middleware.ts`
+- [x] 2.2 Unit suite passes
+- [x] 2.3 Lint passes
+- [x] 2.4 Types check
+- [x] 2.5 Build passes
 - [ ] 2.6 CI `ci`, `smoke` and `migration-upgrade` pass on the PR
 
 #### Manual

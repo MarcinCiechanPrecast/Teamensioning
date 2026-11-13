@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { createClient } from "@/lib/supabase";
+import { errorFields, logServerEvent } from "@/lib/observability";
 import { toCorrectionOutcome, type CorrectionErrorCode } from "@/lib/services/score-correction";
 import { validationErrorCode } from "@/lib/services/score-submission";
 import { correctScoreSchema } from "@/lib/validation/score";
@@ -25,22 +26,30 @@ export const POST: APIRoute = async (context) => {
 
   const supabase = createClient(context.request.headers, context.cookies);
   if (!supabase) {
-    // eslint-disable-next-line no-console -- server-side log; the user only gets a fixed error code
-    console.error("score correction: Supabase is not configured");
+    logServerEvent("error", "supabase.not-configured", { route: "scores.correct" });
     return failWith("server");
   }
 
+  const logContext = { leagueId, matchId: parsed.data.matchId, userId: context.locals.user.id };
+
   // The path id must own the match: otherwise an owner could correct a match of another of their leagues
   // through the wrong URL. RLS already hides matches of other owners.
-  const { data: match, error: matchError } = await supabase
+  const {
+    data: match,
+    error: matchError,
+    status: lookupStatus,
+  } = await supabase
     .from("matches")
     .select("id")
     .eq("id", parsed.data.matchId)
     .eq("tournament_id", leagueId)
     .maybeSingle();
   if (matchError) {
-    // eslint-disable-next-line no-console -- server-side log; the user only gets a fixed error code
-    console.error("score correction match lookup failed:", matchError.code, matchError.message);
+    logServerEvent("error", "scores.correct.lookup", {
+      ...logContext,
+      transportStatus: lookupStatus,
+      ...errorFields(matchError),
+    });
   }
   // A malformed league id (22P02) or a match outside this league is simply "not found".
   const lookup = toCorrectionOutcome({ error: matchError, rowCount: 1, inTournament: match !== null });
@@ -49,15 +58,18 @@ export const POST: APIRoute = async (context) => {
   }
 
   // RLS decides ownership: a result of someone else's match is invisible, so nothing is updated or returned.
-  const { data, error } = await supabase
+  const {
+    data,
+    error,
+    status: updateStatus,
+  } = await supabase
     .from("results")
     .update({ score_a: parsed.data.scoreA, score_b: parsed.data.scoreB })
     .eq("match_id", parsed.data.matchId)
     .select("match_id");
 
   if (error) {
-    // eslint-disable-next-line no-console -- server-side log; the user only gets a fixed error code
-    console.error("score correction failed:", error.code, error.message);
+    logServerEvent("error", "scores.correct", { ...logContext, transportStatus: updateStatus, ...errorFields(error) });
   }
 
   const outcome = toCorrectionOutcome({ error, rowCount: data?.length ?? 0 });
