@@ -205,7 +205,7 @@ None open. The three PRD v1 questions were resolved on 2026-10-16 and moved to `
 - **Changing the player list after creation** — Why parked: PRD §Non-Goals; recreate the tournament instead, keeping fixtures tied to a fixed player list.
 - **Other formats (group→knockout, double elimination, Swiss)** — Why parked: PRD §Non-Goals; candidates for a later milestone.
 - **App-level logging and error tracking** — Why parked: speed goal; Workers platform observability covers the MVP.
-- **Migrating the remaining views to the design tokens** (auth pages, landing, league pages, Topbar) — Why parked: `dashboard-ui-tokens` covered one view plus the global tokens by design. When the league view is migrated, fix `src/pages/leagues/[id].astro:81` (`text-blue-100/50`, 4.31:1) and add the migrated views to the `npm run check:ui` guard (`context/archive/2026-10-25-dashboard-ui-tokens/follow-ups/review-fixes.md`).
+- ~~**Migrating the remaining views to the design tokens**~~ — Done by `ui-unify-views` (2026-11-13): every view uses the Jamaica tokens and shared components, and `npm run check:ui` guards all of them (`context/changes/ui-unify-views/`).
 
 ## Milestone History
 

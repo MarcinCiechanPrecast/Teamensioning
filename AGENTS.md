@@ -53,8 +53,12 @@ Full server-side rendering (`output: "server"` in astro.config.mjs). All pages a
 - **Tokens** live in `src/styles/global.css`: values in `:root`/`.dark`, published through `@theme inline` (the Jamaica provenance comment explains the palette). Change a colour there, not in a view.
 - **Components** live in `src/components/ui/`. Add missing ones with `npx shadcn@latest add <name>`; do not hand-build cards, alerts or buttons in views.
 - **No literal colours or arbitrary values in views**: no hex/rgb/hsl/oklch, no palette classes like `bg-purple-600`, no `-[12px]`. Use token classes (`bg-card`, `text-muted-foreground`, `ring-ring`).
-- **Guard**: `npm run check:ui` (also run by lint-staged) scans only the cleaned views, `src/pages/dashboard.astro` and `src/components/dashboard/*.astro`. Other views are not migrated yet.
-- **Visual gate**: the kitchen sink `src/pages/dev/dashboard-states.astro` (dev only, 404 otherwise) shows the dashboard in every applicable state.
+- **Page shell**: every view follows `src/components/dashboard/DashboardView.astro`: a `bg-cosmic flex min-h-screen items-center justify-center p-4` wrapper, a `Card` (`max-w-sm` for auth, `max-w-lg` otherwise), and a `text-foreground` heading (no gradient text). Links are `text-primary` (`text-destructive` for delete). Focus is `focus-visible:ring-ring outline-hidden focus-visible:ring-2`.
+- **Forms**: fields use `src/components/auth/FormField.tsx` (shadcn `Input` + `Label`; `htmlFor` must equal the input `id`, E2E selects by label). Native inputs in `.astro` views copy the `inputClass` pattern in `src/components/cup/Bracket.astro`. Submit with `Button`/`buttonVariants`.
+- **Messages**: errors are `<Alert variant="destructive">` (`role="alert"`). Confirmations are `<Alert variant="success" role="status">` on the `--success` token. Render at most one alert and one status per page state: E2E looks them up page-wide.
+- **Spacing around React islands**: use `flex flex-col gap-*`, not `space-y-*`. `<astro-island>` is `display: contents`, so the margins `space-y` adds never apply to it.
+- **Guard**: `npm run check:ui` scans every `.astro`/`.tsx` view under `src/pages`, `src/components` and `src/layouts`. It skips shadcn primitives in `src/components/ui/` and `*.test.tsx`. It runs in CI (`ci` job) and in lint-staged on staged views. Proof: `scripts/check-ui-literals.test.ts`.
+- **Visual gate**: the kitchen sink `src/pages/dev/dashboard-states.astro` (dev only, 404 otherwise) shows the dashboard in every applicable state. For other views, a UI change saves screenshots of each touched page under its change folder's `screens/` (example: `context/changes/ui-unify-views/screens/`).
 
 ### Environment
 

@@ -89,7 +89,7 @@ orchestrator updates Status as artifacts appear on disk.
 | integration (DB) | none yet — see Phase 1 | —       | Local Supabase (`npx supabase start`) already used by CI smoke; research picks Vitest-against-local-Supabase vs pgTAP                                                         |
 | smoke            | `scripts/smoke.mjs`    | n/a     | Dependency-free auth-flow smoke against production preview in CI                                                                                                              |
 | e2e              | Playwright Test        | ^1.65.0 | `tests/e2e/`; `npm run test:e2e` builds and previews the app on port 4400 against local Supabase; one US-01 spec (Phase 3). Setup facts in `context/foundation/test-stack.md` |
-| UI literal guard | `npm run check:ui`     | n/a     | Scoped to dashboard views                                                                                                                                                     |
+| UI literal guard | `npm run check:ui`     | n/a     | All views (.astro + .tsx under src/pages, src/components, src/layouts; ui/ primitives exempt), proven by scripts/check-ui-literals.test.ts                                    |
 
 **Stack grounding tools (current session):**
 
