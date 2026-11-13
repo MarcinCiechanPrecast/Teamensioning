@@ -64,12 +64,14 @@ const linkFocus = "focus-visible:ring-ring outline-hidden focus-visible:ring-2";
   <div class="relative z-10 mx-auto flex max-w-5xl flex-col gap-20 p-4 pb-24 sm:p-8 sm:pb-32">
     <Topbar />
 
-    <section class="flex flex-col items-center gap-8 pt-8 text-center sm:pt-16">
+    <section aria-labelledby="hero-heading" class="flex flex-col items-center gap-8 pt-8 text-center sm:pt-16">
       <p class="text-muted-foreground font-mono text-xs tracking-widest uppercase">
         Team <span class="text-primary">+</span> Dimensioning
       </p>
       <div class="flex w-full max-w-3xl flex-col items-center gap-4">
-        <h1 class="text-foreground text-5xl leading-tight font-bold sm:text-7xl">Teamensioning</h1>
+        <h1 id="hero-heading" class="text-foreground text-5xl leading-tight font-bold sm:text-7xl">
+          Teamensioning
+        </h1>
         <DimensionLine label="your office league, to spec" class="text-primary" />
       </div>
       <p class="text-muted-foreground max-w-2xl text-lg sm:text-xl">
@@ -83,7 +85,7 @@ const linkFocus = "focus-visible:ring-ring outline-hidden focus-visible:ring-2";
               Go to dashboard
             </a>
             <a href="/leagues/new" class:list={buttonVariants({ variant: "outline", size: "lg" })}>
-              Create a tournament
+              Create league
             </a>
           </>
         ) : (
@@ -101,16 +103,16 @@ const linkFocus = "focus-visible:ring-ring outline-hidden focus-visible:ring-2";
 
     <section aria-labelledby="name-heading">
       <Card className="gap-6 p-8 sm:p-10">
-        <div class="flex flex-wrap items-center justify-center gap-2 font-mono text-sm sm:gap-3 sm:text-base">
+        <h2 id="name-heading" class="text-card-foreground text-center text-2xl font-semibold">
+          What's in the name
+        </h2>
+        <p class="flex flex-wrap items-center justify-center gap-2 font-mono text-sm sm:gap-3 sm:text-base">
           <span class="border-border bg-muted text-foreground rounded-lg border px-3 py-1.5">Team</span>
           <span class="text-primary">+</span>
           <span class="border-border bg-muted text-foreground rounded-lg border px-3 py-1.5">Dimensioning</span>
           <span class="text-primary">=</span>
           <span class="bg-primary text-primary-foreground rounded-lg px-3 py-1.5 font-semibold">Teamensioning</span>
-        </div>
-        <h2 id="name-heading" class="text-card-foreground text-center text-2xl font-semibold">
-          What's in the name
-        </h2>
+        </p>
         <p class="text-muted-foreground mx-auto max-w-2xl text-center leading-relaxed">
           On an engineering drawing, <em class="text-foreground not-italic">dimensioning</em> marks every length, angle
           and tolerance, so anyone can build the part without asking a single question. Teamensioning does the same for
@@ -166,12 +168,14 @@ const linkFocus = "focus-visible:ring-ring outline-hidden focus-visible:ring-2";
       </ul>
     </section>
 
-    <section class="flex flex-col items-center gap-6 text-center">
+    <section aria-labelledby="start-heading" class="flex flex-col items-center gap-6 text-center">
       <DimensionLine label="ready when you are" class="text-primary max-w-3xl" />
-      <h2 class="text-foreground text-3xl font-bold">Put your league on paper — properly</h2>
+      <h2 id="start-heading" class="text-foreground text-3xl font-bold">
+        Put your league on paper — properly
+      </h2>
       {signedIn ? (
         <a href="/leagues/new" class:list={buttonVariants({ size: "lg" })}>
-          Create a tournament
+          Create league
         </a>
       ) : (
         <p class="text-muted-foreground">

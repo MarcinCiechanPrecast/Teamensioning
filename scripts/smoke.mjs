@@ -98,7 +98,10 @@ const steps = [
     "home renders the Teamensioning landing",
     async () => {
       const result = await request("/");
-      return { ...result, status: result.body.includes("Teamensioning") ? result.status : 0 };
+      // The <title> carries the brand on every page; only the landing view renders this heading.
+      const landing =
+        /<h1[^>]*>\s*Teamensioning\s*<\/h1>/.test(result.body) && result.body.includes("From sketch to standings");
+      return { ...result, status: landing ? result.status : 0 };
     },
     { status: 200 },
   ],

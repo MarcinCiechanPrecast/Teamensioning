@@ -10,11 +10,13 @@ import { describe, expect, it } from "vitest";
 const ROOT = path.resolve(import.meta.dirname, "..");
 const FORBIDDEN = [/10x Astro Starter/i, /10x-astro-starter/i, /production-ready starter/i];
 const TOP_LEVEL_FILES = ["README.md", "package.json", "package-lock.json"];
+const TEXT_EXTENSIONS = new Set([".ts", ".tsx", ".astro", ".mjs", ".js", ".css", ".md", ".json"]);
 
 function filesUnder(dir: string): string[] {
   return readdirSync(dir).flatMap((entry) => {
     const full = path.join(dir, entry);
-    return statSync(full).isDirectory() ? filesUnder(full) : [full];
+    if (statSync(full).isDirectory()) return filesUnder(full);
+    return TEXT_EXTENSIONS.has(path.extname(full)) ? [full] : [];
   });
 }
 
