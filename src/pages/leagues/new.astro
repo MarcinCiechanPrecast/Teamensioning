@@ -1,22 +1,28 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import CreateLeagueForm from "@/components/leagues/CreateLeagueForm";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 const error = Astro.url.searchParams.get("error");
 ---
 
 <Layout title="Create league">
   <div class="bg-cosmic flex min-h-screen items-center justify-center p-4">
-    <div class="w-full max-w-lg rounded-2xl border border-white/10 bg-white/10 p-8 text-white backdrop-blur-xl">
-      <h1 class="mb-6 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-center text-2xl font-bold text-transparent">
-        Create league
-      </h1>
-      <CreateLeagueForm serverError={error} client:load />
-      <p class="mt-4 text-center text-sm text-blue-100/60">
-        <a href="/dashboard" class="text-purple-300 hover:underline">
-          Back to dashboard
-        </a>
-      </p>
-    </div>
+    <Card className="w-full max-w-lg">
+      <CardHeader>
+        <h1 class="text-foreground text-center text-2xl leading-none font-semibold">Create league</h1>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <CreateLeagueForm serverError={error} client:load />
+        <p class="text-muted-foreground text-center text-sm">
+          <a
+            href="/dashboard"
+            class="text-primary focus-visible:ring-ring rounded-sm outline-hidden hover:underline focus-visible:ring-2"
+          >
+            Back to dashboard
+          </a>
+        </p>
+      </CardContent>
+    </Card>
   </div>
 </Layout>

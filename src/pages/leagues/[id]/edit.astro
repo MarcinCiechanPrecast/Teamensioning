@@ -70,7 +70,10 @@ const error = Astro.url.searchParams.get("error");
               client:load
             />
             <p class="text-muted-foreground text-center text-sm">
-              <a href={`/leagues/${loaded.league.id}`} class="text-primary hover:underline">
+              <a
+                href={`/leagues/${loaded.league.id}`}
+                class="text-primary focus-visible:ring-ring rounded-sm outline-hidden hover:underline focus-visible:ring-2"
+              >
                 Cancel
               </a>
             </p>

@@ -95,10 +95,10 @@ export default function CreateLeagueForm({ serverError }: Props) {
   return (
     <form method="POST" action="/api/leagues" className="space-y-4" onSubmit={handleSubmit} noValidate>
       <fieldset className="space-y-2">
-        <legend className="mb-1 block text-sm text-blue-100/80">Format</legend>
+        <legend className="text-foreground mb-1 block text-sm">Format</legend>
         <div className="flex gap-6">
           {FORMAT_OPTIONS.map((option) => (
-            <label key={option.value} className="flex items-center gap-2 text-white">
+            <label key={option.value} className="text-foreground flex items-center gap-2 text-sm">
               <input
                 type="radio"
                 name="format"
@@ -108,7 +108,7 @@ export default function CreateLeagueForm({ serverError }: Props) {
                   setFormat(option.value);
                   setErrors(NO_ERRORS);
                 }}
-                className="size-4 accent-purple-400"
+                className="accent-primary focus-visible:ring-ring size-4 outline-hidden focus-visible:ring-2"
               />
               {option.label}
             </label>

@@ -103,7 +103,8 @@ export default function EditLeagueSettingsForm({
           <p className="text-muted-foreground text-sm">
             W {initialWin} / D {initialDraw} / L {initialLoss}
           </p>
-          <Alert>
+          {/* Informational, not an error: role="status" keeps the page to a single alert (ServerError). */}
+          <Alert role="status">
             <Lock />
             <AlertDescription>Points are locked because a score has been entered</AlertDescription>
           </Alert>

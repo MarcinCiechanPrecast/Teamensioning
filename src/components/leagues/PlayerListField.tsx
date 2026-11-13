@@ -2,6 +2,7 @@ import { CircleAlert, Plus, User, X } from "lucide-react";
 import { FormField } from "@/components/auth/FormField";
 import { Button } from "@/components/ui/button";
 import type { PlayerRow } from "@/components/hooks/usePlayerList";
+import { cn } from "@/lib/utils";
 
 interface PlayerListFieldProps {
   rows: PlayerRow[];
@@ -28,7 +29,7 @@ export function PlayerListField({
 }: PlayerListFieldProps) {
   return (
     <fieldset className="space-y-3">
-      <legend className="mb-1 text-sm text-blue-100/80">Players</legend>
+      <legend className="text-foreground mb-1 text-sm">Players</legend>
 
       {rows.map((row, index) => (
         <FormField
@@ -50,7 +51,11 @@ export function PlayerListField({
                 onRemove(row.id);
               }}
               disabled={!canRemove}
-              className="absolute top-1/2 right-3 -translate-y-1/2 text-white/40 transition-colors hover:text-white/70 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:text-white/40"
+              className={cn(
+                "text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 rounded-sm transition-colors",
+                "focus-visible:ring-ring outline-hidden focus-visible:ring-2",
+                "disabled:hover:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-30",
+              )}
               aria-label={`Remove player ${String(index + 1)}`}
             >
               <X className="size-4" />
@@ -60,19 +65,13 @@ export function PlayerListField({
       ))}
 
       {listError && (
-        <p className="flex items-center gap-1 text-xs text-red-300">
+        <p className="text-destructive flex items-center gap-1 text-xs">
           <CircleAlert className="size-3" />
           {listError}
         </p>
       )}
 
-      <Button
-        type="button"
-        variant="ghost"
-        onClick={onAdd}
-        disabled={!canAdd}
-        className="w-full rounded-lg border border-dashed border-white/20 text-blue-100/80 hover:bg-white/10 hover:text-white"
-      >
+      <Button type="button" variant="outline" onClick={onAdd} disabled={!canAdd} className="w-full border-dashed">
         <Plus className="size-4" />
         Add player
       </Button>

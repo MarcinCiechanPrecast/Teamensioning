@@ -1,5 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase";
 
 // PostgREST answers a malformed uuid with 22P02; to the organizer that is simply "not found".
@@ -42,32 +44,40 @@ if (!summary) {
 
 <Layout title={summary ? `Delete ${summary.name}` : "League not found"}>
   <div class="bg-cosmic flex min-h-screen items-center justify-center p-4">
-    <div class="w-full max-w-lg rounded-2xl border border-white/10 bg-white/10 p-8 text-white backdrop-blur-xl">
+    <Card className="w-full max-w-lg">
       {summary ? (
         <>
-          <h1 class="mb-2 text-2xl font-bold">Delete {summary.name}?</h1>
-          <p class="text-blue-100/80">
-            This permanently deletes the league, its {summary.playerCount} players and {summary.matchCount} matches,
-            including every entered score. The share link stops working. This cannot be undone.
-          </p>
-          <form method="POST" action={`/api/leagues/${summary.id}/delete`} class="mt-6 flex items-center gap-4">
-            <button
-              type="submit"
-              class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-500"
-            >
-              Delete permanently
-            </button>
-            <a href={`/leagues/${summary.id}`} class="text-sm text-purple-300 hover:underline">
-              Cancel
-            </a>
-          </form>
+          <CardHeader>
+            <h1 class="text-foreground text-2xl leading-none font-semibold">Delete {summary.name}?</h1>
+          </CardHeader>
+          <CardContent>
+            <p class="text-muted-foreground">
+              This permanently deletes the league, its {summary.playerCount} players and {summary.matchCount} matches,
+              including every entered score. The share link stops working. This cannot be undone.
+            </p>
+            <form method="POST" action={`/api/leagues/${summary.id}/delete`} class="mt-6 flex items-center gap-4">
+              <button type="submit" class:list={buttonVariants({ variant: "destructive" })}>
+                Delete permanently
+              </button>
+              <a
+                href={`/leagues/${summary.id}`}
+                class="text-primary focus-visible:ring-ring rounded-sm text-sm outline-hidden hover:underline focus-visible:ring-2"
+              >
+                Cancel
+              </a>
+            </form>
+          </CardContent>
         </>
       ) : (
         <>
-          <h1 class="mb-2 text-2xl font-bold">League not found</h1>
-          <p class="text-blue-100/80">This league does not exist or you do not have access to it.</p>
+          <CardHeader>
+            <h1 class="text-foreground text-2xl leading-none font-semibold">League not found</h1>
+          </CardHeader>
+          <CardContent>
+            <p class="text-muted-foreground">This league does not exist or you do not have access to it.</p>
+          </CardContent>
         </>
       )}
-    </div>
+    </Card>
   </div>
 </Layout>
