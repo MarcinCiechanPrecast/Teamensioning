@@ -1,0 +1,186 @@
+---
+/**
+ * Landing page. The name is Team + Dimensioning: in an engineering drawing, dimensioning states
+ * every size and tolerance so anyone can build the part without asking. The page borrows that
+ * language — dimension lines, specs, tolerances — to explain what the app does for a league.
+ */
+import Topbar from "@/components/Topbar.astro";
+import DimensionLine from "@/components/home/DimensionLine.astro";
+import { buttonVariants } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+
+interface Props {
+  signedIn: boolean;
+}
+
+const { signedIn } = Astro.props;
+
+const steps = [
+  {
+    number: "01",
+    title: "Draft the league",
+    body: "Name it, pick league or cup, set points for a win, draw and loss, and add players. Every fixture is drawn up for you.",
+  },
+  {
+    number: "02",
+    title: "Share the blueprint",
+    body: "Send one link to the group. Players open it, see who they play next and enter their own scores. No account needed.",
+  },
+  {
+    number: "03",
+    title: "Read the measurements",
+    body: "Standings recalculate the moment a score lands. Nobody updates a spreadsheet, nobody asks in chat who is top.",
+  },
+];
+
+const tolerances = [
+  {
+    value: "± 0",
+    unit: "points",
+    title: "Zero-tolerance standings",
+    body: "The leaderboard always matches the entered results: points and order are never wrong or stale.",
+  },
+  {
+    value: "1 ×",
+    unit: "per pairing",
+    title: "Every pairing exactly once",
+    body: "In a league each player meets every other player once. No missing matches, no duplicates.",
+  },
+  {
+    value: "0",
+    unit: "draws in a cup",
+    title: "A bracket that holds",
+    body: "Winners move to the right slot, draws are refused, and a played match is never rewritten by a later fix.",
+  },
+];
+
+const linkFocus = "focus-visible:ring-ring outline-hidden focus-visible:ring-2";
+---
+
+<div class="bg-cosmic relative min-h-screen w-full overflow-hidden">
+  <div class="bg-primary/20 pointer-events-none absolute top-24 -left-24 size-80 rounded-full blur-3xl"></div>
+  <div class="bg-secondary/10 pointer-events-none absolute top-1/2 -right-16 size-72 rounded-full blur-3xl"></div>
+
+  <div class="relative z-10 mx-auto flex max-w-5xl flex-col gap-20 p-4 pb-24 sm:p-8 sm:pb-32">
+    <Topbar />
+
+    <section class="flex flex-col items-center gap-8 pt-8 text-center sm:pt-16">
+      <p class="text-muted-foreground font-mono text-xs tracking-widest uppercase">
+        Team <span class="text-primary">+</span> Dimensioning
+      </p>
+      <div class="flex w-full max-w-3xl flex-col items-center gap-4">
+        <h1 class="text-foreground text-5xl leading-tight font-bold sm:text-7xl">Teamensioning</h1>
+        <DimensionLine label="your office league, to spec" class="text-primary" />
+      </div>
+      <p class="text-muted-foreground max-w-2xl text-lg sm:text-xl">
+        Dimension your office league. Fixtures drawn to spec, results reported through one shared link, standings held
+        to zero tolerance.
+      </p>
+      <div class="flex flex-col gap-4 sm:flex-row">
+        {signedIn ? (
+          <>
+            <a href="/dashboard" class:list={buttonVariants({ size: "lg" })}>
+              Go to dashboard
+            </a>
+            <a href="/leagues/new" class:list={buttonVariants({ variant: "outline", size: "lg" })}>
+              Create a tournament
+            </a>
+          </>
+        ) : (
+          <>
+            <a href="/auth/signup" class:list={buttonVariants({ size: "lg" })}>
+              Start measuring — it's free
+            </a>
+            <a href="/auth/signin" class:list={buttonVariants({ variant: "outline", size: "lg" })}>
+              Sign in
+            </a>
+          </>
+        )}
+      </div>
+    </section>
+
+    <section aria-labelledby="name-heading">
+      <Card className="gap-6 p-8 sm:p-10">
+        <div class="flex flex-wrap items-center justify-center gap-2 font-mono text-sm sm:gap-3 sm:text-base">
+          <span class="border-border bg-muted text-foreground rounded-lg border px-3 py-1.5">Team</span>
+          <span class="text-primary">+</span>
+          <span class="border-border bg-muted text-foreground rounded-lg border px-3 py-1.5">Dimensioning</span>
+          <span class="text-primary">=</span>
+          <span class="bg-primary text-primary-foreground rounded-lg px-3 py-1.5 font-semibold">Teamensioning</span>
+        </div>
+        <h2 id="name-heading" class="text-card-foreground text-center text-2xl font-semibold">
+          What's in the name
+        </h2>
+        <p class="text-muted-foreground mx-auto max-w-2xl text-center leading-relaxed">
+          On an engineering drawing, <em class="text-foreground not-italic">dimensioning</em> marks every length, angle
+          and tolerance, so anyone can build the part without asking a single question. Teamensioning does the same for
+          your team's league: who plays whom, what each result is worth and where everyone stands is written down
+          precisely, in one place everybody can read.
+        </p>
+      </Card>
+    </section>
+
+    <section aria-labelledby="steps-heading" class="flex flex-col gap-8">
+      <div class="flex flex-col items-center gap-3 text-center">
+        <h2 id="steps-heading" class="text-foreground text-3xl font-bold">
+          From sketch to standings
+        </h2>
+        <DimensionLine label="3 steps" class="text-muted-foreground max-w-md" />
+      </div>
+      <ol class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+        {steps.map((step) => (
+          <li>
+            <Card className="h-full gap-3 p-6">
+              <span class="text-primary font-mono text-sm font-semibold">{step.number}</span>
+              <h3 class="text-card-foreground text-lg font-semibold">{step.title}</h3>
+              <p class="text-muted-foreground text-sm leading-relaxed">{step.body}</p>
+            </Card>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section aria-labelledby="tolerances-heading" class="flex flex-col gap-8">
+      <div class="flex flex-col items-center gap-3 text-center">
+        <h2 id="tolerances-heading" class="text-foreground text-3xl font-bold">
+          Tolerances we hold
+        </h2>
+        <p class="text-muted-foreground max-w-xl">
+          A drawing is only useful if the numbers are right. These are the guarantees Teamensioning is built and tested
+          against.
+        </p>
+      </div>
+      <ul class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+        {tolerances.map((tolerance) => (
+          <li>
+            <Card className="h-full gap-3 p-6">
+              <p class="flex items-baseline gap-2">
+                <span class="text-primary font-mono text-3xl font-bold">{tolerance.value}</span>
+                <span class="text-muted-foreground font-mono text-xs tracking-widest uppercase">{tolerance.unit}</span>
+              </p>
+              <h3 class="text-card-foreground text-lg font-semibold">{tolerance.title}</h3>
+              <p class="text-muted-foreground text-sm leading-relaxed">{tolerance.body}</p>
+            </Card>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="flex flex-col items-center gap-6 text-center">
+      <DimensionLine label="ready when you are" class="text-primary max-w-3xl" />
+      <h2 class="text-foreground text-3xl font-bold">Put your league on paper — properly</h2>
+      {signedIn ? (
+        <a href="/leagues/new" class:list={buttonVariants({ size: "lg" })}>
+          Create a tournament
+        </a>
+      ) : (
+        <p class="text-muted-foreground">
+          <a href="/auth/signup" class:list={["text-primary rounded-sm font-semibold hover:underline", linkFocus]}>
+            Create a free account
+          </a>{" "}
+          and draw up your first league in under a minute.
+        </p>
+      )}
+    </section>
+  </div>
+</div>
