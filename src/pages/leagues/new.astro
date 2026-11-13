@@ -12,7 +12,7 @@ const error = Astro.url.searchParams.get("error");
       <CardHeader>
         <h1 class="text-foreground text-center text-2xl leading-none font-semibold">Create league</h1>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="flex flex-col gap-4">
         <CreateLeagueForm serverError={error} client:load />
         <p class="text-muted-foreground text-center text-sm">
           <a

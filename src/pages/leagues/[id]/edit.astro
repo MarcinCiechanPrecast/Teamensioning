@@ -57,7 +57,7 @@ const error = Astro.url.searchParams.get("error");
           <CardHeader>
             <CardTitle className="text-2xl">Edit settings</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="flex flex-col gap-4">
             <EditLeagueSettingsForm
               leagueId={loaded.league.id}
               name={loaded.league.name}

@@ -1,13 +1,14 @@
-// UI literal guard: fails when a cleaned dashboard view reintroduces hex/rgb/hsl/oklch colours,
-// arbitrary lengths, inline styles or palette colour classes instead of design tokens.
+// UI literal guard: fails when a view reintroduces hex/rgb/hsl/oklch colours, arbitrary lengths,
+// inline styles or palette colour classes instead of design tokens.
 // Zero dependencies on purpose. Usage: node scripts/check-ui-literals.mjs [files...]
-// With no arguments it scans src/pages/dashboard.astro and every *.astro under src/components/dashboard/
-// and src/components/cup/.
-// It fails (exit 1) when it ends up scanning nothing, so a renamed view cannot make the guard pass silently.
+// With no arguments it walks src/pages, src/components and src/layouts and scans every view that
+// isGuardedView() accepts (.astro and .tsx; shadcn primitives in src/components/ui/ are exempt).
+// Explicit arguments (lint-staged passes staged paths) go through the same filter.
+// With no arguments it fails (exit 1) when it scans nothing, so a moved tree cannot make the guard pass silently.
 // Known limits: bare named colours (`color: red`) and colour functions inside comments are not told apart.
 
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { isAbsolute, join, relative } from "node:path";
 
 // Scan patterns from the 10x-ui skill, plus inline styles and non-px arbitrary lengths.
 const PATTERNS = [
@@ -21,29 +22,47 @@ const PATTERNS = [
   /\bstyle\s*=/,
 ];
 
-const DEFAULT_PAGE = "src/pages/dashboard.astro";
-const DEFAULT_DIRS = ["src/components/dashboard", "src/components/cup"];
+const SCAN_ROOTS = ["src/pages", "src/components", "src/layouts"];
 
 const normalise = (path) => path.replaceAll("\\", "/");
 
-function defaultFiles() {
-  const files = existsSync(DEFAULT_PAGE) ? [DEFAULT_PAGE] : [];
-  for (const dir of DEFAULT_DIRS) {
-    if (!existsSync(dir)) continue;
-    for (const name of readdirSync(dir).sort()) {
-      if (name.endsWith(".astro")) files.push(join(dir, name));
-    }
-  }
-  return files;
+/**
+ * Decides whether a repo-relative path (forward slashes, e.g. "src/components/ui/button.tsx")
+ * is a view the guard must scan. Used for the default walk and for explicit arguments alike.
+ * @param {string} path
+ * @returns {boolean}
+ */
+function isGuardedView(path) {
+  if (!path.endsWith(".astro") && !path.endsWith(".tsx")) return false;
+  // Only real views: anything outside the scan roots is not a view, even if lint-staged hands it over.
+  if (!SCAN_ROOTS.some((root) => path.startsWith(`${root}/`))) return false;
+  // shadcn primitives ship their own arbitrary values (`ring-[3px]`); views consume them, they are not views.
+  if (path.startsWith("src/components/ui/")) return false;
+  // Tests may need literal colours as fixtures.
+  return !/\.test\.tsx$/.test(path);
 }
 
-const args = process.argv.slice(2);
-const files = args.length > 0 ? args : defaultFiles();
+function walk(dir) {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true })
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .flatMap((entry) => {
+      const path = normalise(join(dir, entry.name));
+      return entry.isDirectory() ? walk(path) : [path];
+    });
+}
+
+// lint-staged passes absolute paths; isGuardedView() works on repo-relative ones.
+const args = process.argv.slice(2).map((arg) => normalise(isAbsolute(arg) ? relative(process.cwd(), arg) : arg));
+const files = (args.length > 0 ? args : SCAN_ROOTS.flatMap(walk)).filter(isGuardedView);
 
 if (files.length === 0) {
-  console.error(
-    `No files to scan: expected ${DEFAULT_PAGE} and *.astro under ${DEFAULT_DIRS.join(", ")}. Was a view renamed?`,
-  );
+  if (args.length > 0) {
+    // lint-staged may pass only exempt files (e.g. a shadcn primitive); nothing to check is fine then.
+    console.log("No guarded views among the given files.");
+    process.exit(0);
+  }
+  console.error(`No files to scan under ${SCAN_ROOTS.join(", ")}. Was the source tree moved?`);
   process.exit(1);
 }
 

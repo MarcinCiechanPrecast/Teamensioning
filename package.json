@@ -72,7 +72,7 @@
     "*.{json,css,md}": [
       "prettier --write"
     ],
-    "src/{pages/dashboard.astro,components/dashboard/*.astro}": [
+    "src/{pages,components,layouts}/**/*.{astro,tsx}": [
       "node scripts/check-ui-literals.mjs"
     ]
   },

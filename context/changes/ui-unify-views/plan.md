@@ -382,7 +382,7 @@ None. No schema or data changes.
 
 #### Manual
 
-- [ ] 1.4 Signin form and success Alert render with tokens in the browser
+- [x] 1.4 Signin form and success Alert render with tokens in the browser
 
 ### Phase 2: Auth & landing (parallel A)
 
@@ -393,7 +393,7 @@ None. No schema or data changes.
 
 #### Manual
 
-- [ ] 2.3 Landing and auth pages match the dashboard look (screenshots saved)
+- [x] 2.3 Landing and auth pages match the dashboard look (screenshots saved)
 
 ### Phase 3: League forms (parallel B)
 
@@ -404,35 +404,35 @@ None. No schema or data changes.
 
 #### Manual
 
-- [ ] 3.3 New/edit/delete league pages match the dashboard look (screenshots saved)
+- [x] 3.3 New/edit/delete league pages match the dashboard look (screenshots saved)
 
 ### Phase 4: League & share views (parallel C)
 
 #### Automated
 
-- [x] 4.1 Guard passes on every Phase 4 file
-- [x] 4.2 `npm run lint`, `npm test` and `npx astro check` pass
+- [x] 4.1 Guard passes on every Phase 4 file — c6f2212
+- [x] 4.2 `npm run lint`, `npm test` and `npx astro check` pass — c6f2212
 
 #### Manual
 
-- [ ] 4.3 League, share and cup pages match the dashboard look (screenshots saved)
+- [x] 4.3 League, share and cup pages match the dashboard look (screenshots saved)
 
 ### Phase 5: Guard & verification
 
 #### Automated
 
-- [ ] 5.1 `npm run check:ui` passes and reports ≥ 28 scanned files
-- [ ] 5.2 `npm run lint` passes
-- [ ] 5.3 `npm test` passes (including the new guard test)
-- [ ] 5.4 `npx astro check` passes
-- [ ] 5.5 `npm run build` succeeds
-- [ ] 5.6 `npm run test:integration` passes against local Supabase
-- [ ] 5.7 `npm run smoke` passes against the production preview
-- [ ] 5.8 `npm run test:e2e` passes
+- [x] 5.1 `npm run check:ui` passes and reports ≥ 28 scanned files
+- [x] 5.2 `npm run lint` passes
+- [x] 5.3 `npm test` passes (including the new guard test)
+- [x] 5.4 `npx astro check` passes
+- [x] 5.5 `npm run build` succeeds
+- [x] 5.6 `npm run test:integration` passes against local Supabase
+- [x] 5.7 `npm run smoke` passes against the production preview
+- [x] 5.8 `npm run test:e2e` passes
 
 #### Manual
 
-- [ ] 5.9 Screenshots of every migrated page saved under screens/
+- [x] 5.9 Screenshots of every migrated page saved under screens/
 
 ### Phase 6: Documentation
 
