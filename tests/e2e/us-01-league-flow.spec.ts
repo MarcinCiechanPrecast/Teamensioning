@@ -4,7 +4,8 @@
 // the database. Neither checks the rendered standings for a non-default points setting, nor that a correction
 // reaches the next anonymous view.
 import { randomUUID } from "node:crypto";
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
+import { expect, test } from "./support/cleanup";
 import { waitForHydration } from "./support/hydration";
 
 const PLAYERS = ["Anna", "Bartek", "Celina", "Darek"];
@@ -41,6 +42,7 @@ test("US-01: leaderboard reflects a link holder's score and the organizer's corr
   page,
   browser,
   baseURL,
+  cleanup,
 }) => {
   const leagueName = `E2E League ${randomUUID().slice(0, 8)}`;
 
@@ -48,9 +50,9 @@ test("US-01: leaderboard reflects a link holder's score and the organizer's corr
   await page.goto("/leagues/new");
   await waitForHydration(page);
   await page.getByLabel("League name").fill(leagueName);
-  await page.getByLabel("Win").fill(POINTS.win);
-  await page.getByLabel("Draw").fill(POINTS.draw);
-  await page.getByLabel("Loss").fill(POINTS.loss);
+  await page.getByLabel("Win", { exact: true }).fill(POINTS.win);
+  await page.getByLabel("Draw", { exact: true }).fill(POINTS.draw);
+  await page.getByLabel("Loss", { exact: true }).fill(POINTS.loss);
   await page.getByRole("button", { name: "Add player" }).click();
   for (const [index, name] of PLAYERS.entries()) {
     await page.getByLabel(`Player ${index + 1}`, { exact: true }).fill(name);
@@ -59,6 +61,7 @@ test("US-01: leaderboard reflects a link holder's score and the organizer's corr
 
   await expect(page.getByRole("heading", { name: leagueName })).toBeVisible();
   const leaguePath = new URL(page.url()).pathname;
+  cleanup.track(leaguePath);
   // US-01 AC: 4 players → 6 matches, every pair once.
   await expect(page.getByText("6 matches")).toBeVisible();
   const shareUrl = await page.getByLabel("Share link").inputValue();
@@ -105,10 +108,12 @@ test("US-01: leaderboard reflects a link holder's score and the organizer's corr
     await expectStanding(linkHolder, "Celina", ["3", "0", "0", "0", "0", "0", "0", "0", "0"]);
     await expectStanding(linkHolder, "Darek", ["3", "0", "0", "0", "0", "0", "0", "0", "0"]);
 
-    // --- Cleanup through the UI, asserted: the league is gone and its link stops working.
+    // --- Deleting through the UI is asserted: the league is gone and its link stops working.
+    // (A failure above never reaches this line; the cleanup fixture deletes the league then.)
     await page.goto(`${leaguePath}/delete`);
     await page.getByRole("button", { name: "Delete permanently" }).click();
     await page.waitForURL("**/dashboard");
+    cleanup.done(leaguePath);
     await linkHolder.goto(sharePath);
     await expect(linkHolder.getByRole("heading", { name: "League not found" })).toBeVisible();
   } finally {

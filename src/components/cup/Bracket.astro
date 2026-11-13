@@ -1,0 +1,90 @@
+---
+import { buttonVariants } from "@/components/ui/button";
+import type { BracketMatchView, BracketSlotView, BracketView } from "@/lib/services/bracket-view";
+import { cn } from "@/lib/utils";
+
+interface Props {
+  view: BracketView;
+  /** "enter": link holders score unplayed matches. "correct": the organizer edits played matches. */
+  mode: "enter" | "correct";
+  /** Where the score forms post to. */
+  action: string;
+  /** The share token, sent as a hidden field in "enter" mode. */
+  token?: string;
+}
+
+const { view, mode, action, token } = Astro.props;
+
+const slotName = (slot: BracketSlotView) => slot.player?.name ?? "TBD";
+const byes = (match: BracketMatchView) => [match.a, match.b].filter((slot) => slot.bye && slot.player);
+const hasForm = (match: BracketMatchView) => (mode === "enter" ? match.ready : match.played);
+
+const inputClass = cn(
+  "border-input bg-background text-foreground w-16 rounded-lg border px-2 py-1",
+  "focus-visible:ring-ring outline-hidden focus-visible:ring-2",
+);
+---
+
+<section class="bg-card text-card-foreground space-y-6 rounded-xl border p-4">
+  {view.rounds.map((round) => (
+    <div>
+      <h2 class="text-muted-foreground mb-2 text-sm">Round {round.round}</h2>
+      <ol aria-label={`Round ${round.round}`} class="space-y-2">
+        {round.matches.map((match) => (
+          <li class="border-border rounded-lg border px-4 py-2">
+            {hasForm(match) ? (
+              <form method="POST" action={action} class="flex flex-wrap items-center gap-2">
+                {mode === "enter" && <input type="hidden" name="token" value={token} />}
+                <input type="hidden" name="matchId" value={match.id} />
+                <span class="min-w-0 basis-full break-words sm:flex-1">
+                  {slotName(match.a)} vs {slotName(match.b)}
+                </span>
+                <input
+                  type="number"
+                  name="scoreA"
+                  required
+                  min="0"
+                  max="99"
+                  step="1"
+                  inputmode="numeric"
+                  value={match.score?.a}
+                  aria-label={`Score of ${slotName(match.a)}`}
+                  class:list={inputClass}
+                />
+                <span aria-hidden="true">–</span>
+                <input
+                  type="number"
+                  name="scoreB"
+                  required
+                  min="0"
+                  max="99"
+                  step="1"
+                  inputmode="numeric"
+                  value={match.score?.b}
+                  aria-label={`Score of ${slotName(match.b)}`}
+                  class:list={inputClass}
+                />
+                <button type="submit" class:list={buttonVariants({ size: "sm" })}>
+                  Save
+                </button>
+              </form>
+            ) : (
+              <span class="break-words">
+                {slotName(match.a)} vs {slotName(match.b)}
+              </span>
+            )}
+            {match.score && mode === "enter" && (
+              <span class="text-muted-foreground ml-2 text-sm">
+                Result {match.score.a}–{match.score.b}
+              </span>
+            )}
+            {byes(match).map((slot) => (
+              <span class="text-muted-foreground ml-2 text-sm">Bye: {slot.player?.name}</span>
+            ))}
+          </li>
+        ))}
+      </ol>
+    </div>
+  ))}
+  {view.champion && <p class="text-foreground font-semibold">Champion: {view.champion.name}</p>}
+</section>

@@ -1,5 +1,5 @@
 import type { Json } from "@/db/database.types";
-import type { FixtureDTO, PlayerDTO, SharedLeagueDTO } from "@/types";
+import type { CupMatchDTO, FixtureDTO, PlayerDTO, SharedLeagueDTO } from "@/types";
 
 /** A share token is 64 lowercase hex chars (enforced by the tournaments_share_token_check constraint). */
 const SHARE_TOKEN_PATTERN = /^[0-9a-f]{64}$/;
@@ -32,8 +32,9 @@ export function playedMatchIds(fixtures: FixtureDTO[]): Set<string> {
 /**
  * Turns the get_shared_league RPC payload into a SharedLeagueDTO.
  *
- * Returns null for a null or malformed payload. Matches whose players are missing are dropped,
- * like the owner page does.
+ * Returns null for a null or malformed payload. A payload without `league.format` is a league.
+ * League matches whose players are missing are dropped, like the owner page does; a cup keeps every
+ * match in `cupMatches` with null for an open slot.
  */
 export function toSharedLeague(payload: Json | null | undefined): SharedLeagueDTO | null {
   if (!isRecord(payload)) return null;
@@ -59,22 +60,37 @@ export function toSharedLeague(payload: Json | null | undefined): SharedLeagueDT
   }
   const playersById = new Map(playerList.map((player) => [player.id, player]));
 
+  const format = league.format === "cup" ? "cup" : "league";
+
   const fixtures: FixtureDTO[] = [];
+  const cupMatches: CupMatchDTO[] = [];
   for (const raw of matches) {
-    if (
-      !isRecord(raw) ||
-      typeof raw.id !== "string" ||
-      typeof raw.position !== "number" ||
-      typeof raw.player_a_id !== "string" ||
-      typeof raw.player_b_id !== "string"
-    ) {
-      return null;
-    }
+    if (!isRecord(raw) || typeof raw.id !== "string" || typeof raw.position !== "number") return null;
+    // A league match always has both players; a cup match can have an open (null) slot.
+    const slotOk = (value: unknown) => typeof value === "string" || (format === "cup" && value === null);
+    if (!slotOk(raw.player_a_id) || !slotOk(raw.player_b_id)) return null;
     const score = toScore(raw.score_a, raw.score_b);
     if (score === undefined) return null;
-    const playerA = playersById.get(raw.player_a_id);
-    const playerB = playersById.get(raw.player_b_id);
+    const playerA = typeof raw.player_a_id === "string" ? playersById.get(raw.player_a_id) : undefined;
+    const playerB = typeof raw.player_b_id === "string" ? playersById.get(raw.player_b_id) : undefined;
     if (playerA && playerB) fixtures.push({ id: raw.id, position: raw.position, playerA, playerB, score });
+
+    if (format === "cup") {
+      if (typeof raw.round !== "number") return null;
+      // A named player that is not in the players list is malformed, not an open slot.
+      if ((typeof raw.player_a_id === "string" && !playerA) || (typeof raw.player_b_id === "string" && !playerB)) {
+        return null;
+      }
+      cupMatches.push({
+        id: raw.id,
+        position: raw.position,
+        round: raw.round,
+        playerA: playerA ?? null,
+        playerB: playerB ?? null,
+        score,
+        nextMatchId: typeof raw.next_match_id === "string" ? raw.next_match_id : null,
+      });
+    }
   }
 
   return {
@@ -84,8 +100,10 @@ export function toSharedLeague(payload: Json | null | undefined): SharedLeagueDT
       points_draw: league.points_draw,
       points_loss: league.points_loss,
     },
+    format,
     players: playerList,
     fixtures,
+    ...(format === "cup" ? { cupMatches } : {}),
   };
 }
 

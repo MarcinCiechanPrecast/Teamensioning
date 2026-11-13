@@ -12,6 +12,7 @@ type EditableLeague = Pick<TournamentDTO, "id" | "name" | "points_win" | "points
 
 interface LoadedSettings {
   league: EditableLeague;
+  isCup: boolean;
   pointsLocked: boolean;
 }
 
@@ -22,7 +23,7 @@ async function loadSettings(id: string | undefined): Promise<LoadedSettings | nu
   // RLS only returns the organizer's own tournaments, so "not the owner" also lands here as null.
   const { data: league, error } = await supabase
     .from("tournaments")
-    .select("id, name, points_win, points_draw, points_loss")
+    .select("id, name, format, points_win, points_draw, points_loss")
     .eq("id", id)
     .maybeSingle();
   if (error) {
@@ -38,7 +39,7 @@ async function loadSettings(id: string | undefined): Promise<LoadedSettings | nu
     .eq("matches.tournament_id", league.id);
   if (resultsError) throw new Error(resultsError.message);
 
-  return { league, pointsLocked: (count ?? 0) > 0 };
+  return { league, isCup: league.format === "cup", pointsLocked: (count ?? 0) > 0 };
 }
 
 const loaded = await loadSettings(Astro.params.id);
@@ -64,6 +65,7 @@ const error = Astro.url.searchParams.get("error");
               pointsDraw={loaded.league.points_draw}
               pointsLoss={loaded.league.points_loss}
               pointsLocked={loaded.pointsLocked}
+              isCup={loaded.isCup}
               serverError={error}
               client:load
             />

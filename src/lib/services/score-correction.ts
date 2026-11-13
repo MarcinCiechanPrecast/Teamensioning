@@ -5,6 +5,8 @@
 export const CORRECTION_ERROR_MESSAGES = {
   "invalid-score": "Enter a whole number from 0 to 99 for both scores.",
   "match-not-found": "That match could not be found or has no score to correct.",
+  "next-round-played": "The next round has already been played, so this score can no longer be changed.",
+  "draw-not-allowed": "A cup match cannot end in a draw. Enter a winner.",
   server: "The score could not be saved. Try again.",
 } as const;
 
@@ -20,6 +22,13 @@ export type CorrectionOutcome = { kind: "updated" } | { kind: "error"; code: Cor
 const CHECK_VIOLATION = "23514";
 /** PostgREST answers a malformed uuid with 22P02; to the organizer that is simply "not found". */
 const INVALID_TEXT_REPRESENTATION = "22P02";
+/** The cup trigger refuses a change of winner once the next match has a result (errcode 55000). */
+const OBJECT_NOT_IN_PREREQUISITE_STATE = "55000";
+const NEXT_ROUND_PLAYED_MESSAGE = "cup_next_round_played";
+/** The cup trigger refuses a draw with errcode P0001 and this hint (23514 stays the score range check). */
+const RAISE_EXCEPTION = "P0001";
+const DRAW_HINT = "cup_draw_not_allowed";
+const DRAW_MESSAGE = "a cup match cannot end in a draw";
 
 /**
  * Maps the result of the update to an outcome. `rowCount` is the number of rows the update returned:
@@ -27,12 +36,21 @@ const INVALID_TEXT_REPRESENTATION = "22P02";
  * a result all return 0 rows and are one outcome.
  */
 export function toCorrectionOutcome(result: {
-  error: { code?: string } | null;
+  error: { code?: string; message?: string; hint?: string } | null;
   rowCount: number;
   /** False when the match is not part of the tournament named in the URL; defaults to true. */
   inTournament?: boolean;
 }): CorrectionOutcome {
   if (result.error) {
+    if (result.error.code === OBJECT_NOT_IN_PREREQUISITE_STATE || result.error.message === NEXT_ROUND_PLAYED_MESSAGE) {
+      return { kind: "error", code: "next-round-played" };
+    }
+    if (
+      result.error.code === RAISE_EXCEPTION &&
+      (result.error.hint === DRAW_HINT || result.error.message === DRAW_MESSAGE)
+    ) {
+      return { kind: "error", code: "draw-not-allowed" };
+    }
     if (result.error.code === CHECK_VIOLATION) return { kind: "error", code: "invalid-score" };
     if (result.error.code === INVALID_TEXT_REPRESENTATION) return { kind: "error", code: "match-not-found" };
     return { kind: "error", code: "server" };

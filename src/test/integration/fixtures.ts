@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { generateBracket } from "@/lib/services/bracket";
 import { generateFixtures } from "@/lib/services/fixtures";
 import { anonClient, type TestClient } from "./supabase-test-env";
 
@@ -88,7 +89,11 @@ export async function createLeagueAs(
     tournamentId,
     shareToken: tournament.share_token,
     matchIds: matches.map((m) => m.id),
-    matches: matches.map((m) => ({ id: m.id, playerAId: m.player_a_id, playerBId: m.player_b_id })),
+    matches: matches.map((m) => {
+      // A league match always has both players (DB check); only cup matches can have an open slot.
+      if (!m.player_a_id || !m.player_b_id) throw new Error(`createLeagueAs: match ${m.id} has an open slot`);
+      return { id: m.id, playerAId: m.player_a_id, playerBId: m.player_b_id };
+    }),
     playerIds: Object.fromEntries(players.map((p) => [p.name, p.id])),
   };
 }
@@ -182,4 +187,142 @@ export async function enterScoreAsLinkHolder(
   if ((data as { status?: string } | null)?.status !== "created") {
     throw new Error(`enterScoreAsLinkHolder: expected created, got ${JSON.stringify(data)}`);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Cup (single-elimination) fixtures
+// ---------------------------------------------------------------------------
+
+export interface TestCupMatch {
+  id: string;
+  /** Global 1-based position (round 1 first, final last). */
+  position: number;
+  round: number;
+}
+
+export interface TestCup {
+  tournamentId: string;
+  shareToken: string;
+  /** Player id by the name passed at creation (entry order = seed). */
+  playerIds: Record<string, string>;
+  /** Matches by position: `matches[position - 1]`. */
+  matches: TestCupMatch[];
+}
+
+/** One match as the owner reads it: slots as player names (null = still TBD) plus the advancement link. */
+export interface CupMatchSlots {
+  position: number;
+  round: number;
+  a: string | null;
+  b: string | null;
+  nextPosition: number | null;
+  nextSlot: string | null;
+}
+
+/** The generator's bracket in the snake_case shape `create_cup` takes as `p_bracket`. */
+export function cupBracketPayload(playerCount: number) {
+  return generateBracket(playerCount).map((m) => ({
+    round: m.round,
+    position: m.position,
+    a: m.a,
+    b: m.b,
+    next_position: m.nextPosition,
+    next_slot: m.nextSlot,
+  }));
+}
+
+/** Creates a cup as `owner` (bracket from the real generator), then reads token, players and matches back as that owner. */
+export async function createCupAs(owner: TestUser, names: string[]): Promise<TestCup> {
+  const { data: tournamentId, error } = await owner.client.rpc("create_cup", {
+    p_name: `IT cup ${randomUUID().slice(0, 8)}`,
+    p_players: names,
+    p_bracket: cupBracketPayload(names.length),
+  });
+  if (error) throw new Error(`createCupAs: ${error.message}`, { cause: error });
+
+  const { data: tournament, error: tournamentError } = await owner.client
+    .from("tournaments")
+    .select("share_token")
+    .eq("id", tournamentId)
+    .single();
+  if (tournamentError) throw new Error(`createCupAs (token): ${tournamentError.message}`, { cause: tournamentError });
+
+  const { data: matches, error: matchesError } = await owner.client
+    .from("matches")
+    .select("id, position, round")
+    .eq("tournament_id", tournamentId)
+    .order("position");
+  if (matchesError) throw new Error(`createCupAs (matches): ${matchesError.message}`, { cause: matchesError });
+
+  const { data: players, error: playersError } = await owner.client
+    .from("players")
+    .select("id, name")
+    .eq("tournament_id", tournamentId);
+  if (playersError) throw new Error(`createCupAs (players): ${playersError.message}`, { cause: playersError });
+
+  return {
+    tournamentId,
+    shareToken: tournament.share_token,
+    playerIds: Object.fromEntries(players.map((p) => [p.name, p.id])),
+    matches: matches.map((m) => {
+      if (m.round === null) throw new Error(`createCupAs: match ${m.id} has no round`);
+      return { id: m.id, position: m.position, round: m.round };
+    }),
+  };
+}
+
+/** Collects owner-side cleanups as cups are created, mirroring `leagueCleanup` (a cup is deleted like a league). */
+export function cupCleanup() {
+  const created: { owner: TestUser; tournamentId: string }[] = [];
+  return {
+    async create(owner: TestUser, names: string[]): Promise<TestCup> {
+      const cup = await createCupAs(owner, names);
+      created.push({ owner, tournamentId: cup.tournamentId });
+      return cup;
+    },
+    async run(): Promise<void> {
+      await Promise.all(created.splice(0).map(({ owner, tournamentId }) => deleteLeagueAs(owner, tournamentId)));
+    },
+  };
+}
+
+/** The match at a 1-based bracket position. */
+export function cupMatch(cup: TestCup, position: number): TestCupMatch {
+  const found = cup.matches.find((m) => m.position === position);
+  if (!found) throw new Error(`cupMatch: no match at position ${position}`);
+  return found;
+}
+
+/** Enters a score through the anonymous write path and returns the reported status (no throw on a refusal status). */
+export async function enterCupScore(cup: TestCup, position: number, scoreA: number, scoreB: number): Promise<string> {
+  const { data, error } = await anonClient().rpc("submit_match_score", {
+    p_token: cup.shareToken,
+    p_match_id: cupMatch(cup, position).id,
+    p_score_a: scoreA,
+    p_score_b: scoreB,
+  });
+  if (error) throw new Error(`enterCupScore: ${error.message}`, { cause: error });
+  return (data as { status: string }).status;
+}
+
+/** The owner's read of every match: slots as player names (null = TBD), ordered by position. */
+export async function readCupMatchSlots(owner: TestUser, cup: TestCup): Promise<CupMatchSlots[]> {
+  const { data, error } = await owner.client
+    .from("matches")
+    .select("position, round, player_a_id, player_b_id, next_match_id, next_slot")
+    .eq("tournament_id", cup.tournamentId)
+    .order("position");
+  if (error) throw new Error(`readCupMatchSlots: ${error.message}`, { cause: error });
+
+  const nameById = new Map(Object.entries(cup.playerIds).map(([name, id]) => [id, name]));
+  const positionById = new Map(cup.matches.map((m) => [m.id, m.position]));
+  const nameOf = (id: string | null) => (id === null ? null : (nameById.get(id) ?? `?${id}`));
+  return data.map((m) => ({
+    position: m.position,
+    round: m.round ?? 0,
+    a: nameOf(m.player_a_id),
+    b: nameOf(m.player_b_id),
+    nextPosition: m.next_match_id === null ? null : (positionById.get(m.next_match_id) ?? null),
+    nextSlot: m.next_slot,
+  }));
 }

@@ -5,7 +5,8 @@ import { ServerError } from "@/components/auth/ServerError";
 import { SubmitButton } from "@/components/auth/SubmitButton";
 import { PlayerListField } from "@/components/leagues/PlayerListField";
 import { usePlayerList } from "@/components/hooks/usePlayerList";
-import { createLeagueSchema } from "@/lib/validation/league";
+import { createTournamentSchema } from "@/lib/validation/league";
+import type { TournamentFormat } from "@/types";
 
 interface Props {
   serverError?: string | null;
@@ -19,6 +20,11 @@ interface FormErrors {
   list?: string;
 }
 
+const FORMAT_OPTIONS: { value: TournamentFormat; label: string }[] = [
+  { value: "league", label: "League" },
+  { value: "cup", label: "Cup" },
+];
+
 const NO_ERRORS: FormErrors = { fields: {}, rows: {} };
 const FIELD_NAMES = new Set<PropertyKey>(["name", "pointsWin", "pointsDraw", "pointsLoss"]);
 
@@ -27,6 +33,7 @@ function isFieldName(key: PropertyKey | undefined): key is FieldName {
 }
 
 export default function CreateLeagueForm({ serverError }: Props) {
+  const [format, setFormat] = useState<TournamentFormat>("league");
   const [name, setName] = useState("");
   const [pointsWin, setPointsWin] = useState("3");
   const [pointsDraw, setPointsDraw] = useState("1");
@@ -37,7 +44,8 @@ export default function CreateLeagueForm({ serverError }: Props) {
   function validate() {
     // Mirror the endpoint: empty rows are dropped before validation.
     const filledRows = players.rows.filter((row) => row.value.trim() !== "");
-    const result = createLeagueSchema.safeParse({
+    const result = createTournamentSchema.safeParse({
+      format,
       name,
       pointsWin,
       pointsDraw,
@@ -86,9 +94,31 @@ export default function CreateLeagueForm({ serverError }: Props) {
 
   return (
     <form method="POST" action="/api/leagues" className="space-y-4" onSubmit={handleSubmit} noValidate>
+      <fieldset className="space-y-2">
+        <legend className="mb-1 block text-sm text-blue-100/80">Format</legend>
+        <div className="flex gap-6">
+          {FORMAT_OPTIONS.map((option) => (
+            <label key={option.value} className="flex items-center gap-2 text-white">
+              <input
+                type="radio"
+                name="format"
+                value={option.value}
+                checked={format === option.value}
+                onChange={() => {
+                  setFormat(option.value);
+                  setErrors(NO_ERRORS);
+                }}
+                className="size-4 accent-purple-400"
+              />
+              {option.label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
       <FormField
         id="name"
-        label="League name"
+        label={format === "cup" ? "Cup name" : "League name"}
         value={name}
         onChange={(v) => {
           setName(v);
@@ -99,44 +129,46 @@ export default function CreateLeagueForm({ serverError }: Props) {
         icon={<Trophy className="size-4" />}
       />
 
-      <div className="grid grid-cols-3 gap-3">
-        <FormField
-          id="pointsWin"
-          type="number"
-          label="Win"
-          value={pointsWin}
-          onChange={(v) => {
-            setPointsWin(v);
-            clearPointsErrors();
-          }}
-          error={errors.fields.pointsWin}
-          icon={<Plus className="size-4" />}
-        />
-        <FormField
-          id="pointsDraw"
-          type="number"
-          label="Draw"
-          value={pointsDraw}
-          onChange={(v) => {
-            setPointsDraw(v);
-            clearPointsErrors();
-          }}
-          error={errors.fields.pointsDraw}
-          icon={<Handshake className="size-4" />}
-        />
-        <FormField
-          id="pointsLoss"
-          type="number"
-          label="Loss"
-          value={pointsLoss}
-          onChange={(v) => {
-            setPointsLoss(v);
-            clearPointsErrors();
-          }}
-          error={errors.fields.pointsLoss}
-          icon={<Minus className="size-4" />}
-        />
-      </div>
+      {format === "league" && (
+        <div className="grid grid-cols-3 gap-3">
+          <FormField
+            id="pointsWin"
+            type="number"
+            label="Win"
+            value={pointsWin}
+            onChange={(v) => {
+              setPointsWin(v);
+              clearPointsErrors();
+            }}
+            error={errors.fields.pointsWin}
+            icon={<Plus className="size-4" />}
+          />
+          <FormField
+            id="pointsDraw"
+            type="number"
+            label="Draw"
+            value={pointsDraw}
+            onChange={(v) => {
+              setPointsDraw(v);
+              clearPointsErrors();
+            }}
+            error={errors.fields.pointsDraw}
+            icon={<Handshake className="size-4" />}
+          />
+          <FormField
+            id="pointsLoss"
+            type="number"
+            label="Loss"
+            value={pointsLoss}
+            onChange={(v) => {
+              setPointsLoss(v);
+              clearPointsErrors();
+            }}
+            error={errors.fields.pointsLoss}
+            icon={<Minus className="size-4" />}
+          />
+        </div>
+      )}
 
       <PlayerListField
         rows={players.rows}
@@ -157,8 +189,11 @@ export default function CreateLeagueForm({ serverError }: Props) {
 
       <ServerError message={serverError} />
 
-      <SubmitButton pendingText="Creating league..." icon={<Trophy className="size-4" />}>
-        Create league
+      <SubmitButton
+        pendingText={format === "cup" ? "Creating cup..." : "Creating league..."}
+        icon={<Trophy className="size-4" />}
+      >
+        {format === "cup" ? "Create cup" : "Create league"}
       </SubmitButton>
     </form>
   );

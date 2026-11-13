@@ -12,6 +12,7 @@
     "src/lib/services/standings.ts",
     "src/lib/services/shared-league.ts",
     "src/lib/services/fixtures.ts",
+    "src/lib/services/bracket.ts",
     "src/lib/services/score-submission.ts",
     "src/lib/services/score-correction.ts",
     "src/lib/validation/score.ts",
