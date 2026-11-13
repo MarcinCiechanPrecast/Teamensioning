@@ -175,9 +175,9 @@ None — no schema change.
 
 #### Automated
 
-- [x] 2.1 Guard and unit suite pass
-- [x] 2.2 Lint passes
-- [x] 2.3 Build passes
+- [x] 2.1 Guard and unit suite pass — d57c082
+- [x] 2.2 Lint passes — d57c082
+- [x] 2.3 Build passes — d57c082
 - [x] 2.4 Smoke passes against the production preview with local Supabase
 
 #### Manual

@@ -1,7 +1,7 @@
 ---
 change_id: home-page
 title: Branded Teamensioning home page and removal of Astro starter leftovers
-status: implementing
+status: implemented
 created: 2026-11-13
 updated: 2026-11-13
 archived_at: null
