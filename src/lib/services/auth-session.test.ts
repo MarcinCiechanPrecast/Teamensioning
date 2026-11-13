@@ -21,6 +21,7 @@ describe("isUserCausedAuthError", () => {
   it.each([
     ["network failure", new AuthRetryableFetchError("fetch failed", 0)],
     ["Auth 503", new AuthRetryableFetchError("Service Unavailable", 503)],
+    // auth-js turns Auth 5xx into AuthRetryableFetchError; this case pins the >= 500 boundary of the guard itself.
     ["Auth 500 API error", new AuthApiError("Database error saving new user", 500, "unexpected_failure")],
     ["non-Auth error", new Error("boom")],
   ])("treats %s as a server-side failure (logged)", (_label, error) => {

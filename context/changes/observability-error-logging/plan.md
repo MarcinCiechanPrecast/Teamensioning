@@ -234,11 +234,11 @@ None. No schema change.
 
 #### Automated
 
-- [x] 2.1 No raw `console.` calls remain in `src/pages` and `src/middleware.ts`
-- [x] 2.2 Unit suite passes
-- [x] 2.3 Lint passes
-- [x] 2.4 Types check
-- [x] 2.5 Build passes
+- [x] 2.1 No raw `console.` calls remain in `src/pages` and `src/middleware.ts` — a32d050
+- [x] 2.2 Unit suite passes — a32d050
+- [x] 2.3 Lint passes — a32d050
+- [x] 2.4 Types check — a32d050
+- [x] 2.5 Build passes — a32d050
 - [ ] 2.6 CI `ci`, `smoke` and `migration-upgrade` pass on the PR
 
 #### Manual

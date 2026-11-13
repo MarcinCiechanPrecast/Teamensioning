@@ -44,16 +44,17 @@ export const POST: APIRoute = async (context) => {
     .eq("id", parsed.data.matchId)
     .eq("tournament_id", leagueId)
     .maybeSingle();
-  if (matchError) {
-    logServerEvent("error", "scores.correct.lookup", {
-      ...logContext,
-      transportStatus: lookupStatus,
-      ...errorFields(matchError),
-    });
-  }
   // A malformed league id (22P02) or a match outside this league is simply "not found".
   const lookup = toCorrectionOutcome({ error: matchError, rowCount: 1, inTournament: match !== null });
   if (lookup.kind === "error") {
+    // Only real faults are logged; "not found" and the organizer's own mistakes are ordinary outcomes.
+    if (lookup.code === "server") {
+      logServerEvent("error", "scores.correct.lookup", {
+        ...logContext,
+        transportStatus: lookupStatus,
+        ...errorFields(matchError),
+      });
+    }
     return failWith(lookup.code);
   }
 
@@ -68,10 +69,9 @@ export const POST: APIRoute = async (context) => {
     .eq("match_id", parsed.data.matchId)
     .select("match_id");
 
-  if (error) {
+  const outcome = toCorrectionOutcome({ error, rowCount: data?.length ?? 0 });
+  if (outcome.kind === "error" && outcome.code === "server") {
     logServerEvent("error", "scores.correct", { ...logContext, transportStatus: updateStatus, ...errorFields(error) });
   }
-
-  const outcome = toCorrectionOutcome({ error, rowCount: data?.length ?? 0 });
   return outcome.kind === "updated" ? back("notice=score-updated") : failWith(outcome.code);
 };

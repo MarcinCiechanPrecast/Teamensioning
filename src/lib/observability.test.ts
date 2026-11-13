@@ -1,7 +1,34 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AuthRetryableFetchError } from "@supabase/supabase-js";
 
-import { errorFields, hashToken, logServerEvent } from "@/lib/observability";
+import { errorFields, hashToken, logServerEvent, redactPath } from "@/lib/observability";
+
+const TOKEN = "0123456789abcdef".repeat(4);
+
+describe("redactPath", () => {
+  it("never lets a share token reach the logs", () => {
+    expect(redactPath(`/t/${TOKEN}`)).toBe("/t/[token]");
+    expect(redactPath(`/t/${TOKEN}/anything`)).toBe("/t/[token]/anything");
+  });
+
+  it("leaves other paths alone", () => {
+    expect(redactPath("/leagues/7f0c1a2e-0000-4000-8000-000000000000/edit")).toBe(
+      "/leagues/7f0c1a2e-0000-4000-8000-000000000000/edit",
+    );
+    expect(redactPath("/dashboard")).toBe("/dashboard");
+  });
+});
+
+describe("errorFields token masking", () => {
+  it("masks a share token inside a Postgres failing-row detail", () => {
+    const error = { code: "23514", message: "check violation", details: `Failing row contains (1, x, ${TOKEN}).` };
+    expect(errorFields(error).details).toBe("Failing row contains (1, x, [token]).");
+  });
+
+  it("does not throw on a BigInt", () => {
+    expect(errorFields(10n)).toEqual({ message: "bigint" });
+  });
+});
 
 afterEach(() => {
   vi.restoreAllMocks();

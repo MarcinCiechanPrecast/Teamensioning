@@ -1,6 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 import { createClient } from "@/lib/supabase";
-import { errorFields, logServerEvent } from "@/lib/observability";
+import { errorFields, logServerEvent, redactPath } from "@/lib/observability";
 import { classifyAuthResult, isProtectedPath } from "@/lib/services/auth-session";
 
 export const onRequest = defineMiddleware(async (context, next) => {
@@ -23,7 +23,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
       case "anonymous":
         break;
       case "auth-unavailable":
-        logServerEvent("error", "auth.getUser", { path, ...errorFields(outcome.error) });
+        logServerEvent("error", "auth.getUser", { path: redactPath(path), ...errorFields(outcome.error) });
         // The organizer may well be signed in: sending them to sign-in would lose their form and hide the outage.
         if (isProtected) {
           return new Response("Sign-in service is temporarily unavailable. Try again shortly.", {
@@ -34,7 +34,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
         break;
       case "auth-rejected":
         // Invalid or expired session: behave as signed out, but a burst of these is a signal (e.g. a key change).
-        logServerEvent("warn", "auth.getUser", { path, ...errorFields(outcome.error) });
+        logServerEvent("warn", "auth.getUser", { path: redactPath(path), ...errorFields(outcome.error) });
         break;
     }
   }

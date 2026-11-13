@@ -21,17 +21,29 @@ export interface ErrorFields {
 
 const STRING_KEYS = ["name", "message", "code", "details", "hint", "stack"] as const;
 
+/** A share token is 64 lowercase hex chars (see SHARE_TOKEN_PATTERN in shared-league.ts). */
+const SHARE_TOKEN_RUN = /[0-9a-f]{64}/g;
+
+/** Replaces anything shaped like a share token, e.g. inside a Postgres "Failing row contains (…)" detail. */
+function maskTokens(value: string): string {
+  return value.replace(SHARE_TOKEN_RUN, "[token]");
+}
+
+/** The request path with the share token of `/t/<token>` replaced, so it is safe to log. */
+export function redactPath(pathname: string): string {
+  return maskTokens(pathname);
+}
+
 /** Pulls the diagnostic fields out of a PostgrestError, an AuthError or any Error; skips empty values. */
 export function errorFields(error: unknown): ErrorFields {
   if (error === undefined || error === null) return {};
-  if (typeof error !== "object") {
-    return typeof error === "string" ? { message: error } : { message: JSON.stringify(error) };
-  }
+  if (typeof error === "string") return { message: maskTokens(error) };
+  if (typeof error !== "object") return { message: typeof error };
   const source = error as Record<string, unknown>;
   const fields: ErrorFields = {};
   for (const key of STRING_KEYS) {
     const value = source[key];
-    if (typeof value === "string" && value !== "") fields[key] = value;
+    if (typeof value === "string" && value !== "") fields[key] = maskTokens(value);
   }
   if (typeof source.status === "number") fields.status = source.status;
   return fields;

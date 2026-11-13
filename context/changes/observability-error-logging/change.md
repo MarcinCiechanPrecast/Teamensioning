@@ -1,7 +1,7 @@
 ---
 change_id: observability-error-logging
 title: Structured server error logging and middleware auth-error handling
-status: implementing
+status: impl_reviewed
 created: 2026-11-13
 updated: 2026-11-13
 archived_at: null
