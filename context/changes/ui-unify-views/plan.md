@@ -376,9 +376,9 @@ None. No schema or data changes.
 
 #### Automated
 
-- [x] 1.1 Guard passes on the phase files
-- [x] 1.2 `npm run lint`, `npm test` and `npx astro check` pass
-- [x] 1.3 `npm run build` succeeds
+- [x] 1.1 Guard passes on the phase files — 6eddafb
+- [x] 1.2 `npm run lint`, `npm test` and `npx astro check` pass — 6eddafb
+- [x] 1.3 `npm run build` succeeds — 6eddafb
 
 #### Manual
 
@@ -388,8 +388,8 @@ None. No schema or data changes.
 
 #### Automated
 
-- [ ] 2.1 Guard passes on every Phase 2 file
-- [ ] 2.2 `npm run lint`, `npm test` and `npx astro check` pass
+- [x] 2.1 Guard passes on every Phase 2 file
+- [x] 2.2 `npm run lint`, `npm test` and `npx astro check` pass
 
 #### Manual
 

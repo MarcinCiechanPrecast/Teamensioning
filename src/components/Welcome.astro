@@ -1,41 +1,29 @@
 ---
 import Topbar from "@/components/Topbar.astro";
+import { buttonVariants } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 ---
 
 <div class="bg-cosmic relative min-h-screen w-full overflow-hidden">
   <!-- Cosmic orbs -->
-  <div class="pointer-events-none absolute top-1/4 -left-24 h-[350px] w-[350px] rounded-full bg-purple-500/20 blur-[120px]"></div>
-  <div class="pointer-events-none absolute top-2/3 -right-16 h-[250px] w-[250px] rounded-full bg-blue-500/15 blur-[100px]"></div>
-  <div class="pointer-events-none absolute top-0 left-1/2 h-[300px] w-[300px] -translate-x-1/2 rounded-full bg-indigo-400/10 blur-[140px]"></div>
-
-  <!-- Star field -->
-  <div
-    class="pointer-events-none absolute inset-0"
-    style="background-image: radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px), radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px), radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px); background-size: 200px 200px, 150px 150px, 100px 100px; background-position: 0 0, 40px 60px, 80px 30px;"
-  ></div>
+  <div class="bg-primary/20 pointer-events-none absolute top-1/4 -left-24 size-80 rounded-full blur-3xl"></div>
+  <div class="bg-accent/30 pointer-events-none absolute top-2/3 -right-16 size-64 rounded-full blur-3xl"></div>
+  <div class="bg-primary/10 pointer-events-none absolute top-0 left-1/2 size-72 -translate-x-1/2 rounded-full blur-3xl"></div>
 
   <div class="relative z-10 p-4 sm:p-8">
     <Topbar />
 
     <!-- Hero section -->
     <div class="mx-auto flex max-w-4xl flex-col items-center justify-center px-4 py-24 text-center sm:py-32 lg:py-40">
-      <h1 class="mb-6 bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200 bg-clip-text text-5xl leading-tight font-bold text-transparent sm:text-6xl lg:text-7xl">
-        10x Astro Starter
-      </h1>
-      <p class="mb-10 max-w-2xl text-lg text-blue-100/70 sm:text-xl">
+      <h1 class="text-foreground mb-6 text-5xl leading-tight font-bold sm:text-6xl lg:text-7xl">10x Astro Starter</h1>
+      <p class="text-muted-foreground mb-10 max-w-2xl text-lg sm:text-xl">
         A production-ready starter with authentication, modern tooling, and a cosmic developer experience.
       </p>
       <div class="flex flex-col gap-4 sm:flex-row">
-        <a
-          href="/auth/signin"
-          class="inline-flex items-center justify-center rounded-lg bg-purple-600 px-6 py-3 text-base font-medium text-white transition-colors hover:bg-purple-500"
-        >
+        <a href="/auth/signin" class:list={buttonVariants()}>
           Sign In
         </a>
-        <a
-          href="/auth/signup"
-          class="inline-flex items-center justify-center rounded-lg border border-white/20 px-6 py-3 text-base font-medium text-white transition-colors hover:bg-white/10"
-        >
+        <a href="/auth/signup" class:list={buttonVariants({ variant: "outline" })}>
           Sign Up
         </a>
       </div>
@@ -43,7 +31,7 @@ import Topbar from "@/components/Topbar.astro";
 
     <!-- Feature cards -->
     <div class="mx-auto grid max-w-4xl grid-cols-1 gap-6 px-4 pb-24 sm:grid-cols-3">
-      <div class="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+      <Card className="gap-0 p-6">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"
@@ -54,18 +42,18 @@ import Topbar from "@/components/Topbar.astro";
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
-          class="mb-4 text-purple-300"
+          class="text-primary mb-4"
         >
           <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
           <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
         </svg>
-        <h3 class="mb-2 text-lg font-semibold text-white">Authentication Ready</h3>
-        <p class="text-sm leading-relaxed text-blue-100/60">
+        <h3 class="text-card-foreground mb-2 text-lg font-semibold">Authentication Ready</h3>
+        <p class="text-muted-foreground text-sm leading-relaxed">
           Built-in Supabase auth with sign in, sign up, and protected routes out of the box.
         </p>
-      </div>
+      </Card>
 
-      <div class="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+      <Card className="gap-0 p-6">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"
@@ -76,19 +64,19 @@ import Topbar from "@/components/Topbar.astro";
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
-          class="mb-4 text-purple-300"
+          class="text-primary mb-4"
         >
           <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
           <polyline points="2 17 12 22 22 17"></polyline>
           <polyline points="2 12 12 17 22 12"></polyline>
         </svg>
-        <h3 class="mb-2 text-lg font-semibold text-white">Modern Stack</h3>
-        <p class="text-sm leading-relaxed text-blue-100/60">
+        <h3 class="text-card-foreground mb-2 text-lg font-semibold">Modern Stack</h3>
+        <p class="text-muted-foreground text-sm leading-relaxed">
           Astro 7, React 19, Tailwind 4, and TypeScript — the latest tools, ready to go.
         </p>
-      </div>
+      </Card>
 
-      <div class="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+      <Card className="gap-0 p-6">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"
@@ -99,16 +87,16 @@ import Topbar from "@/components/Topbar.astro";
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
-          class="mb-4 text-purple-300"
+          class="text-primary mb-4"
         >
           <polyline points="16 18 22 12 16 6"></polyline>
           <polyline points="8 6 2 12 8 18"></polyline>
         </svg>
-        <h3 class="mb-2 text-lg font-semibold text-white">Developer Experience</h3>
-        <p class="text-sm leading-relaxed text-blue-100/60">
+        <h3 class="text-card-foreground mb-2 text-lg font-semibold">Developer Experience</h3>
+        <p class="text-muted-foreground text-sm leading-relaxed">
           ESLint, Prettier, and pre-commit hooks keep your codebase clean from day one.
         </p>
-      </div>
+      </Card>
     </div>
   </div>
 </div>

@@ -1,23 +1,25 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import SignUpForm from "@/components/auth/SignUpForm";
+import { Card } from "@/components/ui/card";
 
 const error = Astro.url.searchParams.get("error");
 ---
 
 <Layout title="Sign up">
   <div class="bg-cosmic flex min-h-screen items-center justify-center p-4">
-    <div class="w-full max-w-sm rounded-2xl border border-white/10 bg-white/10 p-8 text-white backdrop-blur-xl">
-      <h1 class="mb-6 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-center text-2xl font-bold text-transparent">
-        Sign up
-      </h1>
+    <Card className="w-full max-w-sm p-8">
+      <h1 class="text-foreground text-center text-2xl font-bold">Sign up</h1>
       <SignUpForm serverError={error} client:load />
-      <p class="mt-4 text-center text-sm text-blue-100/60">
+      <p class="text-muted-foreground text-center text-sm">
         Already have an account?{" "}
-        <a href="/auth/signin" class="text-purple-300 hover:underline">
+        <a
+          href="/auth/signin"
+          class="text-primary focus-visible:ring-ring rounded-sm outline-hidden hover:underline focus-visible:ring-2"
+        >
           Sign in
         </a>
       </p>
-    </div>
+    </Card>
   </div>
 </Layout>
