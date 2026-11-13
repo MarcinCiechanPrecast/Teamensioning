@@ -10,7 +10,8 @@
 //   N = 5 -> S = 8, byes = 3 for seeds 1..3 (Ann, Bob, Cid), N - 1 = 4 matches.
 //   Round 1: seed 4 vs seed 5 (Dan vs Eve). Round 2: Ann vs winner(Dan/Eve), Bob vs Cid. Round 3: the final.
 import { randomUUID } from "node:crypto";
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
+import { expect, test } from "./support/cleanup";
 import { waitForHydration } from "./support/hydration";
 
 // A run id keeps names unique per run; the seed order is the entry order.
@@ -36,6 +37,7 @@ test("cup: a link holder's winner advances, and a correction is refused once the
   page,
   browser,
   baseURL,
+  cleanup,
 }) => {
   const cupName = `E2E Cup ${RUN}`;
 
@@ -54,6 +56,7 @@ test("cup: a link holder's winner advances, and a correction is refused once the
 
   await expect(page.getByRole("heading", { name: cupName })).toBeVisible();
   const cupPath = new URL(page.url()).pathname;
+  cleanup.track(cupPath);
   // N - 1 = 4 matches: one in round 1, two in round 2, the final.
   await expect(page.getByText("4 matches")).toBeVisible();
   const sharePath = new URL(await page.getByLabel("Share link").inputValue()).pathname;
@@ -83,7 +86,7 @@ test("cup: a link holder's winner advances, and a correction is refused once the
     await enterScore(match(linkHolder, 1, `${DAN} vs ${EVE}`), [DAN, "1", EVE, "1"]);
     await expect(linkHolder.getByRole("alert")).toHaveText("A cup match cannot end in a draw. Enter a winner.");
     await expect(match(linkHolder, 1, `${DAN} vs ${EVE}`).getByRole("button", { name: "Save" })).toBeVisible();
-    await expect(linkHolder.getByText("Result")).toHaveCount(0);
+    await expect(linkHolder.getByText(/Result \d+–\d+/)).toHaveCount(0);
     await expect(match(linkHolder, 2, `${ANN} vs TBD`)).toHaveCount(1);
 
     // --- Dan 2-1 Eve: Dan advances into the open slot of Ann's round-2 match.
@@ -124,10 +127,19 @@ test("cup: a link holder's winner advances, and a correction is refused once the
     await expect(match(page, 2, `${ANN} vs ${EVE}`)).toHaveCount(1);
     await expect(match(page, 3, `${EVE} vs TBD`)).toHaveCount(1);
 
-    // --- Cleanup through the UI, asserted: the cup is gone and its link stops working.
+    // --- The other semifinal and the final: the champion is shown (Bob 3-1 Cid, then Bob 1-0 Eve).
+    await linkHolder.goto(sharePath);
+    await enterScore(match(linkHolder, 2, `${BOB} vs ${CID}`), [BOB, "3", CID, "1"]);
+    await expect(match(linkHolder, 3, `${EVE} vs ${BOB}`)).toHaveCount(1);
+    await enterScore(match(linkHolder, 3, `${EVE} vs ${BOB}`), [EVE, "0", BOB, "1"]);
+    await expect(linkHolder.getByText(`Champion: ${BOB}`, { exact: true })).toBeVisible();
+
+    // --- Deleting through the UI is asserted: the cup is gone and its link stops working.
+    // (A failure above never reaches this line; the cleanup fixture deletes the cup then.)
     await page.goto(`${cupPath}/delete`);
     await page.getByRole("button", { name: "Delete permanently" }).click();
     await page.waitForURL("**/dashboard");
+    cleanup.done(cupPath);
     await linkHolder.goto(sharePath);
     await expect(linkHolder.getByRole("heading", { name: "League not found" })).toBeVisible();
   } finally {
