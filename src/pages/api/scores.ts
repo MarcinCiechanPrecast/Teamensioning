@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { createClient } from "@/lib/supabase";
+import { errorFields, hashToken, logServerEvent } from "@/lib/observability";
 import { isValidShareToken } from "@/lib/services/shared-league";
 import { rpcErrorCode, toScoreOutcome, validationErrorCode } from "@/lib/services/score-submission";
 import type { ScoreErrorCode } from "@/lib/services/score-submission";
@@ -41,13 +42,16 @@ export const POST: APIRoute = async (context) => {
 
   const supabase = createClient(context.request.headers, context.cookies);
   if (!supabase) {
-    // eslint-disable-next-line no-console -- server-side log; the user only gets a fixed error code
-    console.error("submit_match_score: Supabase is not configured");
+    logServerEvent("error", "supabase.not-configured", { route: "scores.submit" });
     return failWith("server");
   }
 
   const { matchId, scoreA, scoreB } = parsed.data;
-  const { data, error } = await supabase.rpc("submit_match_score", {
+  const {
+    data,
+    error,
+    status: transportStatus,
+  } = await supabase.rpc("submit_match_score", {
     p_token: token,
     p_match_id: matchId,
     p_score_a: scoreA,
@@ -55,8 +59,12 @@ export const POST: APIRoute = async (context) => {
   });
 
   if (error) {
-    // eslint-disable-next-line no-console -- server-side log; the user only gets a fixed error code
-    console.error("submit_match_score failed:", error.code, error.message);
+    logServerEvent("error", "scores.submit", {
+      matchId,
+      tokenHash: await hashToken(token),
+      transportStatus,
+      ...errorFields(error),
+    });
     return failWith(rpcErrorCode(error));
   }
 
@@ -67,6 +75,15 @@ export const POST: APIRoute = async (context) => {
     case "already-entered":
       return context.redirect(`${sharePage}?notice=already-entered`);
     case "error":
+      if (outcome.code === "server") {
+        // The RPC answered with a status this code does not know: a code/schema drift, not a user mistake.
+        const status = (data as { status?: unknown } | null)?.status;
+        logServerEvent("error", "scores.submit.unexpected-status", {
+          matchId,
+          tokenHash: await hashToken(token),
+          received: typeof status === "string" ? status : typeof data,
+        });
+      }
       return failWith(outcome.code);
   }
 };

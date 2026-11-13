@@ -47,6 +47,7 @@ Full server-side rendering (`output: "server"` in astro.config.mjs). All pages a
 - **React**: no Next.js directives ("use client" etc.). Extract hooks to `src/components/hooks/`.
 - **Services/helpers** go in `src/lib/` (or `src/lib/services/` for extracted business logic).
 - **Shared types** (entities, DTOs) go in `src/types.ts`.
+- **Server errors**: log through `logServerEvent(level, op, fields)` from `@/lib/observability` (one JSON object per call, picked up by Workers Logs), never raw `console.*`. Every error branch that redirects with `?error=` logs first, with `...errorFields(error)`, the PostgREST envelope `status` as `transportStatus`, and safe ids (`user.id`, league/match id, `hashToken(token)`; `redactPath()` for paths). Never log an email, a password or a raw share token.
 
 ### UI
 

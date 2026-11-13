@@ -1,24 +1,46 @@
 import { defineMiddleware } from "astro:middleware";
 import { createClient } from "@/lib/supabase";
-
-const PROTECTED_ROUTES = ["/dashboard", "/leagues", "/api/leagues"];
+import { errorFields, logServerEvent, redactPath } from "@/lib/observability";
+import { classifyAuthResult, isProtectedPath } from "@/lib/services/auth-session";
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const supabase = createClient(context.request.headers, context.cookies);
+  const path = context.url.pathname;
+  const isProtected = isProtectedPath(path);
 
+  context.locals.user = null;
   if (supabase) {
     const {
       data: { user },
+      error,
     } = await supabase.auth.getUser();
-    context.locals.user = user ?? null;
-  } else {
-    context.locals.user = null;
+    const outcome = classifyAuthResult(user, error);
+
+    switch (outcome.kind) {
+      case "user":
+        context.locals.user = outcome.user;
+        break;
+      case "anonymous":
+        break;
+      case "auth-unavailable":
+        logServerEvent("error", "auth.getUser", { path: redactPath(path), ...errorFields(outcome.error) });
+        // The organizer may well be signed in: sending them to sign-in would lose their form and hide the outage.
+        if (isProtected) {
+          return new Response("Sign-in service is temporarily unavailable. Try again shortly.", {
+            status: 503,
+            headers: { "Retry-After": "30", "Content-Type": "text/plain; charset=utf-8" },
+          });
+        }
+        break;
+      case "auth-rejected":
+        // Invalid or expired session: behave as signed out, but a burst of these is a signal (e.g. a key change).
+        logServerEvent("warn", "auth.getUser", { path: redactPath(path), ...errorFields(outcome.error) });
+        break;
+    }
   }
 
-  if (PROTECTED_ROUTES.some((route) => context.url.pathname.startsWith(route))) {
-    if (!context.locals.user) {
-      return context.redirect("/auth/signin");
-    }
+  if (isProtected && !context.locals.user) {
+    return context.redirect("/auth/signin");
   }
 
   return next();

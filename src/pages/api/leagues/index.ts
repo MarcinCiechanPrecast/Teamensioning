@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { createClient } from "@/lib/supabase";
+import { errorFields, logServerEvent } from "@/lib/observability";
 import { generateBracket } from "@/lib/services/bracket";
 import { generateFixtures } from "@/lib/services/fixtures";
 import { createTournamentSchema } from "@/lib/validation/league";
@@ -36,10 +37,21 @@ export const POST: APIRoute = async (context) => {
 
   const supabase = createClient(context.request.headers, context.cookies);
   if (!supabase) {
+    logServerEvent("error", "supabase.not-configured", { route: "leagues.create" });
     return failWith("Supabase is not configured");
   }
 
   const input = parsed.data;
+  const userId = context.locals.user.id;
+  const logCreateFailure = (error: unknown, transportStatus: number) => {
+    logServerEvent("error", "leagues.create", {
+      format: input.format,
+      userId,
+      playerCount: input.players.length,
+      transportStatus,
+      ...errorFields(error),
+    });
+  };
 
   if (input.format === "cup") {
     // Re-map to the snake_case plain objects the RPC reads; BracketMatch is not assignable to the Json type.
@@ -52,13 +64,18 @@ export const POST: APIRoute = async (context) => {
       next_slot: match.nextSlot,
     }));
 
-    const { data: cupId, error: cupError } = await supabase.rpc("create_cup", {
+    const {
+      data: cupId,
+      error: cupError,
+      status: cupStatus,
+    } = await supabase.rpc("create_cup", {
       p_name: input.name,
       p_players: input.players,
       p_bracket: bracket,
     });
 
     if (cupError) {
+      logCreateFailure(cupError, cupStatus);
       return failWith(cupError.code === "23505" ? "Player names must be unique" : cupError.message);
     }
 
@@ -69,7 +86,11 @@ export const POST: APIRoute = async (context) => {
   // Re-map to plain object literals: the FixturePair interface is not assignable to the RPC's Json type.
   const fixtures = generateFixtures(players.length).map(({ a, b }) => ({ a, b }));
 
-  const { data: tournamentId, error } = await supabase.rpc("create_league", {
+  const {
+    data: tournamentId,
+    error,
+    status: leagueStatus,
+  } = await supabase.rpc("create_league", {
     p_name: name,
     p_points_win: pointsWin,
     p_points_draw: pointsDraw,
@@ -79,6 +100,7 @@ export const POST: APIRoute = async (context) => {
   });
 
   if (error) {
+    logCreateFailure(error, leagueStatus);
     return failWith(error.code === "23505" ? "Player names must be unique" : error.message);
   }
 

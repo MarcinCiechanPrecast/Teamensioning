@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { createClient } from "@/lib/supabase";
+import { errorFields, logServerEvent } from "@/lib/observability";
 import type { DashboardErrorCode } from "@/lib/services/dashboard-errors";
 import { leagueNameSchema, leagueSettingsSchema } from "@/lib/validation/league";
 
@@ -53,13 +54,20 @@ export const POST: APIRoute = async (context) => {
 
   const supabase = createClient(context.request.headers, context.cookies);
   if (!supabase) {
+    logServerEvent("error", "supabase.not-configured", { route: "leagues.settings" });
     return failToDashboard("supabase-not-configured");
   }
+
+  const logContext = { leagueId: id, userId: context.locals.user.id };
 
   // The RPC checks ownership and the points lock atomically; nothing is written unless it returns "updated".
   // Generated RPC arg types are never nullable, but null points mean "leave unchanged" (see the migration).
   const unchanged = null as unknown as number;
-  const { data, error } = await supabase.rpc("update_tournament_settings", {
+  const {
+    data,
+    error,
+    status: transportStatus,
+  } = await supabase.rpc("update_tournament_settings", {
     p_tournament_id: id,
     p_name: name,
     p_points_win: points?.pointsWin ?? unchanged,
@@ -70,11 +78,19 @@ export const POST: APIRoute = async (context) => {
   if (error) {
     if (error.code === INVALID_TEXT_REPRESENTATION) return failToDashboard("league-not-found");
     if (error.code === CHECK_VIOLATION) return failToForm("Invalid league settings");
+    logServerEvent("error", "leagues.settings", { ...logContext, transportStatus, ...errorFields(error) });
     return failToDashboard("server");
   }
 
-  const status = (data as { status?: string } | null)?.status;
+  const status = (data as { status?: unknown } | null)?.status;
   if (status === "updated") return context.redirect(`/leagues/${encodeURIComponent(id)}`);
   if (status === "points_locked") return failToForm(POINTS_LOCKED_MESSAGE);
+  if (status !== "not_found") {
+    // Anything but the known statuses is a code/schema drift: still shown as "not found", but never silently.
+    logServerEvent("error", "leagues.settings.unexpected-status", {
+      ...logContext,
+      received: typeof status === "string" ? status : typeof data,
+    });
+  }
   return failToDashboard("league-not-found");
 };
