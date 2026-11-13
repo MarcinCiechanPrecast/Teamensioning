@@ -3,13 +3,13 @@ project: Teamensioning
 version: 1
 status: draft
 created: 2026-10-16
-updated: 2026-11-12
+updated: 2026-11-13
 prd_version: 3
 main_goal: speed
 top_blocker: time
 milestone_id: cup-format
 milestone_seq: 2
-milestone_status: open
+milestone_status: done
 ---
 
 # Roadmap: Teamensioning
@@ -20,7 +20,7 @@ milestone_status: open
 
 ## Milestone
 
-**M-2: Cup format** — Status: open
+**M-2: Cup format** — Status: done
 
 - **Intent:** An organizer can run a single-elimination cup next to the league: pick the format, create it with 3 to 20 players, share the link, let players report scores, and watch the bracket to a champion.
 - **Source materials:** `context/foundation/prd.md` (v3), `context/changes/add-cup-format/frame.md`
@@ -189,7 +189,7 @@ None in this milestone. Auth and deploy are present per the Baseline. The absent
 | S-06       | organizer-score-correction  | #12   | Organizer corrects an entered score               | done                  | Archived 2026-11-02                                          |
 | S-07       | edit-tournament-settings    | #13   | Organizer edits tournament name and points        | done                  | Archived 2026-11-02                                          |
 | —          | dashboard-ui-tokens         | —     | Dashboard on the Jamaica design tokens            | done                  | Archived 2026-10-27; not a slice (cross-cutting UI contract) |
-| S-08       | add-cup-format              | —     | Single-elimination cup format                     | done                  | Archived 2026-11-12                                          |
+| S-08       | add-cup-format              | —     | Single-elimination cup format                     | done                  | Archived 2026-11-12; merged in PR 40 (2026-11-13)            |
 
 Issues live in GitHub milestones `M-1: First playable league` and `M-2: Cup format` with labels `roadmap:slice`, `status:*` and `stream:*`. This file stays canonical; issue labels are a view.
 
@@ -216,6 +216,13 @@ None open. The three PRD v1 questions were resolved on 2026-10-16 and moved to `
 - **Outcome:** every slice S-01 – S-07 is `done`; scope anchors FR-001 – FR-013, US-01.
 - **Slices:** S-01, S-02, S-03, S-04, S-05, S-06, S-07 (details under `## Slices` and `## Done`).
 
+### M-2: Cup format — Status: closed (2026-11-13)
+
+- **Intent:** An organizer can run a single-elimination cup next to the league: pick the format, create it with 3 to 20 players, share the link, let players report scores, and watch the bracket to a champion.
+- **Source materials:** `context/foundation/prd.md` (v3), `context/changes/add-cup-format/frame.md`
+- **Outcome:** slice S-08 is `done` and merged (PR 40); scope anchors FR-002, FR-014 – FR-018.
+- **Slices:** S-08 (details under `## Slices` and `## Done`).
+
 ## Done
 
 - **S-01: organizer can sign in, create a league with a name, win/draw/loss points (prefilled 3/1/0) and uniquely named players, and on save see the complete list of fixtures.** — Archived 2026-10-23 → `context/archive/2026-10-16-create-league-with-fixtures/`. Lesson: —.
@@ -226,4 +233,4 @@ None open. The three PRD v1 questions were resolved on 2026-10-16 and moved to `
 - **S-05: a link holder can view a leaderboard with played, won/drawn/lost, goals for/against, goal difference and points, ordered by points, then goal difference, then goals scored, reflecting every entered score on the next view.** — Archived 2026-11-02 → `context/archive/2026-10-25-live-leaderboard/`. Lesson: —.
 - **S-06: organizer can change an already-entered match score, and the leaderboard reflects the correction on the next view.** — Archived 2026-11-02 → `context/archive/2026-11-02-organizer-score-correction/`. Lesson: —.
 - **S-07: organizer can rename a tournament at any time, and change its win/draw/loss points only while no score has been entered.** — Archived 2026-11-02 → `context/archive/2026-11-02-edit-tournament-settings/`. Lesson: —.
-- **S-08: organizer can create a single-elimination cup, link holders enter scores and watch the bracket to a champion.** — Archived 2026-11-12 → `context/archive/2026-10-25-add-cup-format/`. Lesson: —.
+- **S-08: organizer can create a single-elimination cup, link holders enter scores and watch the bracket to a champion.** — Archived 2026-11-12 → `context/archive/2026-10-25-add-cup-format/`. Lesson: a manual browser look caught `class:list="…"` (a plain string) rendering an empty class, so bye labels ran into the pairing text; unit, integration and text-only e2e all passed. The cup e2e now asserts the label's computed margin.
