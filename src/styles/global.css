@@ -130,6 +130,33 @@
   background-image: linear-gradient(to bottom, var(--background), var(--card), var(--background));
 }
 
+/* Hides the browser's native number-input spinner arrows; ScoreInput.astro draws token-styled steppers instead. */
+@utility no-spinner {
+  appearance: textfield;
+  -moz-appearance: textfield;
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+/* Dimension line "drawing" itself from the centre outwards: the landing page's brand motion. */
+@utility animate-draw {
+  animation: draw 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes draw {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

@@ -2,6 +2,7 @@
 import Layout from "@/layouts/Layout.astro";
 import Bracket from "@/components/cup/Bracket.astro";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import ScoreInput from "@/components/ScoreInput.astro";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase";
@@ -61,7 +62,6 @@ const fieldClass = cn(
   "border-input bg-background text-foreground rounded-lg border",
   "focus-visible:ring-ring outline-hidden focus-visible:ring-2",
 );
-const scoreInputClass = cn(fieldClass, "w-16 px-2 py-1");
 const rowClass = "border-border bg-card text-card-foreground rounded-lg border px-4 py-2";
 ---
 
@@ -178,30 +178,14 @@ const rowClass = "border-border bg-card text-card-foreground rounded-lg border p
                   <span class="min-w-0 basis-full break-words sm:flex-1">
                     {fixture.position}. {fixture.playerA.name} vs {fixture.playerB.name}
                   </span>
-                  <input
-                    type="number"
-                    name="scoreA"
-                    required
-                    min="0"
-                    max="99"
-                    step="1"
-                    inputmode="numeric"
-                    aria-label={`Score of ${fixture.playerA.name}`}
-                    class:list={scoreInputClass}
-                  />
-                  <span aria-hidden="true">–</span>
-                  <input
-                    type="number"
-                    name="scoreB"
-                    required
-                    min="0"
-                    max="99"
-                    step="1"
-                    inputmode="numeric"
-                    aria-label={`Score of ${fixture.playerB.name}`}
-                    class:list={scoreInputClass}
-                  />
-                  <button type="submit" class:list={buttonVariants({ variant: "outline", size: "sm" })}>
+                  <span class="flex shrink-0 items-center gap-2">
+                    <ScoreInput name="scoreA" label={`Score of ${fixture.playerA.name}`} />
+                    <span aria-hidden="true" class="text-muted-foreground font-semibold">
+                      :
+                    </span>
+                    <ScoreInput name="scoreB" label={`Score of ${fixture.playerB.name}`} />
+                  </span>
+                  <button type="submit" class:list={buttonVariants({ variant: "outline", size: "lg" })}>
                     Save
                   </button>
                 </form>
