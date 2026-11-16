@@ -1,7 +1,7 @@
 ---
+import ScoreInput from "@/components/ScoreInput.astro";
 import { buttonVariants } from "@/components/ui/button";
 import type { BracketMatchView, BracketSlotView, BracketView } from "@/lib/services/bracket-view";
-import { cn } from "@/lib/utils";
 
 interface Props {
   view: BracketView;
@@ -18,11 +18,6 @@ const { view, mode, action, token } = Astro.props;
 const slotName = (slot: BracketSlotView) => slot.player?.name ?? "TBD";
 const byes = (match: BracketMatchView) => [match.a, match.b].filter((slot) => slot.bye && slot.player);
 const hasForm = (match: BracketMatchView) => (mode === "enter" ? match.ready : match.played);
-
-const inputClass = cn(
-  "border-input bg-background text-foreground w-16 rounded-lg border px-2 py-1",
-  "focus-visible:ring-ring outline-hidden focus-visible:ring-2",
-);
 ---
 
 <section class="bg-card text-card-foreground space-y-6 rounded-xl border p-4">
@@ -39,32 +34,14 @@ const inputClass = cn(
                 <span class="min-w-0 basis-full break-words sm:flex-1">
                   {slotName(match.a)} vs {slotName(match.b)}
                 </span>
-                <input
-                  type="number"
-                  name="scoreA"
-                  required
-                  min="0"
-                  max="99"
-                  step="1"
-                  inputmode="numeric"
-                  value={match.score?.a}
-                  aria-label={`Score of ${slotName(match.a)}`}
-                  class:list={inputClass}
-                />
-                <span aria-hidden="true">–</span>
-                <input
-                  type="number"
-                  name="scoreB"
-                  required
-                  min="0"
-                  max="99"
-                  step="1"
-                  inputmode="numeric"
-                  value={match.score?.b}
-                  aria-label={`Score of ${slotName(match.b)}`}
-                  class:list={inputClass}
-                />
-                <button type="submit" class:list={buttonVariants({ size: "sm" })}>
+                <span class="flex shrink-0 items-center gap-2">
+                  <ScoreInput name="scoreA" value={match.score?.a} label={`Score of ${slotName(match.a)}`} />
+                  <span aria-hidden="true" class="text-muted-foreground font-semibold">
+                    :
+                  </span>
+                  <ScoreInput name="scoreB" value={match.score?.b} label={`Score of ${slotName(match.b)}`} />
+                </span>
+                <button type="submit" class:list={buttonVariants({ size: "lg" })}>
                   Save
                 </button>
               </form>

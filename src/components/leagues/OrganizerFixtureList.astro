@@ -1,7 +1,7 @@
 ---
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import ScoreInput from "@/components/ScoreInput.astro";
 import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import type { FixtureDTO } from "@/types";
 
 interface Props {
@@ -12,11 +12,6 @@ interface Props {
 }
 
 const { leagueId, fixtures, errorMessage, notice } = Astro.props;
-
-const inputClass = cn(
-  "border-input bg-background text-foreground w-16 rounded-lg border px-2 py-1",
-  "focus-visible:ring-ring outline-hidden focus-visible:ring-2",
-);
 ---
 
 {errorMessage && (
@@ -38,32 +33,14 @@ const inputClass = cn(
           <span class="min-w-0 basis-full break-words sm:flex-1">
             {fixture.position}. {fixture.playerA.name} vs {fixture.playerB.name}
           </span>
-          <input
-            type="number"
-            name="scoreA"
-            required
-            min="0"
-            max="99"
-            step="1"
-            inputmode="numeric"
-            value={fixture.score.a}
-            aria-label={`Score of ${fixture.playerA.name}`}
-            class:list={inputClass}
-          />
-          <span aria-hidden="true">–</span>
-          <input
-            type="number"
-            name="scoreB"
-            required
-            min="0"
-            max="99"
-            step="1"
-            inputmode="numeric"
-            value={fixture.score.b}
-            aria-label={`Score of ${fixture.playerB.name}`}
-            class:list={inputClass}
-          />
-          <button type="submit" class:list={buttonVariants({ variant: "outline", size: "sm" })}>
+          <span class="flex shrink-0 items-center gap-2">
+            <ScoreInput name="scoreA" value={fixture.score.a} label={`Score of ${fixture.playerA.name}`} />
+            <span aria-hidden="true" class="text-muted-foreground font-semibold">
+              :
+            </span>
+            <ScoreInput name="scoreB" value={fixture.score.b} label={`Score of ${fixture.playerB.name}`} />
+          </span>
+          <button type="submit" class:list={buttonVariants({ variant: "outline", size: "lg" })}>
             Save
           </button>
         </form>
