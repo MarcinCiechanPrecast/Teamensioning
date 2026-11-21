@@ -280,13 +280,13 @@ None. Additive, package-local, no CI change.
 
 #### Automated
 
-- [ ] 3.1 Package type check and tests still pass: `cd packages/code-reviewer && npm run typecheck && npm test`
+- [x] 3.1 Package type check and tests still pass: `cd packages/code-reviewer && npm run typecheck && npm test`
 - [ ] 3.2 The suite runs end to end and writes JSON results: `cd packages/code-reviewer && npm run eval -- -o evals/results/latest.json`
 
 #### Manual
 
 - [ ] 3.3 The JSX fixture (with `{{ }}`) reaches the agent intact (check the prompt in the results view)
-- [ ] 3.4 Assertions fail for a deliberately broken expectation (flip one expected verdict, see red, restore)
+- [x] 3.4 Assertions fail for a deliberately broken expectation (flip one expected verdict, see red, restore)
 
 ### Phase 4: Run, compare, record
 
