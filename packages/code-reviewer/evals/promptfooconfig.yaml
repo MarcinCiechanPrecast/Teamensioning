@@ -1,0 +1,91 @@
+description: "Code review agent regression suite (thresholds in context/team/definition-of-done.md)"
+
+# The provider runs the real agent and reads the diff from the test's `diff` var, so the prompt is a placeholder.
+prompts:
+  - "{{diff}}"
+
+# Free OpenRouter models with structured-output support. ling-3.2-flash was dropped: it returned API errors on every run.
+providers:
+  - id: file://./reviewProvider.ts
+    label: nemotron-3.5-super-vl
+    config:
+      model: nvidia/nemotron-3.5-super-vl:free
+  - id: file://./reviewProvider.ts
+    label: ernie-5.5-flash-preview
+    config:
+      model: baidu/ernie-5.5-flash-preview:free
+
+defaultTest:
+  options:
+    # Judge for llm-rubric. promptfoo never picks OpenRouter on its own. particle-1 is not one of the three models
+    # under test (no self-grading). nemotron failed as judge: it echoed the format template ("reason": "string").
+    provider: openrouter:particle-ai/particle-1:free
+
+evaluateOptions:
+  maxConcurrency: 1
+
+# Every case asserts the shape (schema.cjs). Flawed diffs must fail with a low score on the relevant criterion and
+# the judge must find each planted flaw by name. The clean diff must meet the Definition of Done (dod-gate.cjs).
+tests:
+  - description: "scores endpoint: raw token logged, validation removed, try/catch removed"
+    vars:
+      diff: file://../data/sample-1.diff
+    assert:
+      - type: javascript
+        value: file://assertions/schema.cjs
+      - type: javascript
+        value: file://assertions/flawed.cjs
+        config:
+          criterion: securitySafety
+          max: 4
+      - type: llm-rubric
+        value: The review states that the raw share token (or the caller's IP) is written to the logs via console.log and treats that as a problem.
+      - type: llm-rubric
+        value: The review states that input validation (the zod schema) was removed and that malformed or missing fields now reach the database call.
+      - type: llm-rubric
+        value: The review states that the try/catch around reading the request body was removed, so an unreadable body throws instead of returning a 400.
+
+  - description: "migration: released migration edited, new table without RLS, column dropped while the deployed app may still use it"
+    vars:
+      diff: file://fixtures/migration-released-edit.diff
+    assert:
+      - type: javascript
+        value: file://assertions/schema.cjs
+      - type: javascript
+        value: file://assertions/flawed.cjs
+        config:
+          criterion: securitySafety
+          max: 4
+      - type: llm-rubric
+        value: The review states that an already released migration (add_share_token) was edited in place instead of adding a new migration.
+      - type: llm-rubric
+        value: The review states that the new table tournament_notes has no row level security enabled and no policies.
+      - type: llm-rubric
+        value: The review states that dropping the matches.played_at column is not backward compatible, because the currently deployed app may still use it.
+
+  - description: "React island: unsanitized HTML, interval never cleared, response not checked"
+    vars:
+      diff: file://fixtures/react-island-stale.diff
+    assert:
+      - type: javascript
+        value: file://assertions/schema.cjs
+      - type: javascript
+        value: file://assertions/flawed.cjs
+        config:
+          criterion: securitySafety
+          max: 4
+      - type: llm-rubric
+        value: The review states that rendering the note prop with dangerouslySetInnerHTML is an XSS risk because the text is not sanitized.
+      - type: llm-rubric
+        value: The review states that the setInterval started in useEffect is never cleared (no cleanup), so intervals leak or stack up.
+      - type: llm-rubric
+        value: The review states that the fetch response is no longer checked (res.ok is missing or the JSON shape is not validated), so an error response breaks the component.
+
+  - description: "clean control: pointsFor addition with a test must pass the Definition of Done"
+    vars:
+      diff: file://../data/sample-2.diff
+    assert:
+      - type: javascript
+        value: file://assertions/schema.cjs
+      - type: javascript
+        value: file://assertions/dod-gate.cjs

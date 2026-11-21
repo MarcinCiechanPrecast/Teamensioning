@@ -313,7 +313,7 @@ None: no data, schema or deployed-app changes. The workflow is additive and opti
 #### Automated
 
 - [x] 3.1 Workflow is well-formed: `npx prettier --check .github/workflows/review.yml`
-- [ ] 3.2 Workflow and local action lint clean: `actionlint .github/workflows/review.yml` (Docker image `rhysd/actionlint` or the release binary)
+- [x] 3.2 Workflow and local action lint clean: `actionlint .github/workflows/review.yml` (Docker image `rhysd/actionlint` or the release binary)
 - [x] 3.3 Existing pipeline untouched: `git diff --stat -- .github/workflows/pr.yml .github/workflows/migrate.yml` prints nothing
 
 #### Manual

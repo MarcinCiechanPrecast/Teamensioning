@@ -11,7 +11,8 @@
     "review": "tsx --env-file-if-exists=.env src/cli.ts",
     "review:dry": "tsx src/cli.ts --dry-run",
     "test": "tsx --test src/*.test.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "eval": "node evals/run.mjs"
   },
   "dependencies": {
     "@openrouter/ai-sdk-provider": "^3.0.0",
@@ -20,6 +21,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "promptfoo": "^0.120.19",
     "tsx": "^4.19.0",
     "typescript": "^6.0.3"
   }

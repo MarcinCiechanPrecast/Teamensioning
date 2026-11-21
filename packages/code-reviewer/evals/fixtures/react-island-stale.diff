@@ -1,0 +1,84 @@
+diff --git a/src/components/leagues/LiveStandings.tsx b/src/components/leagues/LiveStandings.tsx
+index 5c2e1d8..e90b7a4 100644
+--- a/src/components/leagues/LiveStandings.tsx
++++ b/src/components/leagues/LiveStandings.tsx
+@@ -1,52 +1,41 @@
+-import React from "react";
++import { useEffect, useState } from "react";
+
+ interface Row {
+   playerId: string;
+   name: string;
+   points: number;
+ }
+
+ interface Props {
+   leagueId: string;
+   note: string;
+ }
+
+-interface State {
+-  rows: Row[];
+-}
+-
+-export default class LiveStandings extends React.Component<Props, State> {
+-  state: State = { rows: [] };
+-  timer: number | undefined;
+-
+-  componentDidMount() {
+-    this.load();
+-    this.timer = window.setInterval(() => this.load(), 5000);
+-  }
+-
+-  componentWillUnmount() {
+-    window.clearInterval(this.timer);
+-  }
+-
+-  async load() {
+-    const res = await fetch(`/api/leagues/${this.props.leagueId}/standings`);
+-    if (!res.ok) return;
+-    const data = (await res.json()) as { rows: Row[] };
+-    if (Array.isArray(data.rows)) this.setState({ rows: data.rows });
+-  }
+-
+-  render() {
+-    return (
+-      <div>
+-        <ul>
+-          {this.state.rows.map((row) => (
+-            <li key={row.playerId}>
+-              {row.name}: {row.points}
+-            </li>
+-          ))}
+-        </ul>
+-        <p>{this.props.note}</p>
+-      </div>
+-    );
+-  }
+-}
++export default function LiveStandings({ leagueId, note }: Props) {
++  const [rows, setRows] = useState<Row[]>([]);
++
++  useEffect(() => {
++    async function load() {
++      const res = await fetch(`/api/leagues/${leagueId}/standings`);
++      const data = await res.json();
++      setRows(data.rows);
++    }
++    load();
++    setInterval(load, 5000);
++  }, []);
++
++  return (
++    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
++      <ul>
++        {rows.map((row) => (
++          <li key={row.playerId}>
++            {row.name}: {row.points}
++          </li>
++        ))}
++      </ul>
++      <p dangerouslySetInnerHTML={{ __html: note }} />
++    </div>
++  );
++}

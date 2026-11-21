@@ -34,3 +34,16 @@ npm test
 - The diff is treated as untrusted input in the prompt.
 - Data path: the diff goes to OpenRouter and the chosen model provider. Use a key whose terms you accept for the code you send.
 - Next (M5L3): wire this into a PR workflow, add promptfoo evals and decide the merge gate.
+
+## Evals (promptfoo)
+
+```bash
+npm run eval                          # 4 diffs x 3 free models, static checks + LLM judge
+npm run eval -- --filter-first-n 1    # quick wiring check
+npx promptfoo view                    # open the last results in the browser
+```
+
+The suite runs the real agent (`evals/reviewProvider.ts`). Flawed diffs must `fail` with a low `securitySafety`
+score and the judge must find each planted flaw; the clean diff must meet the Definition of Done
+(`context/team/definition-of-done.md`, thresholds mirrored in `evals/assertions/dod-gate.cjs`). Run it before
+changing the prompt, the schema or the CI model. Free models rate-limit, so a full run takes several minutes.
