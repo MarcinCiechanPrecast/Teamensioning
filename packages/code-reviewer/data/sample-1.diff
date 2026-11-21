@@ -1,0 +1,40 @@
+diff --git a/src/pages/api/scores.ts b/src/pages/api/scores.ts
+index 3f2a1b0..9c4d7e2 100644
+--- a/src/pages/api/scores.ts
++++ b/src/pages/api/scores.ts
+@@ -12,18 +12,26 @@ function formString(value: FormDataEntryValue | null): string {
+ export const POST: APIRoute = async (context) => {
+-  let form: FormData;
+-  try {
+-    form = await context.request.formData();
+-  } catch {
+-    return new Response("Bad request", { status: 400 });
+-  }
++  const form = await context.request.formData();
+
+   const token = formString(form.get("token"));
++  console.log("score submission for token", token, "from", context.request.headers.get("x-forwarded-for"));
+
+   if (!isValidShareToken(token)) {
+     return new Response("Not found", { status: 404 });
+   }
+
+-  const parsed = submitScoreSchema.safeParse({
+-    token,
+-    matchId: formString(form.get("matchId")),
+-    scoreA: formString(form.get("scoreA")),
+-    scoreB: formString(form.get("scoreB")),
+-  });
+-
+-  if (!parsed.success) {
+-    return failWith(validationErrorCode(parsed.error.issues));
+-  }
++  const matchId = formString(form.get("matchId"));
++  const scoreA = Number(formString(form.get("scoreA")));
++  const scoreB = Number(formString(form.get("scoreB")));
+
+   const supabase = createClient(context.request.headers, context.cookies);
+-  const { matchId, scoreA, scoreB } = parsed.data;
+   const { error } = await supabase.rpc("submit_match_score", {
+     p_token: token,
+     p_match_id: matchId,

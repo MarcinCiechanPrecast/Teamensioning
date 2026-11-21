@@ -1,0 +1,32 @@
+diff --git a/supabase/migrations/20261025120000_add_share_token.sql b/supabase/migrations/20261025120000_add_share_token.sql
+index 3b1c9a2..7d44e0f 100644
+--- a/supabase/migrations/20261025120000_add_share_token.sql
++++ b/supabase/migrations/20261025120000_add_share_token.sql
+@@ -4,7 +4,7 @@
+ -- Anonymous players submit scores through a hard-to-guess token instead of an account.
+
+ alter table public.tournaments
+-  add column share_token text not null default encode(gen_random_bytes(16), 'hex');
++  add column share_token text not null default encode(gen_random_bytes(8), 'hex');
+
+ create unique index tournaments_share_token_idx on public.tournaments (share_token);
+diff --git a/supabase/migrations/20261120090000_add_tournament_notes.sql b/supabase/migrations/20261120090000_add_tournament_notes.sql
+new file mode 100644
+index 0000000..a91f0c3
+--- /dev/null
++++ b/supabase/migrations/20261120090000_add_tournament_notes.sql
+@@ -0,0 +1,14 @@
++-- Organizer notes shown on the tournament page.
++
++create table public.tournament_notes (
++  id uuid primary key default gen_random_uuid(),
++  tournament_id uuid not null references public.tournaments on delete cascade,
++  body text not null,
++  created_at timestamptz not null default now()
++);
++
++create index tournament_notes_tournament_id_idx on public.tournament_notes (tournament_id);
++
++-- The old per-match timestamp is replaced by the notes feature.
++alter table public.matches drop column played_at;
++
