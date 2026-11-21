@@ -1,6 +1,9 @@
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseArgs } from "./args.ts";
+import { parseArgs, type Options } from "./args.ts";
+import { BODY_MAX_CHARS, DIFF_MAX_CHARS, truncate } from "./limits.ts";
+import { renderComment } from "./report.ts";
 import { buildReviewPrompt, review } from "./review.ts";
 import { REVIEWER_PROMPT } from "./review-schema.ts";
 
@@ -13,21 +16,30 @@ async function readStdin(): Promise<string> {
   return Buffer.concat(chunks).toString("utf8");
 }
 
-// Piped diff wins; otherwise review a bundled sample from data/ (argument picks which one).
-async function loadDiff(sample: string): Promise<{ diff: string; source: string }> {
+// A --diff-file wins, then a piped diff, otherwise a bundled sample from data/ (the bare argument picks which).
+async function loadDiff(options: Options): Promise<{ diff: string; source: string }> {
+  if (options.diffFile !== undefined) return { diff: readFileSync(options.diffFile, "utf8"), source: options.diffFile };
   const piped = (await readStdin()).trim();
   if (piped !== "") return { diff: piped, source: "stdin" };
-  const file = new URL(`${sample}.diff`, DATA_DIR);
+  const file = new URL(`${options.sample}.diff`, DATA_DIR);
   return { diff: readFileSync(file, "utf8"), source: fileURLToPath(file) };
 }
 
 async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2), process.env);
-  const { diff, source } = await loadDiff(options.sample);
+  const loaded = await loadDiff(options);
+
+  // PR text arrives through the environment, never through the command line or a shell string.
+  const diff = truncate(loaded.diff, DIFF_MAX_CHARS);
+  const body = truncate(process.env.REVIEW_PR_BODY ?? "", BODY_MAX_CHARS);
+  const notes: string[] = [];
+  if (diff.truncated) notes.push(`Diff truncated to ${String(DIFF_MAX_CHARS)} of ${String(diff.originalLength)} characters; the rest was not reviewed.`);
+  if (body.truncated) notes.push(`PR description truncated to ${String(BODY_MAX_CHARS)} of ${String(body.originalLength)} characters.`);
+  const meta = { title: process.env.REVIEW_PR_TITLE ?? "", body: body.text };
 
   if (options.dryRun) {
-    console.error(`[dry-run] diff from ${source}, model ${options.model}; no model call is made.`);
-    console.log(`${REVIEWER_PROMPT}\n\n---\n${buildReviewPrompt(diff)}`);
+    console.error(`[dry-run] diff from ${loaded.source}, model ${options.model}; no model call is made.`);
+    console.log(`${REVIEWER_PROMPT}\n\n---\n${buildReviewPrompt(diff.text, meta)}`);
     return;
   }
 
@@ -39,8 +51,15 @@ async function main(): Promise<void> {
 
   const { createOpenRouter } = await import("@openrouter/ai-sdk-provider");
   const openrouter = createOpenRouter();
-  console.error(`Reviewing diff from ${source} with ${options.model}...`);
-  const { result, usage } = await review(diff, openrouter(options.model));
+  console.error(`Reviewing diff from ${loaded.source} with ${options.model}...`);
+  const { result, usage } = await review(diff.text, openrouter(options.model), meta);
+
+  if (options.outDir !== undefined) {
+    mkdirSync(options.outDir, { recursive: true });
+    writeFileSync(join(options.outDir, "verdict.txt"), `${result.verdict}\n`);
+    writeFileSync(join(options.outDir, "summary.md"), renderComment(result, notes));
+    writeFileSync(join(options.outDir, "result.json"), JSON.stringify(result, null, 2));
+  }
 
   console.log(JSON.stringify(result, null, 2));
   console.error(
