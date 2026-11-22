@@ -1,0 +1,58 @@
+name: AI Reviewer
+description: Run the team's code review agent (packages/code-reviewer) on a diff file and expose its verdict.
+
+# The caller owns checkout and setup-node. Every input reaches the shell through env:, never through ${{ }}
+# inside a run: body, because PR titles and bodies are attacker-controlled text.
+inputs:
+  api-key:
+    description: OpenRouter API key
+    required: true
+  model:
+    description: OpenRouter model id used for the review
+    required: true
+  diff-file:
+    description: Absolute path of the file holding the git diff to review
+    required: true
+  pr-title:
+    description: Pull request title (untrusted)
+    required: false
+    default: ""
+  pr-body:
+    description: Pull request description (untrusted)
+    required: false
+    default: ""
+
+outputs:
+  verdict:
+    description: pass or fail
+    value: ${{ steps.review.outputs.verdict }}
+  summary-file:
+    description: Path of the markdown comment body
+    value: ${{ steps.review.outputs.summary-file }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install reviewer dependencies
+      shell: bash
+      run: npm ci --prefix packages/code-reviewer
+
+    - name: Run reviewer
+      id: review
+      shell: bash
+      env:
+        OPENROUTER_API_KEY: ${{ inputs.api-key }}
+        REVIEW_MODEL: ${{ inputs.model }}
+        REVIEW_PR_TITLE: ${{ inputs.pr-title }}
+        REVIEW_PR_BODY: ${{ inputs.pr-body }}
+        DIFF_FILE: ${{ inputs.diff-file }}
+      run: |
+        OUT_DIR="$RUNNER_TEMP/ai-review"
+        npm --prefix packages/code-reviewer run review -- --diff-file "$DIFF_FILE" --out "$OUT_DIR" --model "$REVIEW_MODEL"
+        VERDICT=$(tr -d '[:space:]' < "$OUT_DIR/verdict.txt")
+        case "$VERDICT" in
+          pass | fail) ;;
+          *) echo "::error::Unexpected verdict '$VERDICT'"; exit 1 ;;
+        esac
+        echo "verdict=$VERDICT" >> "$GITHUB_OUTPUT"
+        echo "summary-file=$OUT_DIR/summary.md" >> "$GITHUB_OUTPUT"
