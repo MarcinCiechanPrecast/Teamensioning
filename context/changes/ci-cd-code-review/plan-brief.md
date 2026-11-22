@@ -58,7 +58,7 @@ action (install, run, expose `verdict`) → workflow (triggers, skips, `gh` comm
 ## Open Risks & Assumptions
 
 - The free model can rate-limit or change; a transient error should fail the job loudly, not set a label.
-- The first PR (this branch) has a large diff and will be truncated at 60000 characters.
+- The first PR (this branch) has a large diff and will be truncated at 120000 characters.
 - Creating labels and opening a PR touch the remote repository and need your go-ahead at that point.
 
 ## Success Criteria (Summary)

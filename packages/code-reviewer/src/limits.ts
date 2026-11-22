@@ -1,5 +1,5 @@
 // Output tokens dominate cost (about 3.6x the input in live runs), so CI input is capped.
-export const DIFF_MAX_CHARS = 60_000;
+export const DIFF_MAX_CHARS = 120_000;
 export const BODY_MAX_CHARS = 2_000;
 
 export interface Truncated {

@@ -43,4 +43,4 @@ Verdict: `pass` or `fail`.
 - least privilege: `contents: read`, `pull-requests: write` (comment + labels), nothing else
 - cancel superseded runs of the same PR (`concurrency`), `timeout-minutes` set, Node from `.nvmrc`
 - action refs pinned to a commit SHA for third-party actions
-- diff larger than a size cap (e.g. 60k chars) is truncated with a visible note in the comment
+- diff larger than a size cap (e.g. 120k chars) is truncated with a visible note in the comment

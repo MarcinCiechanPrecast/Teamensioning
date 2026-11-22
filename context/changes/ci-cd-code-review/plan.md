@@ -59,7 +59,7 @@ job in its last step so comment and labels are always published first.
 - **Timing & lifecycle**: labels added by the workflow with `GITHUB_TOKEN` do not trigger new runs, but a human adding
   any other label does. Use a concurrency group that includes the label name for non-`ai-cr:review` `labeled` events
   (for example `ai-review-<pr>-noise`), so those skipped runs never cancel a real review.
-- **Performance constraints**: diff capped at 60000 characters and PR body at 2000, each with a visible truncation
+- **Performance constraints**: diff capped at 120000 characters and PR body at 2000, each with a visible truncation
   notice in the comment; output tokens dominate cost.
 
 ## Phase 1: Agent ready for CI
@@ -89,7 +89,7 @@ exit code stays 0 for a `fail` verdict, 1 for runtime errors, 2 for a missing ke
 oversized input with a notice.
 
 **Contract**: `buildReviewPrompt(diff, meta?: { title?: string; body?: string })` is backward compatible (meta
-optional); `truncate(text, max)` returns `{ text, truncated, originalLength }`; limits `DIFF_MAX_CHARS = 60000`,
+optional); `truncate(text, max)` returns `{ text, truncated, originalLength }`; limits `DIFF_MAX_CHARS = 120000`,
 `BODY_MAX_CHARS = 2000`.
 
 #### 3. Comment rendering
