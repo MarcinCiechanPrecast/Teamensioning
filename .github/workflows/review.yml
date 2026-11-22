@@ -61,7 +61,8 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref }}
         run: |
-          git diff "origin/$BASE_REF...HEAD" > "$RUNNER_TEMP/pr.diff"
+          # Lockfiles are huge and unreviewable; they would eat the size cap before any real code is seen.
+          git diff "origin/$BASE_REF...HEAD" -- . ':(exclude,glob)**/package-lock.json' > "$RUNNER_TEMP/pr.diff"
           if [ -s "$RUNNER_TEMP/pr.diff" ]; then
             echo "empty=false" >> "$GITHUB_OUTPUT"
           else
